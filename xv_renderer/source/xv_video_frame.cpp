@@ -1,0 +1,34 @@
+#include <x11_app.h>
+#include <xv_video_frame.h>
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <iostream>
+
+Xv_video_frame::Xv_video_frame(int _width, int _height, int fmt, XvPortID _port, unsigned char* _yuv_data)
+	:width(_width)
+	, height(_height)
+	, format(fmt)
+	, port(_port)
+	, image(0)
+    , yuv_data(_yuv_data)
+{
+	image = XvCreateImage(X11_app::display(), port, fmt, (char *)yuv_data, width, height);
+}
+
+Xv_video_frame::~Xv_video_frame()
+{
+	XFree(image);
+	image = 0;
+}
+
+unsigned int Xv_video_frame::video_fmt(const char* fmt)
+{
+	unsigned int id = 0;
+	for (int i = strlen(fmt)-1; i >= 0 ; i--)
+	{
+		id = (id << 8)|fmt[i];
+	}
+	return id;
+}
