@@ -1,3 +1,11 @@
+/*
+ *  Copyright (C) 2011 Prem Sasidharan.
+ *
+ * This program is free software; you can redistribute it and/or 
+ * modify it under the terms of the GNU Lesser General Public License 
+ * published by the Free Software Foundation.
+*/
+
 #ifndef _BUFFER_H
 #define _BUFFER_H
 
@@ -9,6 +17,7 @@ struct Buffer_node;
 class Buffer
 {
     friend class Buffer_pool;
+
 private:
 	Buffer(unsigned int _size, unsigned int _type, unsigned int _param_size);
 	Buffer(unsigned int _size, unsigned int _type, unsigned int _param_size, void* _buffer, Buffer_pool* _pool);
