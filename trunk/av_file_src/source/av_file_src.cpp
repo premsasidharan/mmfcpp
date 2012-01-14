@@ -23,6 +23,8 @@ extern "C"
 #include <libavformat/avformat.h>
 }
 
+int av_lock_callback(void **mutex, enum AVLockOp op);
+
 const Port Av_file_src::output_port[] = {{Media::VIDEO_FFMPEG_PKT, "video"}, {Media::AUDIO_FFMPEG_PKT, "audio"}};
 
 Av_file_src::Av_file_src(const char* _name)
@@ -68,6 +70,7 @@ int Av_file_src::set_file_path(const char* path)
     file_path = new char[strlen(path)+1];
 	strcpy(file_path, path);
     
+	av_lockmgr_register(av_lock_callback);
     if (0 != fmt_ctx)
     {
         av_close_input_file(fmt_ctx);
@@ -75,7 +78,7 @@ int Av_file_src::set_file_path(const char* path)
     }
     int status = 0;
     if (0 == av_open_input_file(&fmt_ctx, file_path, 0, 0, 0))
-    {
+    { 	
         if (av_find_stream_info(fmt_ctx) < 0)
         {
             MEDIA_ERROR("Couldn't find stream information for %s", file_path);
@@ -105,7 +108,7 @@ int Av_file_src::set_file_path(const char* path)
             {
                 MEDIA_ERROR("File %s doesn't contain audio and video streams", file_path);
             }
-        }
+        }		
     }
     else
     {
@@ -265,3 +268,40 @@ Media::status Av_file_src::on_disconnect(int port, Abstract_media_object* pobj)
 	MEDIA_LOG("Thread stopped: %s", object_name());
 	return Media::ok;
 }
+
+int av_lock_callback(void **mutex_ptr, enum AVLockOp ops)
+{
+	switch (ops)
+	{
+		case AV_LOCK_CREATE:
+			{
+				*mutex_ptr = new Mutex; //	 Create a mutex.
+				//printf("\nCreate Mutex");
+			}
+			break;
+		case AV_LOCK_OBTAIN:
+			{
+				Mutex* mutex = (Mutex *) (*mutex_ptr);
+				mutex->lock(); // 	 Lock the mutex.
+				//printf("\nMutex Lock");
+			}
+			break;
+		case AV_LOCK_RELEASE:
+			{
+				Mutex* mutex = (Mutex *) (*mutex_ptr);
+				mutex->unlock(); // 	 Unlock the mutex.
+				//printf("\nMutex Unlock");
+			}
+			break;
+		case AV_LOCK_DESTROY:
+			{
+				Mutex* mutex = (Mutex *) *mutex_ptr;
+				delete mutex; //	 Free mutex resources.
+				*mutex_ptr = 0;
+				//printf("\nDestroy Mutex");
+			}
+	}
+	//fflush(stdin);
+	return 0;
+}
+
