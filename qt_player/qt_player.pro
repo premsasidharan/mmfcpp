@@ -8,8 +8,10 @@ QT       += core gui
 
 CONFIG += debug
 
-TARGET = qt_test
+TARGET = bin/qt_player
 TEMPLATE = app
+OBJECTS_DIR = obj
+MOC_DIR = obj
 
 DEFINES += __STDC_CONSTANT_MACROS
 
