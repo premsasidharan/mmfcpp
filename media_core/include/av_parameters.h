@@ -9,6 +9,7 @@
 #ifndef _AV_PARAMETERS_H
 #define _AV_PARAMETERS_H
 
+#include <mutex.h>
 #include <libavformat/avformat.h>
 
 struct Av_param

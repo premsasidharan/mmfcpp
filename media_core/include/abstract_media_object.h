@@ -99,5 +99,16 @@ private:
     Observer_node* obs_hash[Media::last_event];
 }; 
 
+Media::status start(Abstract_media_object* src, int start_time);
+Media::status start(Abstract_media_object& src, int start_time);
+Media::status stop(Abstract_media_object* src, int& end_time);
+Media::status stop(Abstract_media_object& src, int& end_time);
+Media::status pause(Abstract_media_object* src, int& end_time);
+Media::status pause(Abstract_media_object& src, int& end_time);
+Media::status connect(Abstract_media_object* src, Abstract_media_object* dest);
+Media::status connect(Abstract_media_object& src, Abstract_media_object& dest);
+Media::status disconnect(Abstract_media_object* src, Abstract_media_object* dest);
+Media::status disconnect(Abstract_media_object& src, Abstract_media_object& dest);
+
 #endif
 

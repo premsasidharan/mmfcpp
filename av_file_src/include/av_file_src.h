@@ -62,7 +62,6 @@ private:
     long long int audio_duration;
     long long int video_duration;
     
-
 	const static Port output_port[];
 };
 
