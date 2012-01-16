@@ -23,8 +23,6 @@ extern "C"
 #include <libavformat/avformat.h>
 }
 
-int av_lock_callback(void **mutex, enum AVLockOp op);
-
 const Port Av_file_src::output_port[] = {{Media::VIDEO_FFMPEG_PKT, "video"}, {Media::AUDIO_FFMPEG_PKT, "audio"}};
 
 Av_file_src::Av_file_src(const char* _name)
@@ -70,7 +68,7 @@ int Av_file_src::set_file_path(const char* path)
     file_path = new char[strlen(path)+1];
 	strcpy(file_path, path);
     
-	av_lockmgr_register(av_lock_callback);
+	av_lockmgr_register(Av_file_src::av_lock_callback);
     if (0 != fmt_ctx)
     {
         av_close_input_file(fmt_ctx);
@@ -134,7 +132,7 @@ int Av_file_src::run()
 				break;
 
 			case Media::stop:				
-				MEDIA_WARNING("%s, State: %s", object_name(), "STOP");
+				MEDIA_LOG("%s, State: %s", object_name(), "STOP");
 				cv.wait();
 				break;
 
@@ -269,7 +267,7 @@ Media::status Av_file_src::on_disconnect(int port, Abstract_media_object* pobj)
 	return Media::ok;
 }
 
-int av_lock_callback(void **mutex_ptr, enum AVLockOp ops)
+int Av_file_src::av_lock_callback(void **mutex_ptr, enum AVLockOp ops)
 {
 	switch (ops)
 	{

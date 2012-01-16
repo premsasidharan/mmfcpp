@@ -43,6 +43,7 @@ protected:
 protected:
 	int run();
 	int process_av_file();
+	static int av_lock_callback(void **mutex, enum AVLockOp op);
 
 private:
 	int is_running;

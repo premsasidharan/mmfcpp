@@ -64,6 +64,7 @@ void Media_logger::log(Media_logger::Level level, const char *fmt, ...)
 		case Media_logger::console:
 			vfprintf(stderr, fmt, argp);
             fprintf(stderr, "\n");
+			fflush(stderr);
 			break;
 
 		case Media_logger::file:

@@ -24,6 +24,7 @@ Yuv_window::Yuv_window(int x, int y, int width, int height)
     setAttribute(Qt::WA_PaintOnScreen);
 	resize(width, height);
 	port = get_xv_port();
+	connect(this, SIGNAL(update_frame()), this, SLOT(repaint()));
 }
 
 Yuv_window::~Yuv_window()
@@ -39,7 +40,7 @@ void Yuv_window::show_frame(unsigned char* _yuv, int fmt, int _width, int _heigh
 	video_width = _width;
 	video_height = _height;
 	mutex.unlock();
-	update();
+	emit update_frame();
 }
 
 void Yuv_window::paintEvent(QPaintEvent *)
@@ -71,7 +72,7 @@ XvPortID Yuv_window::get_xv_port()
 	int status = XvQueryAdaptors(QX11Info::display(), QX11Info::appRootWindow(), &count, &info);
 	for (int i = 0; i < (int)count; i++)
 	{
-		printf( "\n\tAdapter Name : %s, Port base id: 0x%x, Num of Ports: %ld\n", info[i].name, (unsigned int)info[i].base_id, info[i].num_ports);
+		printf( "\nAdapter Name : %s, Port base id: 0x%x, Num of Ports: %ld\n", info[i].name, (unsigned int)info[i].base_id, info[i].num_ports);
 		for (int j = 0; j < (int)info[j].num_ports; j++)
 		{
 			port = j+info[i].base_id;
@@ -85,5 +86,10 @@ XvPortID Yuv_window::get_xv_port()
 exit:
 	XvFreeAdaptorInfo(info);
 	return port;
+}
+
+void Yuv_window::closeEvent(QCloseEvent*)
+{
+	emit renderer_close();
 }
 
