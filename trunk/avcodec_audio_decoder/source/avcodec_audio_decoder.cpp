@@ -57,7 +57,7 @@ int Avcodec_audio_decoder::run()
 				break;
 
 			case Media::stop:				
-				MEDIA_WARNING("%s, State: %s", object_name(), "STOP");
+				MEDIA_LOG("%s, State: %s", object_name(), "STOP");
 				cv.wait();
 				break;
 
@@ -93,6 +93,7 @@ Media::status Avcodec_audio_decoder::on_stop(int end_time)
 	MEDIA_TRACE_OBJ_PARAM("%s", object_name());
 	set_state(Media::stop);
 	cv.signal();
+	MEDIA_LOG("on_stop: %s", object_name());
 	return Media::ok;
 }
 
@@ -132,31 +133,28 @@ Media::status Avcodec_audio_decoder::input_data(int port, Buffer* buffer)
 {
 	MEDIA_TRACE_OBJ_PARAM("%s", object_name()); 
     int status = 0;
-	while (status == 0)
-	{        
-		if (Media::play == get_state())
-		{
-            AVPacket* packet = (AVPacket*)buffer->data();
-			status = queue.push(packet->dts, buffer, 500);
-			MEDIA_LOG("Audio Decoder: %s, Buffer: 0x%llx, dts: %llu, pts: %llu, Status: %d", object_name(), (unsigned long long)buffer, packet->dts, buffer->pts(), status);
-		}
-		else
-		{
-            AVPacket* packet = (AVPacket *)buffer->data();
-            av_free_packet(packet); packet = 0;
-			Buffer::release(buffer);
-			sleep(1);			
-			MEDIA_ERROR("Audio Decoder: Packet received under non-play state: %s, Buffer: 0x%llx, pts: %llu", object_name(), (unsigned long long)buffer, buffer->pts());
-			return Media::non_play_state;
-		}        
-	}   
+	if (Media::play == get_state())
+	{
+    	AVPacket* packet = (AVPacket*)buffer->data();
+		status = queue.push(packet->dts, buffer, 2000);
+		MEDIA_LOG("Audio Decoder: %s, Buffer: 0x%llx, dts: %llu, pts: %llu, Status: %d", object_name(), (unsigned long long)buffer, packet->dts, buffer->pts(), status);
+	}
+	else
+	{
+    	AVPacket* packet = (AVPacket *)buffer->data();
+        av_free_packet(packet); packet = 0;
+		Buffer::release(buffer);
+		sleep(1);			
+		MEDIA_ERROR("Audio Decoder: Packet received under non-play state: %s, Buffer: 0x%llx, pts: %llu", object_name(), (unsigned long long)buffer, buffer->pts());
+		return Media::non_play_state;
+	}          
 	return Media::ok;
 }
 
 void Avcodec_audio_decoder::decode()
 {
     MEDIA_TRACE_OBJ_PARAM("%s", object_name());    
-    Buffer* buffer = queue.pop(5000);   
+    Buffer* buffer = queue.pop(2000);   
 	if (0 != buffer)
 	{
         AVPacket* packet = (AVPacket *)buffer->data();
@@ -191,15 +189,15 @@ void Avcodec_audio_decoder::decode()
             
             if (buffer->flags() & FIRST_PKT)
             {
-                MEDIA_LOG("Audio Decoder: First Packet");
+                MEDIA_LOG("Audio Decoder: %s", "First Packet");
             }
             if (buffer->flags() & LAST_PKT)
             {
-                MEDIA_LOG("Audio Decoder: Last Packet");
+                MEDIA_LOG("Audio Decoder: %s", "Last Packet");
             }
             
             push_data(0, audio_buffer);
-            MEDIA_LOG("Packet: 0x%x, size: %d, %d, %d", packet->data, packet->size, audio_frame_size, AVCODEC_MAX_AUDIO_FRAME_SIZE);
+            MEDIA_LOG("Packet: 0x%x, size: %d, %d, %d", packet->data, packet->size, frame_size, AVCODEC_MAX_AUDIO_FRAME_SIZE);
             
             if (buffer->flags() & LAST_PKT)
             {

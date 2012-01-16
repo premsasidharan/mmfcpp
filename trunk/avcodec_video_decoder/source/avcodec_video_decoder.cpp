@@ -62,7 +62,7 @@ int Avcodec_video_decoder::run()
 				break;
 
 			case Media::stop:				
-				MEDIA_WARNING("%s, State: %s", object_name(), "STOP");
+				MEDIA_LOG("%s, State: %s", object_name(), "STOP");
 				cv.wait();
 				break;
 
@@ -97,7 +97,8 @@ Media::status Avcodec_video_decoder::on_stop(int end_time)
 {
 	MEDIA_TRACE_OBJ_PARAM("%s", object_name());
 	set_state(Media::stop);
-	cv.signal();
+	cv.signal();	
+	MEDIA_LOG("on_stop: %s", object_name());
 	return Media::ok;
 }
 
@@ -134,23 +135,20 @@ Media::status Avcodec_video_decoder::input_data(int port, Buffer* buffer)
 {
 	MEDIA_TRACE_OBJ_PARAM("%s", object_name());
     int status = 0;
-	while (status == 0)
+	if (Media::play == get_state())
 	{
-		if (Media::play == get_state())
-		{
-            AVPacket* packet = (AVPacket*)buffer->data();
-			MEDIA_LOG("%s, Buffer: 0x%llx, dts: %llu, pts: %llu, Status: %d", object_name(), (unsigned long long)buffer, packet->dts, buffer->pts(), status);
-			status = queue.push(packet->dts, buffer, 500);
-		}
-		else
-		{
-            AVPacket* packet = (AVPacket *)buffer->data();
-            av_free_packet(packet); packet = 0;
-			Buffer::release(buffer);
-			sleep(1);			
-			MEDIA_ERROR("Packet received under non-play state: %s, Buffer: 0x%llx, pts: %llu", object_name(), (unsigned long long)buffer, buffer->pts());
-			return Media::non_play_state;
-		}
+        AVPacket* packet = (AVPacket*)buffer->data();
+		MEDIA_LOG("%s, Buffer: 0x%llx, dts: %llu, pts: %llu, Status: %d", object_name(), (unsigned long long)buffer, packet->dts, buffer->pts(), status);
+		status = queue.push(packet->dts, buffer, 2000);
+	}
+	else
+	{
+        AVPacket* packet = (AVPacket *)buffer->data();
+        av_free_packet(packet); packet = 0;
+		Buffer::release(buffer);
+		sleep(1);			
+		MEDIA_ERROR("Packet received under non-play state: %s, Buffer: 0x%llx, pts: %llu", object_name(), (unsigned long long)buffer, buffer->pts());
+		return Media::non_play_state;
 	}
 	return Media::ok;  
 }
@@ -158,7 +156,7 @@ Media::status Avcodec_video_decoder::input_data(int port, Buffer* buffer)
 void Avcodec_video_decoder::decode()
 {
     MEDIA_TRACE_OBJ_PARAM("%s", object_name()); 
-	Buffer* buffer = queue.pop(1000);  
+	Buffer* buffer = queue.pop(2000);  
 	if (0 != buffer)
 	{
         int flag = 0;

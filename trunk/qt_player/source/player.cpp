@@ -11,18 +11,18 @@ Player::Player(const QString path)
 {
 	if (1 == av_src.set_file_path(path.toAscii().constData()))
 	{
+		connect(&window, SIGNAL(renderer_close()), this, SLOT(on_renderer_close()));
+
         window.show();
 		::connect(av_src, video_decoder);
 		::connect(av_src, audio_decoder);
 		::connect(audio_decoder, audio_sink);
-		::connect(video_decoder, video_sink);
+		::connect(video_decoder, video_sink);	
 	}
 }
 
 Player::~Player()
 {
-	int time;
-	::stop(av_src, time);
 	::disconnect(audio_decoder, audio_sink);
 	::disconnect(video_decoder, video_sink);
 	::disconnect(av_src, audio_decoder);
@@ -38,5 +38,11 @@ int Player::stop()
 {
 	int time;
 	return ::stop(av_src, time);
+}
+
+void Player::on_renderer_close()
+{
+	int time;
+	::stop(av_src, time);
 }
 

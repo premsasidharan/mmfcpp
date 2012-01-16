@@ -26,9 +26,14 @@ public:
 public:
 	void show_frame(unsigned char* _yuv, int width, int fmt, int height);
 
+signals:
+	void update_frame();
+	void renderer_close();
+
 protected:
-    void moveEvent(QMoveEvent *);
-    void paintEvent(QPaintEvent *);
+    void moveEvent(QMoveEvent*);
+    void paintEvent(QPaintEvent*);
+	void closeEvent(QCloseEvent*);
 
 private:
 	XvPortID get_xv_port();

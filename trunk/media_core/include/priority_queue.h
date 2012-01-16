@@ -61,7 +61,10 @@ public:
 				//printf("\npush (%d), No Free Buffers, Priority: %d, Data: 0x%x", size, priority, data);
 				free_mutex.unlock();
                 used_mutex.unlock();
-                cv_free.wait();
+				if (ETIMEDOUT == cv_free.timed_wait(timeout_ms)) 
+				{
+					return 0;
+				}
                 free_mutex.lock();
                 used_mutex.lock();
 			}
@@ -111,7 +114,10 @@ public:
 			{
 				used_mutex.unlock();
                 free_mutex.unlock(); 
-				cv_used.wait(); 
+				if (ETIMEDOUT == cv_used.timed_wait(timeout_ms))
+				{
+					return 0;
+				}
                 used_mutex.lock();
                 free_mutex.lock(); 
 			}

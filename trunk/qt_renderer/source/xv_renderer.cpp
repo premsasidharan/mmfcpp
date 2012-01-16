@@ -41,7 +41,7 @@ Xv_renderer::~Xv_renderer()
 void Xv_renderer::play_video()
 {
 	MEDIA_TRACE_OBJ_PARAM("%s", object_name());
-	Buffer* buffer = queue.pop(1000);
+	Buffer* buffer = queue.pop(2000);
 	if (0 != buffer)
 	{
 		I420_param* parameter = (I420_param*) buffer->parameter();
@@ -83,7 +83,7 @@ int Xv_renderer::run()
 
 			case Media::stop:				
 				MEDIA_LOG("%s, State: %s", object_name(), "STOP");
-				stop_cv.signal();
+				//stop_cv.signal();
 				cv.wait();
 				break;
 
@@ -118,7 +118,7 @@ Media::status Xv_renderer::on_stop(int end_time)
 {
 	MEDIA_TRACE_OBJ_PARAM("%s", object_name());
 	set_state(Media::stop);
-	stop_cv.wait();
+	//stop_cv.wait();
 	MEDIA_LOG("Stop state: %s", object_name());
 	return Media::ok;
 }
@@ -152,22 +152,18 @@ Media::status Xv_renderer::on_disconnect(int port, Abstract_media_object* pobj)
 Media::status Xv_renderer::input_data(int port, Buffer* buffer)
 {
 	MEDIA_TRACE_OBJ_PARAM("%s, port: %d", object_name(), port);
-
 	int status = 0;
-	while (status == 0)
+	if (Media::play == get_state())
 	{
-		if (Media::play == get_state())
-		{
-			status = queue.push(buffer->pts(), buffer, 10000);
-			//MEDIA_ERROR("Xv_renderer: %s, Buffer: 0x%llx, pts: %llu, Status: %d", object_name(), (unsigned long long)buffer, buffer->pts(), status);
-		}
-		else
-		{
-			Buffer::release(buffer);
-			sleep(1);			
-			MEDIA_ERROR("Packet received under non-play state: %s, Buffer: 0x%llx, pts: %llu", object_name(), (unsigned long long)buffer, buffer->pts());
-			return Media::non_play_state;
-		}
+		status = queue.push(buffer->pts(), buffer, 2000);
+		MEDIA_LOG("Xv_renderer: %s, Buffer: 0x%llx, pts: %llu, Status: %d", object_name(), (unsigned long long)buffer, buffer->pts(), status);
+	}
+	else
+	{
+		Buffer::release(buffer);
+		sleep(1);			
+		MEDIA_ERROR("Packet received under non-play state: %s, Buffer: 0x%llx, pts: %llu", object_name(), (unsigned long long)buffer, buffer->pts());
+		return Media::non_play_state;
 	}
 	return Media::ok;
 }

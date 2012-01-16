@@ -58,7 +58,7 @@ int Audio_renderer::run()
 
 			case Media::stop:				
 				MEDIA_LOG("%s, State: %s", object_name(), "STOP");
-				stop_cv.signal();
+				//stop_cv.signal();
 				cv.wait();
 				break;
 
@@ -84,7 +84,7 @@ int Audio_renderer::run()
 void Audio_renderer::play_audio()
 {
 	MEDIA_TRACE_OBJ_PARAM("%s, device: %s", object_name(), device);
-	Buffer* buffer = queue.pop(5000);
+	Buffer* buffer = queue.pop(2000);
 	if (0 != buffer)
 	{
 		Pcm_param* parameter = (Pcm_param*) buffer->parameter();
@@ -166,8 +166,9 @@ Media::status Audio_renderer::on_stop(int end_time)
 {
 	MEDIA_TRACE_OBJ_PARAM("%s, device: %s", object_name(), device);
 	set_state(Media::stop);
-	stop_cv.wait();
-	MEDIA_LOG("Stop state: %s", object_name());
+	cv.signal();
+	//stop_cv.wait();
+	MEDIA_LOG("on_stop: %s", object_name());
 	return Media::ok;
 }
 
@@ -201,20 +202,17 @@ Media::status Audio_renderer::input_data(int port, Buffer* buffer)
 {
 	MEDIA_TRACE_OBJ_PARAM("%s, device: %s", object_name(), device);
 	int status = 0;
-	while (status == 0)
+	if (Media::play == get_state())
 	{
-		if (Media::play == get_state())
-		{
-			status = queue.push(buffer->pts(), buffer, 500);
-			MEDIA_LOG("%s, Buffer: 0x%llx, pts: %llu, Status: %d", object_name(), (unsigned long long)buffer, buffer->pts(), status);
-		}
-		else
-		{
-			Buffer::release(buffer);
-			sleep(1);			
-			MEDIA_WARNING("Packet received under non-play state: %s, Buffer: 0x%llx, pts: %llu", object_name(), (unsigned long long)buffer, buffer->pts());
-			return Media::non_play_state;
-		}
+		status = queue.push(buffer->pts(), buffer, 2000);
+		MEDIA_LOG("%s, Buffer: 0x%llx, pts: %llu, Status: %d", object_name(), (unsigned long long)buffer, buffer->pts(), status);
+	}
+	else
+	{
+		Buffer::release(buffer);
+		sleep(1);			
+		MEDIA_WARNING("Packet received under non-play state: %s, Buffer: 0x%llx, pts: %llu", object_name(), (unsigned long long)buffer, buffer->pts());
+		return Media::non_play_state;
 	}
 	return Media::ok;
 }

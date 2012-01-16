@@ -21,6 +21,9 @@ public:
 	int start();
 	int stop();
 
+protected slots:
+	void on_renderer_close();
+
 private:
 	Yuv_window window;
 	Av_file_src av_src;
