@@ -1,8 +1,8 @@
 /*
  *  Copyright (C) 2011 Prem Sasidharan.
  *
- * This program is free software; you can redistribute it and/or 
- * modify it under the terms of the GNU Lesser General Public License 
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public License
  * published by the Free Software Foundation.
 */
 
@@ -11,7 +11,7 @@
 
 #include <stdio.h>
 
-extern "C" 
+extern "C"
 {
 #include <libavcodec/avcodec.h>
 }
@@ -25,45 +25,44 @@ extern "C"
 class Avcodec_video_decoder:public Abstract_media_object
 {
 public:
-	friend class Thread<Avcodec_video_decoder>;
+    friend class Thread<Avcodec_video_decoder>;
 
-	Avcodec_video_decoder(const char* _name);
-	~Avcodec_video_decoder();
-
-protected:
-	Media::status on_start(int start_time);
-	Media::status on_stop(int end_time);
-	Media::status on_pause(int end_time);
-
-	Media::status on_connect(int port, Abstract_media_object* pobj);
-	Media::status on_disconnect(int port, Abstract_media_object* pobj);
-    
-	Media::status input_data(int port, Buffer* buffer);
+    Avcodec_video_decoder(const char* _name);
+    ~Avcodec_video_decoder();
 
 protected:
-	int run();
+    Media::status on_start(int start_time);
+    Media::status on_stop(int end_time);
+    Media::status on_pause(int end_time);
+
+    Media::status on_connect(int port, Abstract_media_object* pobj);
+    Media::status on_disconnect(int port, Abstract_media_object* pobj);
+
+    Media::status input_data(int port, Buffer* buffer);
+
+protected:
+    int run();
     void decode();
     void close_codec();
     int check_and_update_codec(AVCodecContext* codec_ctx);
 
 private:
-	int is_running;
-	char* file_path;
-	Condition_variable cv;
-	Thread<Avcodec_video_decoder> thread;
-	Priority_queue<unsigned long long, Buffer*> queue;
-    
+    int is_running;
+    char* file_path;
+    Condition_variable cv;
+    Thread<Avcodec_video_decoder> thread;
+    Priority_queue<unsigned long long, Buffer*> queue;
+
     AVFrame* frame;
     AVFrame *yuv_frame;
     AVCodec *video_codec;
     AVCodecContext* video_ctx;
     struct SwsContext *img_convert_ctx;
-    
+
     int frame_count;
 
-	const static Port input_port[];
-	const static Port output_port[];
+    const static Port input_port[];
+    const static Port output_port[];
 };
 
 #endif
-

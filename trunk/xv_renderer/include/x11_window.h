@@ -1,8 +1,8 @@
 /*
  *  Copyright (C) 2011 Prem Sasidharan.
  *
- * This program is free software; you can redistribute it and/or 
- * modify it under the terms of the GNU Lesser General Public License 
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public License
  * published by the Free Software Foundation.
 */
 
@@ -19,26 +19,25 @@
 class X11_window
 {
 public:
-	friend class X11_app;
+    friend class X11_app;
 
-	X11_window(int x, int y, int width, int height);
-	~X11_window();
+    X11_window(int x, int y, int width, int height);
+    ~X11_window();
 
 public:
-	void show();
-	void show_frame(unsigned char* _yuv, int width, int fmt, int height);
+    void show();
+    void show_frame(unsigned char* _yuv, int width, int fmt, int height);
 
 private:
-	void on_paint();
+    void on_paint();
 
 private:
-	XvPortID port;
-	Window window;
-	int video_width;
-	int video_height;
-	unsigned int format;
-	unsigned char* yuv_data;
+    XvPortID port;
+    Window window;
+    int video_width;
+    int video_height;
+    unsigned int format;
+    unsigned char* yuv_data;
 };
 
 #endif
-
