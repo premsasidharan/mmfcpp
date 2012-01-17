@@ -1,8 +1,8 @@
 /*
  *  Copyright (C) 2011 Prem Sasidharan.
  *
- * This program is free software; you can redistribute it and/or 
- * modify it under the terms of the GNU Lesser General Public License 
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public License
  * published by the Free Software Foundation.
 */
 
@@ -15,20 +15,20 @@
 class Media_logger
 {
 public:
-	enum Level {console, file};
-	~Media_logger() {};
+    enum Level {console, file};
+    ~Media_logger() {};
 
-	static Media_logger& instance();
-	void log(Level _level, const char *fmt, ...);
-
-private:
-	Media_logger();
-	Media_logger(const Media_logger& logger) {};
-	Media_logger operator=(const Media_logger& logger) { return *this; };
-	void set_log_file_path(const char* _path);
+    static Media_logger& instance();
+    void log(Level _level, const char *fmt, ...);
 
 private:
-	char path[MAX_CHARS_LOG_FILE_PATH];
+    Media_logger();
+    Media_logger(const Media_logger& logger) {};
+    Media_logger operator=(const Media_logger& logger) { return *this; };
+    void set_log_file_path(const char* _path);
+
+private:
+    char path[MAX_CHARS_LOG_FILE_PATH];
 };
 
 #ifdef MEDIA_TRACE_CONSOLE
@@ -43,4 +43,3 @@ private:
 #endif
 
 #endif
-

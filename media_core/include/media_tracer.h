@@ -1,8 +1,8 @@
 /*
  *  Copyright (C) 2011 Prem Sasidharan.
  *
- * This program is free software; you can redistribute it and/or 
- * modify it under the terms of the GNU Lesser General Public License 
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public License
  * published by the Free Software Foundation.
 */
 
@@ -21,21 +21,21 @@
 class Media_tracer
 {
 public:
-	Media_tracer(const char* _func_name, const char* _class_name);
+    Media_tracer(const char* _func_name, const char* _class_name);
     Media_tracer(const char* _func_name, const char* _class_name, const char *fmt, ...);
-	~Media_tracer();
+    ~Media_tracer();
 
 private:
-	double elapsed_time();
+    double elapsed_time();
 
 private:
-	const char* func_name;
-	const char* class_name;
+    const char* func_name;
+    const char* class_name;
 
-	struct timeval end;
-	struct timeval start;
-    
-	char arg_string[MAX_ARG_STRING_LENGTH];
+    struct timeval end;
+    struct timeval start;
+
+    char arg_string[MAX_ARG_STRING_LENGTH];
 };
 
 #if defined(MEDIA_TRACE_CONSOLE) || defined(MEDIA_TRACE_FILE)
@@ -52,4 +52,3 @@ private:
 #endif
 
 #endif
-
