@@ -61,27 +61,27 @@ void Media_logger::log(Media_logger::Level level, const char *fmt, ...)
 
     switch (level)
     {
-    case Media_logger::console:
-        vfprintf(stderr, fmt, argp);
-        fprintf(stderr, "\n");
-        fflush(stderr);
-        break;
+        case Media_logger::console:
+            vfprintf(stderr, fmt, argp);
+            fprintf(stderr, "\n");
+            fflush(stderr);
+            break;
 
-    case Media_logger::file:
-    {
-        FILE* file = fopen(path, "a+");
-        if (0 == file)
-        {
-            fprintf(stderr, "File logging failed at %s", path);
-        }
-        else
-        {
-            vfprintf(file, fmt, argp);
-            fprintf(file, "\n");
-            fclose(file);
-        }
-    }
-    break;
+        case Media_logger::file:
+            {
+                FILE* file = fopen(path, "a+");
+                if (0 == file)
+                {
+                    fprintf(stderr, "File logging failed at %s", path);
+                }
+                else
+                {
+                    vfprintf(file, fmt, argp);
+                    fprintf(file, "\n");
+                    fclose(file);
+                }
+            }
+            break;
     }
     va_end(argp);
 }
