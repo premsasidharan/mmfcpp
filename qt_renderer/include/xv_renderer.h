@@ -1,8 +1,8 @@
 /*
  *  Copyright (C) 2011 Prem Sasidharan.
  *
- * This program is free software; you can redistribute it and/or 
- * modify it under the terms of the GNU Lesser General Public License 
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public License
  * published by the Free Software Foundation.
 */
 
@@ -20,36 +20,35 @@
 class Xv_renderer:public Abstract_media_object
 {
 public:
-	friend class Thread<Xv_renderer>;
+    friend class Thread<Xv_renderer>;
 
-	Xv_renderer(const char* _name, Yuv_window* _window);
-	~Xv_renderer();
+    Xv_renderer(const char* _name, Yuv_window* _window);
+    ~Xv_renderer();
 
 protected:
-	int run();
+    int run();
 
-	Media::status on_start(int start_time);
-	Media::status on_stop(int end_time);
-	Media::status on_pause(int end_time);
+    Media::status on_start(int start_time);
+    Media::status on_stop(int end_time);
+    Media::status on_pause(int end_time);
 
-	Media::status on_connect(int port, Abstract_media_object* pobj);
-	Media::status on_disconnect(int port, Abstract_media_object* pobj);
+    Media::status on_connect(int port, Abstract_media_object* pobj);
+    Media::status on_disconnect(int port, Abstract_media_object* pobj);
 
-	Media::status input_data(int port, Buffer* buffer);
+    Media::status input_data(int port, Buffer* buffer);
 
-	void play_video();
+    void play_video();
 
 private:
-	Buffer* prev;
-	int is_running;
-	Yuv_window* window;
-	Condition_variable cv;
-	Condition_variable stop_cv;
-	Thread<Xv_renderer> thread;
-	Priority_queue<unsigned long long, Buffer*> queue;
+    Buffer* prev;
+    int is_running;
+    Yuv_window* window;
+    Condition_variable cv;
+    Condition_variable stop_cv;
+    Thread<Xv_renderer> thread;
+    Priority_queue<unsigned long long, Buffer*> queue;
 
-	const static Port input_port[];
+    const static Port input_port[];
 };
 
 #endif
-

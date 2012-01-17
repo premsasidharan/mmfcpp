@@ -1,8 +1,8 @@
 /*
  *  Copyright (C) 2011 Prem Sasidharan.
  *
- * This program is free software; you can redistribute it and/or 
- * modify it under the terms of the GNU Lesser General Public License 
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public License
  * published by the Free Software Foundation.
 */
 
@@ -20,36 +20,35 @@
 class Wave_file_src:public Abstract_media_object
 {
 public:
-	friend class Thread<Wave_file_src>;
+    friend class Thread<Wave_file_src>;
 
-	Wave_file_src(const char* _name);
-	~Wave_file_src();
+    Wave_file_src(const char* _name);
+    ~Wave_file_src();
 
 public:
-	int set_file_path(const char* path);
+    int set_file_path(const char* path);
 
 protected:
-	Media::status on_start(int start_time);
-	Media::status on_stop(int end_time);
-	Media::status on_pause(int end_time);
+    Media::status on_start(int start_time);
+    Media::status on_stop(int end_time);
+    Media::status on_pause(int end_time);
 
-	Media::status on_connect(int port, Abstract_media_object* pobj);
-	Media::status on_disconnect(int port, Abstract_media_object* pobj);
+    Media::status on_connect(int port, Abstract_media_object* pobj);
+    Media::status on_disconnect(int port, Abstract_media_object* pobj);
 
 protected:
-	int run();
-	void process_wave_file();
+    int run();
+    void process_wave_file();
 
 private:
-	int is_running;
-	Wave_file file;
-	int packet_size;
-	int packet_count;
-	Condition_variable cv;
-	Thread<Wave_file_src> thread;
+    int is_running;
+    Wave_file file;
+    int packet_size;
+    int packet_count;
+    Condition_variable cv;
+    Thread<Wave_file_src> thread;
 
-	const static Port output_port[];
+    const static Port output_port[];
 };
 
 #endif
-
