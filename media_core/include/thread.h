@@ -26,8 +26,8 @@ protected:
     static void* thread_func(void* ptr);
     
 private:
-    Thread(const Thread& thread) {};
-    Thread& operator=(const Thread& thread) { return *this; };
+    Thread(const Thread& thread) { (void)thread; };
+    Thread& operator=(const Thread& thread) { (void)thread; return *this; };
 
 private:
     pthread_t _thread;
