@@ -24,8 +24,8 @@ private:
     ~Buffer();
 
     //Prevent copy
-    Buffer(const Buffer& buf) {}; 
-    Buffer& operator=(const Buffer& buf) { return *this; };
+    Buffer(const Buffer& buf) { (void)buf; }; 
+    Buffer& operator=(const Buffer& buf) { (void)buf; return *this; };
 
 public:
     unsigned int get_buffer_size() const { return size; };
