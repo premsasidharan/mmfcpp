@@ -63,7 +63,7 @@ protected:
     virtual Media::status on_connect(int port, Abstract_media_object* pobj) = 0;
     virtual Media::status on_disconnect(int port, Abstract_media_object* pobj) = 0;
 
-    virtual Media::status input_data(int port, Buffer* buffer) { return Media::not_implemented; };
+    virtual Media::status input_data(int port, Buffer* buffer) { (void)port; (void)buffer; return Media::not_implemented; };
 
     virtual Media::status notify(Media::events event, Media_params& params);
 
@@ -80,8 +80,8 @@ protected:
     Media::status create_output_ports(const Port* ports, int port_count);
 
 private:
-    Abstract_media_object(const Abstract_media_object& obj) {};
-    Abstract_media_object& operator=(const Abstract_media_object& obj) { return *this; };
+    Abstract_media_object(const Abstract_media_object& obj) { (void)obj; };
+    Abstract_media_object& operator=(const Abstract_media_object& obj) { (void)obj; return *this; };
 
     Media::status private_start(int start_time);
     Media::status private_stop(int& end_time);

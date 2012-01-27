@@ -23,8 +23,8 @@ public:
 
 private:
     Media_logger();
-    Media_logger(const Media_logger& logger) {};
-    Media_logger operator=(const Media_logger& logger) { return *this; };
+    Media_logger(const Media_logger& logger) { (void)logger; };
+    Media_logger operator=(const Media_logger& logger) { (void)logger; return *this; };
     void set_log_file_path(const char* _path);
 
 private:
