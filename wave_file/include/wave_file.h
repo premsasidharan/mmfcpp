@@ -11,14 +11,14 @@ public:
     virtual ~Wave_file();
 
 public:
-    int data_size() const { return hdr.wave.data_size; };
+    int frames_count() const;
     int sample_rate() const { return hdr.wave.params.sample_rate; };
     int channel_count() const { return hdr.wave.params.num_channels; };
     int bits_per_sample() const { return hdr.wave.params.bits_per_sample; };
+    int frame_size() const { return hdr.wave.params.num_channels*(hdr.wave.params.bits_per_sample/8); };
 
 public:
     int is_eof();
-    int seek(long offset, int whence);
     virtual void close() = 0;
 
 protected:

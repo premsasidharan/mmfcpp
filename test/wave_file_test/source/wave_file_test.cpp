@@ -34,7 +34,7 @@ void read_test(char* path)
     Read_wave_file file;
     if (file.open(path))
     {
-        int size = file.channel_count()*(file.bits_per_sample()/8)*1024;
+        int size = file.frame_size()*1024;
         unsigned char* buffer = new unsigned char[size];
         int count = 0, size_read = 0;
         while (0 == file.is_eof())
@@ -46,7 +46,7 @@ void read_test(char* path)
         printf("\nSample rate: %d", file.sample_rate());
         printf("\nChannel count: %d", file.channel_count());
         printf("\nBits per sample: %d", file.bits_per_sample());
-        printf("\nData size: %d", file.data_size());
+        printf("\nTotal frames: %d", file.frames_count());
         file.close();
         delete [] buffer;
         buffer = 0;
@@ -58,12 +58,12 @@ void write_test(char* path)
     Write_wave_file file;
     if (file.open(path, 44100, 2, 16))
     {
-        unsigned char* buffer = new unsigned char[44100*2*2];
-        for (int i = 0; i < 44100*2*2; i++)
+        unsigned char* buffer = new unsigned char[1024*file.frame_size()];
+        for (int i = 0; i < 1024*file.frame_size(); i++)
         {
             buffer[i] = rand()%128;
         }
-        file.write(buffer, 44100*2*2);
+        file.write(buffer, 1024);
         file.close();
         delete [] buffer;
         buffer = 0;
