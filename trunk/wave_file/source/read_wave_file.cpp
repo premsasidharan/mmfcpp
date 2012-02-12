@@ -39,23 +39,32 @@ void Read_wave_file::close()
     close_file();
 }
 
-int Read_wave_file::read(unsigned char* buffer, int buf_size, int& size)
+int Read_wave_file::read(unsigned char* buffer, int buff_size, int& frames_read)
 {
-    if (0 == file || buf_size == 0)
+    if (0 == file ||
+        0 == buff_size ||
+        0 == frame_size())
     {
-        size = 0;
+        frames_read = 0;
         return 0;
     }
-    if (feof(file))
+    if (feof(file) || ferror(file))
     {
-        size = 0;
+        frames_read = 0;
         return 0;
     }
-    if (ferror(file))
+    int size = frame_size();
+    int bytes = (buff_size/size)*size;
+    frames_read = fread(buffer, 1, bytes, file)/size;        
+    return 1;
+}
+
+int Read_wave_file::seek(long offset, int whence)
+{
+    if (0 == file)
     {
-        size = 0;
         return 0;
     }
-    size = fread(buffer, 1, buf_size, file);        
+    fseek(file, offset, whence);
     return 1;
 }

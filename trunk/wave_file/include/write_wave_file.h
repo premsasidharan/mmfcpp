@@ -11,7 +11,7 @@ public:
 
 public:
     int open(char* path, int sample_rate, int channels, int bits_per_sample);
-    int write(unsigned char* buffer, int size);
+    int write(unsigned char* buffer, int frames);
     void close();
 
 };

@@ -11,7 +11,8 @@ public:
 
 public:
     int open(const char* path);
-    int read(unsigned char* buffer, int buf_size, int& size);
+    int read(unsigned char* buffer, int buff_size, int& frames_read);
+    int seek(long offset, int whence);
     void close();
 
 };

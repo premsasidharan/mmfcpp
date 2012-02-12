@@ -29,12 +29,12 @@ int Wave_file::is_eof()
     return (0 != feof(file));
 }
 
-int Wave_file::seek(long offset, int whence)
+int Wave_file::frames_count() const
 {
-    if (0 == file)
+    int size = frame_size();
+    if (0 == size)
     {
         return 0;
     }
-    fseek(file, offset, whence);
-    return 1;
+    return (hdr.wave.data_size/size); 
 }

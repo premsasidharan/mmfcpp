@@ -44,13 +44,16 @@ int Write_wave_file::open(char* path, int sample_rate, int channels, int bits_pe
     return 1;
 }
 
-int Write_wave_file::write(unsigned char* buffer, int size)
+int Write_wave_file::write(unsigned char* buffer, int frames)
 {
-    if (0 == file || 0 == size)
+    if (0 == file ||
+        0 == frames ||
+        0 == frame_size())
     {
         return 0;
     }
     int bytes = 0;
+    int size = frames*frame_size();
     unsigned char* ptr = 0;
     do
     {
