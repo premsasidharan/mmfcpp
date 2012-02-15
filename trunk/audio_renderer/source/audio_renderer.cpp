@@ -84,7 +84,7 @@ int Audio_renderer::run()
 void Audio_renderer::play_audio()
 {
     MEDIA_TRACE_OBJ_PARAM("%s, device: %s", object_name(), device);
-    Buffer* buffer = queue.pop(2000);
+    Buffer* buffer = queue.pop(500);
     if (0 != buffer)
     {
         Pcm_param* parameter = (Pcm_param*) buffer->parameter();
@@ -204,13 +204,13 @@ Media::status Audio_renderer::input_data(int port, Buffer* buffer)
     int status = 0;
     if (Media::play == get_state())
     {
-        status = queue.push(buffer->pts(), buffer, 2000);
+        status = queue.push(buffer->pts(), buffer, 500);
         MEDIA_LOG("%s, Buffer: 0x%llx, pts: %llu, Status: %d", object_name(), (unsigned long long)buffer, buffer->pts(), status);
     }
     else
     {
         Buffer::release(buffer);
-        sleep(1);
+        //sleep(1);
         MEDIA_WARNING("Packet received under non-play state: %s, Buffer: 0x%llx, pts: %llu", object_name(), (unsigned long long)buffer, buffer->pts());
         return Media::non_play_state;
     }

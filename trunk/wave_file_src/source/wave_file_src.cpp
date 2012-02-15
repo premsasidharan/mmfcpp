@@ -16,7 +16,7 @@
 #include <media_debug.h>
 #include <wave_file_src.h>
 
-const Port Wave_file_src::output_port[] = {{Media::AUDIO_PCM/*, 0*/, "pcm"}};
+const Port Wave_file_src::output_port[] = {{Media::AUDIO_PCM, "pcm"}};
 
 Wave_file_src::Wave_file_src(const char* _name)
     :Abstract_media_object(_name)
@@ -87,7 +87,7 @@ void Wave_file_src::process_wave_file()
     MEDIA_TRACE_OBJ_PARAM("%s", object_name());
     int data_size = 0;
     Buffer* buffer = Buffer::request(packet_size, Media::AUDIO_PCM, sizeof(Pcm_param));
-    if (file.read(buffer->data(), packet_size, data_size))
+    if (file.read((unsigned char*)buffer->data(), packet_size, data_size))
     {
         data_size *= file.frame_size();
         buffer->set_pts(packet_count++);
