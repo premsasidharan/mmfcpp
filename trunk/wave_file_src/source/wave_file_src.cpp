@@ -21,7 +21,6 @@ const Port Wave_file_src::output_port[] = {{Media::AUDIO_PCM/*, 0*/, "pcm"}};
 Wave_file_src::Wave_file_src(const char* _name)
     :Abstract_media_object(_name)
     , is_running(0)
-    , file(0)
     , packet_size(0)
     , packet_count(0)
 {
@@ -39,7 +38,7 @@ int Wave_file_src::set_file_path(const char* path)
     MEDIA_TRACE_OBJ_PARAM("%s, Path: %s", object_name(), path);
     if (1 == file.open(path))
     {
-        packet_size = 1024*file.channels()*(file.bits_per_sample()/8);
+        packet_size = 1024*file.frame_size();
         return 1;
     }
     return 0;
@@ -88,35 +87,44 @@ void Wave_file_src::process_wave_file()
     MEDIA_TRACE_OBJ_PARAM("%s", object_name());
     int data_size = 0;
     Buffer* buffer = Buffer::request(packet_size, Media::AUDIO_PCM, sizeof(Pcm_param));
-    data_size = file.read((char*)buffer->data(), packet_size);
-    buffer->set_pts(packet_count++);
-    buffer->set_data_size(data_size);
-
-    Pcm_param* param = (Pcm_param *) buffer->parameter();
-    param->channel_count = file.channels();
-    param->samples_per_sec = file.samples_per_second();
-    param->avg_bytes_per_sec = file.average_bytes_per_second();
-    param->bits_per_sample = file.bits_per_sample();
-
-    if (packet_count == 1)
+    if (file.read(buffer->data(), packet_size, data_size))
     {
-        buffer->set_flags(FIRST_PKT);
-    }
-    if (data_size != packet_size)
-    {
-        buffer->set_flags(LAST_PKT);
-        file.close();
+        data_size *= file.frame_size();
+        buffer->set_pts(packet_count++);
+        buffer->set_data_size(data_size);
+
+        Pcm_param* param = (Pcm_param *) buffer->parameter();
+        param->channel_count = file.channel_count();
+        param->samples_per_sec = file.sample_rate();
+        param->avg_bytes_per_sec = file.sample_rate()*file.channel_count()*(file.bits_per_sample()/8);
+        param->bits_per_sample = file.bits_per_sample();
+
+        if (packet_count == 1)
+        {
+            buffer->set_flags(FIRST_PKT);
+        }
+        if (data_size != packet_size)
+        {
+            buffer->set_flags(LAST_PKT);
+            file.close();
+        }
+        else
+        {
+            buffer->set_flags(0);
+        }
+        MEDIA_WARNING("%s, channels: %d, samples_per_sec: %d, bits_per_sample: %d, Buff_size: %d", object_name(), file.channel_count(), file.sample_rate(), file.bits_per_sample(), data_size);
+        push_data(0, buffer);
+
+        if (data_size != packet_size)
+        {
+            set_state(Media::stop);
+        }
     }
     else
     {
-        buffer->set_flags(0);
-    }
-    MEDIA_WARNING("%s, channels: %d, samples_per_sec: %d, bits_per_sample: %d, Buff_size: %d", object_name(), file.channels(), file.samples_per_second(), file.bits_per_sample(), data_size);
-    push_data(0, buffer);
-
-    if (data_size != packet_size)
-    {
-        set_state(Media::stop);
+        Buffer::release(buffer);
+        buffer = 0;
+        MEDIA_ERROR("%s, File read failed", object_name());
     }
 }
 

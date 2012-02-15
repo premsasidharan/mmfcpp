@@ -13,7 +13,7 @@
 
 #include <media.h>
 #include <thread.h>
-#include <wave_file.h>
+#include <read_wave_file.h>
 #include <pcm_parameters.h>
 #include <abstract_media_object.h>
 
@@ -42,9 +42,9 @@ protected:
 
 private:
     int is_running;
-    Wave_file file;
     int packet_size;
     int packet_count;
+    Read_wave_file file;
     Condition_variable cv;
     Thread<Wave_file_src> thread;
 
