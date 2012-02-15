@@ -26,6 +26,10 @@ Abstract_media_object::Abstract_media_object(const char* _name)
         input[i] = 0;
         output[i] = 0;
     }
+    for (int i = 0; i < Media::last_event; i++)
+    {
+        obs_hash[i] = 0;
+    }
 }
 
 Abstract_media_object::~Abstract_media_object()
@@ -77,13 +81,13 @@ Media::status Abstract_media_object::create_input_port(const Port* port)
     Media::status status = Media::max_ports_reached;
     if (input_count < MAX_PORTS)
     {
-        Media_params params;
+        //Media_params params;
         input[input_count] = new _Port;
         memcpy(&(input[input_count]->port), port, sizeof(Port));
         input[input_count]->object = 0;
-        params.port = &(input[input_count]->port);
+        //params.port = &(input[input_count]->port);
         input_count++;
-        notify(Media::input_port_created, params);
+        notify(Media::input_port_created/*, params*/);
         status = Media::ok;
     }
     return status;
@@ -95,13 +99,13 @@ Media::status Abstract_media_object::create_output_port(const Port* port)
     Media::status status = Media::max_ports_reached;
     if (output_count < MAX_PORTS)
     {
-        Media_params params;
+        //Media_params params;
         output[output_count] = new _Port;
         memcpy(&(output[output_count]->port), port, sizeof(Port));
         output[output_count]->object = 0;
-        params.port = &(output[output_count]->port);
+        //params.port = &(output[output_count]->port);
         output_count++;
-        notify(Media::output_port_created, params);
+        notify(Media::output_port_created/*, params*/);
         status = Media::ok;
     }
     return status;
@@ -461,12 +465,15 @@ Media::status Abstract_media_object::attach(Media::events event, Observer* obs)
         {
             obs_hash[event] = new_node;
         }
-        while (0 != node)
+        else
         {
-            prev = node;
-            node = node->link;
+            while (0 != node)
+            {
+                prev = node;
+                node = node->link;
+            }
+            prev->link = new_node;
         }
-        prev->link = new_node;
     }
     obs_hash_lock.unlock();
     return status;
@@ -518,13 +525,14 @@ Media::status Abstract_media_object::detach(Media::events event, Observer* obs)
     return status;
 }
 
-Media::status Abstract_media_object::notify(Media::events event, Media_params& params)
+Media::status Abstract_media_object::notify(Media::events event/*, Media_params& params*/)
 {
     obs_hash_lock.lock();
     Observer_node* node = obs_hash[event];
     while (0 != node)
     {
-        node->observer->event_handler(event, this, params);
+        node->observer->event_handler(event, this/*, params*/);
+        node = node->link;
     }
     obs_hash_lock.unlock();
     return Media::ok;

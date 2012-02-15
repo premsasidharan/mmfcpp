@@ -12,7 +12,7 @@ AR = ar
 
 LIBS = -lpthread -lm -lsupc++
 
-CFLAGS = -ffloat-store -Wall $(INCDIR) -D __USE_LARGEFILE64 -D _FILE_OFFSET_BITS=64 $(GLOBALCOMPFLAGS)
+CFLAGS = -g -ffloat-store -Wall $(INCDIR) -D __USE_LARGEFILE64 -D _FILE_OFFSET_BITS=64 $(GLOBALCOMPFLAGS)
 
 LIB_MEDIA_CORE = libmedia_core.a
 

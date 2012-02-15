@@ -18,12 +18,13 @@ CC = g++
 
 LIBS = -lpthread -lm -lsupc++ -L../../media_core/lib -lmedia_core -lrt -lasound
 
-CFLAGS = -ffloat-store -Wall $(INCDIR) -D__USE_LARGEFILE64 -D_FILE_OFFSET_BITS=64 $(GLOBALCOMPFLAGS)
+CFLAGS = -g -ffloat-store -Wall $(INCDIR) -D__USE_LARGEFILE64 -D_FILE_OFFSET_BITS=64 $(GLOBALCOMPFLAGS)
 
 SRC=../../wave_file_src/source/wave_file_src.cpp \
 	../../wave_file/source/wave_file.cpp \
 	../../wave_file/source/read_wave_file.cpp \
 	../../audio_renderer/source/audio_renderer.cpp \
+	source/audio_player.cpp \
 	source/audio_test.cpp
 
 OBJ = $(foreach file,$(SRC),$(OBJDIR)/$(strip $(basename $(notdir $(file)))).o)
@@ -48,7 +49,7 @@ $(OBJDIR)/%.o:source/%.cpp
 	@mkdir -p $(OBJDIR)
 	@$(CC) -c -o $@ $(CFLAGS) $<
 
-all: default
+all: media_core default
 
 #dependencies:
 #	@echo "" >dependencies
@@ -61,8 +62,12 @@ default: $(OBJ)
 	@echo '... done'
 	@echo
 
+media_core:
+	@make -C ../../media_core -f libmedia_core.mk
+
 clean:
 	@echo remove all objects
+	@make -C ../../media_core -f libmedia_core.mk clean
 	rm -rf $(OBJDIR)
 	rm $(BIN)
 
