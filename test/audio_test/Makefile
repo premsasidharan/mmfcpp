@@ -1,27 +1,44 @@
 DEPEND = dependencies
 
 BINDIR = bin
-INCDIR = -I./../../wave_file/include/ -I./../../wave_file/include/ -Iinclude -Isource -Iobj
+INCDIR = -I../../media_core/include \
+		 -I../../wave_file/include \
+		 -I../../wave_file_src/include \
+		 -I../../audio_renderer/include \
+		 -Iinclude \
+		 -Isource \
+		 -Iobj
+
 SRCDIR = source
-BIN_NAME = wave_file_test
+BIN_NAME = audio_test
 OBJDIR = $(BIN_NAME).obj
 BIN = $(BINDIR)/$(BIN_NAME)
 
 CC = g++
 
-LIBS = -lpthread -lm -lsupc++ -lrt -lasound
+LIBS = -lpthread -lm -lsupc++ -L../../media_core/lib -lmedia_core -lrt -lasound
 
-CFLAGS = -g -ffloat-store $(INCDIR) -D__USE_LARGEFILE64 -D_FILE_OFFSET_BITS=64 $(GLOBALCOMPFLAGS)
-# -g -Wall -DMEDIA_TRACE_FILE
+CFLAGS = -ffloat-store -Wall $(INCDIR) -D__USE_LARGEFILE64 -D_FILE_OFFSET_BITS=64 $(GLOBALCOMPFLAGS)
 
-SRC=./../../wave_file/source/wave_file.cpp \
-	./../../wave_file/source/read_wave_file.cpp \
-	./../../wave_file/source/write_wave_file.cpp \
-	source/wave_file_test.cpp
+SRC=../../wave_file_src/source/wave_file_src.cpp \
+	../../wave_file/source/wave_file.cpp \
+	../../wave_file/source/read_wave_file.cpp \
+	../../audio_renderer/source/audio_renderer.cpp \
+	source/audio_test.cpp
 
 OBJ = $(foreach file,$(SRC),$(OBJDIR)/$(strip $(basename $(notdir $(file)))).o)
 
 $(OBJDIR)/%.o:../../wave_file/source/%.cpp
+	@echo 'compiling object file "$@" ...'
+	@mkdir -p $(OBJDIR)
+	@$(CC) -c -o $@ $(CFLAGS) $<
+
+$(OBJDIR)/%.o:../../wave_file_src/source/%.cpp
+	@echo 'compiling object file "$@" ...'
+	@mkdir -p $(OBJDIR)
+	@$(CC) -c -o $@ $(CFLAGS) $<
+
+$(OBJDIR)/%.o:../../audio_renderer/source/%.cpp
 	@echo 'compiling object file "$@" ...'
 	@mkdir -p $(OBJDIR)
 	@$(CC) -c -o $@ $(CFLAGS) $<
