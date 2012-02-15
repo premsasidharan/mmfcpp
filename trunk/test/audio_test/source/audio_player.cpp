@@ -18,15 +18,14 @@ int Audio_player::wait()
     return cv.wait();
 }
 
-int Audio_player::stop()
+int Audio_player::stop(int& time)
 {
-    int time = 0;
     return ::stop(src, time);
 }
 
-int Audio_player::start()
+int Audio_player::start(int time)
 {
-    return ::start(src, 0);
+    return ::start(src, time);
 }
 
 int Audio_player::set_file_path(const char* path)

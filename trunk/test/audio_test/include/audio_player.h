@@ -12,8 +12,8 @@ public:
     
 public:
     int wait();
-    int stop();
-    int start();
+    int stop(int& time);
+    int start(int time);
     
     int set_file_path(const char* path);
     
