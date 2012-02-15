@@ -65,7 +65,7 @@ protected:
 
     virtual Media::status input_data(int port, Buffer* buffer) { (void)port; (void)buffer; return Media::not_implemented; };
 
-    virtual Media::status notify(Media::events event, Media_params& params);
+    virtual Media::status notify(Media::events event/*, Media_params& params*/);
 
 protected:
     Media::state get_state();

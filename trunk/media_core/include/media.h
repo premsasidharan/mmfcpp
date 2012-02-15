@@ -55,6 +55,8 @@ namespace Media
     {
         input_port_created = 0,
         output_port_created = 1,
+        first_pkt_rendered = 2,
+        last_pkt_rendered = 3,
         last_event,
     };
 };

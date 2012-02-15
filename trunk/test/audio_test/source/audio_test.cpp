@@ -10,29 +10,25 @@
 #include <stdlib.h>
 #include <unistd.h>
 
-#include <wave_file_src.h>
-#include <audio_renderer.h>
+#include <audio_player.h>
 
 int main(int argc, char** argv)
 {
     int time = 0;
     MEDIA_TRACE();
-    Wave_file_src src("wave");
-    Audio_renderer sink("alsa", "default");
 
     if (argc < 2)
     {
         printf("\n\tInsufficien arguments\n");
         exit(0);
     }
-
-    if (1 == src.set_file_path(argv[1]))
+    
+    Audio_player player;
+    if (1 == player.set_file_path(argv[1]))
     {
-        connect(&src, &sink);
-        start(&src, 0);
-        sleep(10);
-        stop(&src, time);
-        disconnect(&src, &sink);
+        player.start();
+        player.wait();
+        player.stop();
     }
     else
     {

@@ -107,12 +107,13 @@ void Wave_file_src::process_wave_file()
         {
             buffer->set_flags(LAST_PKT);
             file.close();
+            MEDIA_WARNING("%s, last packet", object_name());
         }
         else
         {
             buffer->set_flags(0);
         }
-        MEDIA_WARNING("%s, channels: %d, samples_per_sec: %d, bits_per_sample: %d, Buff_size: %d", object_name(), file.channel_count(), file.sample_rate(), file.bits_per_sample(), data_size);
+        //MEDIA_WARNING("%s, channels: %d, samples_per_sec: %d, bits_per_sample: %d, Buff_size: %d", object_name(), file.channel_count(), file.sample_rate(), file.bits_per_sample(), data_size);
         push_data(0, buffer);
 
         if (data_size != packet_size)
