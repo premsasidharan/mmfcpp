@@ -51,8 +51,7 @@ private:
     Node* rear_used;
     Node* front_used;
 
-    Mutex free_mutex;
-    Mutex used_mutex;
+    Mutex mutex;
     Condition_variable cv_free;
     Condition_variable cv_used;
 };
@@ -86,22 +85,19 @@ int Priority_queue<Priority, Type>::push(Priority priority, Type data, int timeo
 {
     Node* node = 0;
     MEDIA_TRACE_OBJ_PARAM("Priority: %d, Type: %d, timeout: %d", priority, data, timeout_ms);
-    free_mutex.lock();
-    used_mutex.lock();
+    mutex.lock();
     while (1)
     {
         node = front_free;
         if (node == 0)
         {
             //printf("\npush (%d), No Free Buffers, Priority: %d, Data: 0x%x", size, priority, data);
-            free_mutex.unlock();
-            used_mutex.unlock();
+            mutex.unlock();
             if (ETIMEDOUT == cv_free.timed_wait(timeout_ms))
             {
                 return 0;
             }
-            free_mutex.lock();
-            used_mutex.lock();
+            mutex.lock();
         }
         else
         {
@@ -131,8 +127,7 @@ int Priority_queue<Priority, Type>::push(Priority priority, Type data, int timeo
     ++used_count;
     --free_count;
 
-    used_mutex.unlock();
-    free_mutex.unlock();
+    mutex.unlock();
     cv_used.signal();
     return 1;
 }
@@ -142,21 +137,18 @@ Type Priority_queue<Priority, Type>::pop(int timeout_ms)
 {
     Node* node = 0;
     MEDIA_TRACE_OBJ();
-    used_mutex.lock();
-    free_mutex.lock();
+    mutex.lock();
     while (1)
     {
         node = front_used;
         if (node == 0)
         {
-            used_mutex.unlock();
-            free_mutex.unlock();
+            mutex.unlock();
             if (ETIMEDOUT == cv_used.timed_wait(timeout_ms))
             {
                 return 0;
             }
-            used_mutex.lock();
-            free_mutex.lock();
+            mutex.lock();
         }
         else
         {
@@ -193,8 +185,7 @@ Type Priority_queue<Priority, Type>::pop(int timeout_ms)
 
     ++free_count;
     --used_count;
-    free_mutex.unlock();
-    used_mutex.unlock();
+    mutex.unlock();
     cv_free.signal();
     return data;
 }
@@ -202,8 +193,7 @@ Type Priority_queue<Priority, Type>::pop(int timeout_ms)
 template <typename Priority, typename Type>
 void Priority_queue<Priority, Type>::print_queue()
 {
-    free_mutex.lock();
-    used_mutex.lock();
+    mutex.lock();
     Node* node = front_free;
     printf("\nFree List max (%d)", size);
     if (0 == node)
@@ -234,8 +224,7 @@ void Priority_queue<Priority, Type>::print_queue()
         }
         printf("0x%x (%d)", node->data, node->priority);
     }
-    used_mutex.unlock();
-    free_mutex.unlock();
+    mutex.unlock();
 }
 
 template <typename Priority, typename Type>
