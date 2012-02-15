@@ -14,9 +14,7 @@
 
 int main(int argc, char** argv)
 {
-    int time = 0;
     MEDIA_TRACE();
-
     if (argc < 2)
     {
         printf("\n\tInsufficien arguments\n");
@@ -26,9 +24,10 @@ int main(int argc, char** argv)
     Audio_player player;
     if (1 == player.set_file_path(argv[1]))
     {
-        player.start();
+        int time = 0;
+        player.start(0);
         player.wait();
-        player.stop();
+        player.stop(time);
     }
     else
     {
