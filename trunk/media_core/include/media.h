@@ -36,7 +36,8 @@ namespace Media
         no_free_port = -9,
         not_connected = -10,
         invalid_event = -11,
-        max_ports_reached = -12
+        max_ports_reached = -12,
+        null_object = -13,
     };
 
     enum type

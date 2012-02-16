@@ -143,7 +143,9 @@ void Audio_renderer::play_audio()
                 error = snd_pcm_close(pcm_handle);
                 pcm_handle = 0;
             }
-            notify(Media::last_pkt_rendered);
+            Media_params params;
+            memset(&params, 0, sizeof(Media_params));
+            notify(Media::last_pkt_rendered, params);
         }
 
         Buffer::release(buffer);

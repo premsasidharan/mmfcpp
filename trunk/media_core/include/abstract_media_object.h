@@ -9,6 +9,8 @@
 #ifndef _ABSTRACT_MEDIA_OBJECT_H
 #define _ABSTRACT_MEDIA_OBJECT_H
 
+#include <map>
+
 #include <media.h>
 #include <mutex.h>
 #include <buffer.h>
@@ -65,7 +67,7 @@ protected:
 
     virtual Media::status input_data(int port, Buffer* buffer) { (void)port; (void)buffer; return Media::not_implemented; };
 
-    virtual Media::status notify(Media::events event/*, Media_params& params*/);
+    virtual Media::status notify(Media::events event, Media_params& params);
 
 protected:
     Media::state get_state();
@@ -93,10 +95,10 @@ private:
     int output_count;
     Mutex state_lock;
     Media::state state;
-    Mutex obs_hash_lock;
+    Mutex obs_map_lock;
     _Port* input[MAX_PORTS];
     _Port* output[MAX_PORTS];
-    Observer_node* obs_hash[Media::last_event];
+    std::multimap<Media::events, Observer*> obs_map;
 };
 
 Media::status start(Abstract_media_object* src, int start_time);

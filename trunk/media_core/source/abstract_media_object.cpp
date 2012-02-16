@@ -26,10 +26,6 @@ Abstract_media_object::Abstract_media_object(const char* _name)
         input[i] = 0;
         output[i] = 0;
     }
-    for (int i = 0; i < Media::last_event; i++)
-    {
-        obs_hash[i] = 0;
-    }
 }
 
 Abstract_media_object::~Abstract_media_object()
@@ -81,13 +77,13 @@ Media::status Abstract_media_object::create_input_port(const Port* port)
     Media::status status = Media::max_ports_reached;
     if (input_count < MAX_PORTS)
     {
-        //Media_params params;
+        Media_params params;
         input[input_count] = new _Port;
         memcpy(&(input[input_count]->port), port, sizeof(Port));
         input[input_count]->object = 0;
-        //params.port = &(input[input_count]->port);
+        params.port = &(input[input_count]->port);
         input_count++;
-        notify(Media::input_port_created/*, params*/);
+        notify(Media::input_port_created, params);
         status = Media::ok;
     }
     return status;
@@ -99,13 +95,13 @@ Media::status Abstract_media_object::create_output_port(const Port* port)
     Media::status status = Media::max_ports_reached;
     if (output_count < MAX_PORTS)
     {
-        //Media_params params;
+        Media_params params;
         output[output_count] = new _Port;
         memcpy(&(output[output_count]->port), port, sizeof(Port));
         output[output_count]->object = 0;
-        //params.port = &(output[output_count]->port);
+        params.port = &(output[output_count]->port);
         output_count++;
-        notify(Media::output_port_created/*, params*/);
+        notify(Media::output_port_created, params);
         status = Media::ok;
     }
     return status;
@@ -452,88 +448,75 @@ Media::status disconnect(Abstract_media_object& src, Abstract_media_object& dest
 
 Media::status Abstract_media_object::attach(Media::events event, Observer* obs)
 {
-    Media::status status = Media::invalid_event;
-    obs_hash_lock.lock();
-    if (event < Media::last_event)
+    int found = 0;
+    Media::status status = Media::ok;
+    std::multimap<Media::events, Observer*>::iterator itr;
+    std::pair<std::multimap<Media::events, Observer*>::iterator, std::multimap<Media::events, Observer*>::iterator> ret;
+    if (0 == obs)
     {
-        Observer_node* new_node = (Observer_node *) malloc(sizeof(Observer_node));
-        new_node->observer = obs;
-        new_node->link = 0;
-        Observer_node* prev = 0;
-        Observer_node* node = obs_hash[event];
-        if (0 == node)
+        return Media::null_object;
+    }
+    obs_map_lock.lock();
+    ret = obs_map.equal_range(event);
+    for (itr = ret.first; itr != ret.second; ++itr)
+    {
+        if (obs == itr->second)
         {
-            obs_hash[event] = new_node;
-        }
-        else
-        {
-            while (0 != node)
-            {
-                prev = node;
-                node = node->link;
-            }
-            prev->link = new_node;
+            found = 1;
+            break;
         }
     }
-    obs_hash_lock.unlock();
+    if (0 == found)
+    {
+        obs_map.insert(std::pair<Media::events, Observer*>(event, obs));
+    }
+    obs_map_lock.unlock();
     return status;
 }
 
 Media::status Abstract_media_object::detach(Media::events event, Observer* obs)
 {
-    Media::status status = Media::invalid_event;
-    obs_hash_lock.lock();
-    if (event < Media::last_event)
+    int found = 0;
+    Media::status status = Media::ok;
+    std::multimap<Media::events, Observer*>::iterator itr;
+    std::pair<std::multimap<Media::events, Observer*>::iterator, std::multimap<Media::events, Observer*>::iterator> ret;
+    obs_map_lock.lock();
+    ret = obs_map.equal_range(event);
+    for (itr = ret.first; itr != ret.second; ++itr)
     {
-        Observer_node* prev = 0;
-        Observer_node* node = obs_hash[event];
-        if (0 == node)
+        if (obs == itr->second)
         {
-            status = Media::invalid_object;
-        }
-        else
-        {
-            while (0 != node && node->observer != obs)
-            {
-                prev = node;
-                node = node->link;
-            }
-            if (node != 0)
-            {
-                if (0 == prev)
-                {
-                    obs_hash[event] = node->link;
-                    node->link = 0;
-                    free(node);
-                    node = 0;
-                }
-                else
-                {
-                    prev->link = node->link;
-                    node->link = 0;
-                    free(node);
-                    node = 0;
-                }
-            }
-            else
-            {
-                status = Media::invalid_object;
-            }
+            found = 1;
+            break;
         }
     }
-    obs_hash_lock.unlock();
+    if (found)
+    {
+        obs_map.erase(itr);
+    }
+    else
+    {
+        status = Media::invalid_object;
+    }
+    obs_map_lock.unlock();
     return status;
 }
 
-Media::status Abstract_media_object::notify(Media::events event/*, Media_params& params*/)
+Media::status Abstract_media_object::notify(Media::events event, Media_params& params)
 {
-    obs_hash_lock.lock();
-    Observer_node* node = obs_hash[event];
-    while (0 != node)
+    Observer* obs = 0;
+    std::multimap<Media::events, Observer*>::iterator itr;
+    std::pair<std::multimap<Media::events, Observer*>::iterator, std::multimap<Media::events, Observer*>::iterator> ret;
+    obs_map_lock.lock();
+    ret = obs_map.equal_range(event);
+    for (itr = ret.first; itr != ret.second; ++itr)
     {
-        node->observer->event_handler(event, this/*, params*/);
-        node = node->link;
+        obs = itr->second;
+        if (0 != obs)
+        {
+            obs->event_handler(event, this, params);
+        }
     }
-    obs_hash_lock.unlock();
+    obs_map_lock.unlock();
     return Media::ok;
 }
