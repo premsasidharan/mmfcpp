@@ -25,6 +25,9 @@ public:
     Audio_renderer(const char* _name, const char* _device);
     ~Audio_renderer();
 
+public:
+	int current_frame() const;
+
 protected:
     int run();
     void play_audio();
@@ -48,7 +51,10 @@ private:
     Thread<Audio_renderer> thread;
     Priority_queue<unsigned long long, Buffer*> queue;
 
+	mutable Mutex frame_count_mutex;
+
     int error;
+	int frame_count;
     unsigned int channels;
     unsigned int bits_per_sample;
     unsigned int samples_per_sec;
