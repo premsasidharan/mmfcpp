@@ -38,10 +38,16 @@ int Wave_file_src::set_file_path(const char* path)
     MEDIA_TRACE_OBJ_PARAM("%s, Path: %s", object_name(), path);
     if (1 == file.open(path))
     {
+		packet_count = 0;
         packet_size = 1024*file.frame_size();
         return 1;
     }
     return 0;
+}
+
+int Wave_file_src::get_total_frames() const
+{
+	return file.frames_count();
 }
 
 int Wave_file_src::run()
@@ -99,21 +105,13 @@ void Wave_file_src::process_wave_file()
         param->avg_bytes_per_sec = file.sample_rate()*file.channel_count()*(file.bits_per_sample()/8);
         param->bits_per_sample = file.bits_per_sample();
 
-        if (packet_count == 1)
-        {
-            buffer->set_flags(FIRST_PKT);
-        }
+        buffer->set_flags((packet_count == 1)?FIRST_PKT:0);
         if (data_size != packet_size)
         {
-            buffer->set_flags(LAST_PKT);
+            buffer->set_flags(buffer->flags()|LAST_PKT);
             file.close();
             MEDIA_WARNING("%s, last packet", object_name());
         }
-        else
-        {
-            buffer->set_flags(0);
-        }
-        //MEDIA_WARNING("%s, channels: %d, samples_per_sec: %d, bits_per_sample: %d, Buff_size: %d", object_name(), file.channel_count(), file.sample_rate(), file.bits_per_sample(), data_size);
         push_data(0, buffer);
 
         if (data_size != packet_size)

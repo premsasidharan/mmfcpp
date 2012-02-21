@@ -26,6 +26,7 @@ public:
     ~Wave_file_src();
 
 public:
+	int get_total_frames() const;
     int set_file_path(const char* path);
 
 protected:

@@ -24,6 +24,7 @@ Audio_renderer::Audio_renderer(const char* _name, const char* _device)
     , pcm_handle(0)
     , queue(10)
     , error(-1)
+	, frame_count(0)
     , channels(0)
     , bits_per_sample(0)
     , samples_per_sec(0)
@@ -87,6 +88,13 @@ void Audio_renderer::play_audio()
     Buffer* buffer = queue.pop(500);
     if (0 != buffer)
     {
+		if (buffer->flags() & FIRST_PKT)
+        {
+			frame_count_mutex.lock();
+			frame_count = 0;
+			frame_count_mutex.unlock();
+		}
+
         Pcm_param* parameter = (Pcm_param*) buffer->parameter();
         //MEDIA_ERROR(": %s, Buffer: %llx, pts: %llu State: %s", object_name(),
         //	(unsigned long long)buffer, buffer->pts(), "PLAY");
@@ -119,6 +127,9 @@ void Audio_renderer::play_audio()
         if (error >= 0)
         {
             unsigned int samples = buffer->get_data_size()/(channels*(bits_per_sample/8));
+			frame_count_mutex.lock();
+			frame_count += samples;
+			frame_count_mutex.unlock();
             if (samples > 0)
             {
                 error = snd_pcm_writei(pcm_handle, buffer->data(), samples);
@@ -242,3 +253,13 @@ snd_pcm_format_t Audio_renderer::format(unsigned int bits_per_sample)
     }
     return fmt;
 }
+
+int Audio_renderer::current_frame() const
+{
+	int frame = 0;
+	frame_count_mutex.lock();
+	frame = frame_count;
+	frame_count_mutex.unlock();
+	return frame;
+}
+
