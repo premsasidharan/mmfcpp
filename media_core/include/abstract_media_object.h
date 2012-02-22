@@ -54,6 +54,8 @@ public:
 
     friend Media::status connect(Abstract_media_object* src, Abstract_media_object* dest);
     friend Media::status connect(Abstract_media_object& src, Abstract_media_object& dest);
+    friend Media::status connect(Abstract_media_object* src, char* src_port, Abstract_media_object* dest, char* dest_port);
+    friend Media::status connect(Abstract_media_object& src, char* src_port, Abstract_media_object& dest, char* dest_port);
     friend Media::status disconnect(Abstract_media_object* src, Abstract_media_object* dest);
     friend Media::status disconnect(Abstract_media_object& src, Abstract_media_object& dest);
 
@@ -109,6 +111,8 @@ Media::status pause(Abstract_media_object* src, int& end_time);
 Media::status pause(Abstract_media_object& src, int& end_time);
 Media::status connect(Abstract_media_object* src, Abstract_media_object* dest);
 Media::status connect(Abstract_media_object& src, Abstract_media_object& dest);
+Media::status connect(Abstract_media_object* src, char* src_port, Abstract_media_object* dest, char* dest_port);
+Media::status connect(Abstract_media_object& src, char* src_port, Abstract_media_object& dest, char* dest_port);
 Media::status disconnect(Abstract_media_object* src, Abstract_media_object* dest);
 Media::status disconnect(Abstract_media_object& src, Abstract_media_object& dest);
 

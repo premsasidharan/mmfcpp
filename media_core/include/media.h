@@ -49,7 +49,8 @@ namespace Media
         VIDEO_FFMPEG_PKT = VIDEO_MASK|0x005,
 
         AUDIO_PCM = AUDIO_MASK|0x001,
-        AUDIO_FFMPEG_PKT = AUDIO_MASK|0x002
+        AUDIO_DEINT_PCM = AUDIO_MASK|0x002,
+        AUDIO_FFMPEG_PKT = AUDIO_MASK|0x003
     };
 
     enum events

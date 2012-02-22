@@ -11,16 +11,22 @@
 Audio_player::Audio_player(QObject* parent)
     :QObject(parent)
     , src("wave")
-    , sink("alsa", "default")
+    , cloner("audio_cloner")
+    , deinter("deinterleaver")
+    , audio_sink("alsa", "default")
 {
-    ::connect(src, sink);
-    sink.attach(Media::last_pkt_rendered, this);
+    ::connect(src, cloner);
+    ::connect(cloner, "pcm", audio_sink, "pcm");
+    ::connect(cloner, "sample_pcm", deinter, "pcm");
+    audio_sink.attach(Media::last_pkt_rendered, this);
 }
 
 Audio_player::~Audio_player()
 {
-    sink.detach(Media::last_pkt_rendered, this);
-    ::disconnect(src, sink);
+    audio_sink.detach(Media::last_pkt_rendered, this);
+    ::disconnect(src, cloner);
+    ::disconnect(cloner, deinter);
+    ::disconnect(cloner, audio_sink);
 }
 
 int Audio_player::stop(int& time)
@@ -46,10 +52,10 @@ int Audio_player::event_handler(Media::events event, Abstract_media_object* obj,
 
 int Audio_player::duration() const
 {
-    return src.get_total_frames();
+    return src.duration();
 }
 
 int Audio_player::current_position() const
 {
-    return sink.current_frame();
+    return audio_sink.current_position();
 }

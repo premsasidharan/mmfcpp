@@ -45,9 +45,14 @@ int Wave_file_src::set_file_path(const char* path)
     return 0;
 }
 
-int Wave_file_src::get_total_frames() const
+int Wave_file_src::duration() const
 {
-	return file.frames_count();
+    int frame_rate = file.sample_rate();
+	if (0 != frame_rate)
+    {
+        return (int)(100000.0*((double)file.frames_count()/(double)frame_rate));
+    }
+    return 0;
 }
 
 int Wave_file_src::run()

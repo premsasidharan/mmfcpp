@@ -387,6 +387,72 @@ Media::status connect(Abstract_media_object* src, Abstract_media_object* dest)
     return Media::ok;
 }
 
+Media::status connect(Abstract_media_object* src, char* src_port, Abstract_media_object* dest, char* dest_port)
+{
+    if (src == 0 || dest == 0)
+    {
+        MEDIA_ERROR("Invalid Source or Destination, (Source: 0x%llx, Dest: 0x%llx)", (unsigned long long)src, (unsigned long long)dest);
+        return Media::invalid_object;
+    }
+    MEDIA_TRACE_PARAM("(%s, %s) - (%s, %s)", src->object_name(), src_port, dest->object_name(), dest_port);
+    
+    unsigned int dest_type;
+    int i, src_i, dest_i;
+    for (i = 0; i < dest->input_count; i++)
+    {
+        if (dest->input[i]->object != 0)
+        {
+            continue;
+        }
+        if (strcmp(dest_port, dest->input[i]->port.port_name) == 0)
+        {
+            break;
+        }
+    }
+    if (i >= dest->input_count)
+    {
+        MEDIA_ERROR("No Free port in dest object: 0x%llx", (unsigned long long)dest);
+        return Media::no_free_port;
+    }
+    dest_i = i;
+    dest_type = dest->input[i]->port.type;
+    
+    for (i = 0; i < src->output_count; i++)
+    {
+        if (src->output[i]->object != 0)
+        {
+            continue;
+        }
+        if (strcmp(src_port, src->output[i]->port.port_name) == 0
+            && src->output[i]->port.type == dest_type)
+        {
+            break;
+        }
+    }
+    if (i >= src->output_count)
+    {
+        MEDIA_ERROR("No Free port in src object: 0x%llx", (unsigned long long)src);
+        return Media::no_free_port;
+    }
+    src_i = i;
+
+    src->output[src_i]->object = dest;
+    src->output[src_i]->port_index = dest_i;
+
+    dest->input[dest_i]->object = src;
+    dest->input[dest_i]->port_index = src_i;
+
+    src->on_connect(dest_i, dest);
+    dest->on_connect(src_i, src);
+    
+    return Media::ok;
+}
+
+Media::status connect(Abstract_media_object& src, char* src_port, Abstract_media_object& dest, char* dest_port)
+{
+    return connect(&src, src_port, &dest, dest_port);
+}
+
 Media::status connect(Abstract_media_object& src, Abstract_media_object& dest)
 {
     return connect(&src, &dest);

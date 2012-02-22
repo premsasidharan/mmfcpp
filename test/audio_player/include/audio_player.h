@@ -13,6 +13,8 @@
 
 #include <wave_file_src.h>
 #include <audio_renderer.h>
+#include <audio_deinterleaver.h>
+#include <audio_sample_cloner.h>
 
 class Audio_player:public QObject, public Observer
 {
@@ -22,7 +24,6 @@ public:
     ~Audio_player();
 
 public:
-    int wait();
     int stop(int& time);
     int start(int time);
 
@@ -34,7 +35,9 @@ public:
 
 private:
     Wave_file_src src;
-    Audio_renderer sink;
+    Audio_sample_cloner cloner;
+    Audio_deinterleaver deinter;
+    Audio_renderer audio_sink;
 };
 
 #endif
