@@ -24,6 +24,8 @@ INCLUDEPATH += /usr/include/ \
          	   ../../wave_file/include \
          	   ../../media_core/include \
                ../../wave_file_src/include \
+               ../../audio_sample_cloner/include \
+               ../../audio_deinterleaver/include \
                ../../audio_renderer/include
 
 FORMS = forms/player_window.ui
@@ -34,6 +36,8 @@ LIBS += -L/usr/lib -lpthread -lm -lsupc++ -lrt -lasound \
 SOURCES += ../../wave_file_src/source/wave_file_src.cpp \
 		   ../../wave_file/source/wave_file.cpp \
 	       ../../wave_file/source/read_wave_file.cpp \
+	       ../../audio_sample_cloner/source/audio_sample_cloner.cpp \
+	       ../../audio_deinterleaver/source/audio_deinterleaver.cpp \
 	       ../../audio_renderer/source/audio_renderer.cpp \
 		   source/audio_player.cpp \
 	       source/player_window.cpp \

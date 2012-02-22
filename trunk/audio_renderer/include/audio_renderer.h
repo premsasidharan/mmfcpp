@@ -26,7 +26,7 @@ public:
     ~Audio_renderer();
 
 public:
-	int current_frame() const;
+	int current_position() const;
 
 protected:
     int run();
@@ -51,10 +51,10 @@ private:
     Thread<Audio_renderer> thread;
     Priority_queue<unsigned long long, Buffer*> queue;
 
-	mutable Mutex frame_count_mutex;
+	mutable Mutex mutex;
 
     int error;
-	int frame_count;
+	double curr_time;
     unsigned int channels;
     unsigned int bits_per_sample;
     unsigned int samples_per_sec;

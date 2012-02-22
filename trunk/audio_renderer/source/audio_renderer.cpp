@@ -6,6 +6,7 @@
  * published by the Free Software Foundation.
 */
 
+#include <math.h>
 #include <errno.h>
 #include <stdlib.h>
 #include <unistd.h>
@@ -24,7 +25,7 @@ Audio_renderer::Audio_renderer(const char* _name, const char* _device)
     , pcm_handle(0)
     , queue(10)
     , error(-1)
-	, frame_count(0)
+	, curr_time(0.0)
     , channels(0)
     , bits_per_sample(0)
     , samples_per_sec(0)
@@ -90,9 +91,9 @@ void Audio_renderer::play_audio()
     {
 		if (buffer->flags() & FIRST_PKT)
         {
-			frame_count_mutex.lock();
-			frame_count = 0;
-			frame_count_mutex.unlock();
+			mutex.lock();
+			curr_time = 0.0;
+			mutex.unlock();
 		}
 
         Pcm_param* parameter = (Pcm_param*) buffer->parameter();
@@ -127,9 +128,9 @@ void Audio_renderer::play_audio()
         if (error >= 0)
         {
             unsigned int samples = buffer->get_data_size()/(channels*(bits_per_sample/8));
-			frame_count_mutex.lock();
-			frame_count += samples;
-			frame_count_mutex.unlock();
+			mutex.lock();
+			curr_time += (100000.0*((double)samples/(double)samples_per_sec));
+			mutex.unlock();
             if (samples > 0)
             {
                 error = snd_pcm_writei(pcm_handle, buffer->data(), samples);
@@ -254,12 +255,11 @@ snd_pcm_format_t Audio_renderer::format(unsigned int bits_per_sample)
     return fmt;
 }
 
-int Audio_renderer::current_frame() const
+int Audio_renderer::current_position() const
 {
-	int frame = 0;
-	frame_count_mutex.lock();
-	frame = frame_count;
-	frame_count_mutex.unlock();
-	return frame;
+	int time = 0;
+	mutex.lock();
+	time = ceil(curr_time);
+	mutex.unlock();
+	return time;
 }
-
