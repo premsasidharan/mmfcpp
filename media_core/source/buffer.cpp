@@ -18,31 +18,69 @@ Buffer::Buffer(unsigned int _size, unsigned int _type, unsigned int _param_size)
     :size(_size)
     , data_size(0)
     , data_type(_type)
+    , data_flag(0)
     , param_size(_param_size)
+    , param(0)
     , buffer(0)
-    , index(0)
-    , pool(0)
+    , ref_count(1)
+    , parent(0)
 {
-    buffer = malloc(size+param_size);
+    buffer = malloc(size);
+    param = malloc(param_size);
 }
 
-Buffer::Buffer(unsigned int _size, unsigned int _type, unsigned int _param_size, void* _buffer, Buffer_pool* _pool)
+Buffer::Buffer(unsigned int start, unsigned int _size, unsigned int _type, unsigned int _param_size, Buffer* buff)
     :size(_size)
     , data_size(0)
     , data_type(_type)
+    , data_flag(0)
     , param_size(_param_size)
-    , buffer(_buffer)
-    , pool(_pool)
+    , param(0)
+    , buffer(0)
+    , ref_count(1)
+    , parent(buff)
 {
+    param = malloc(param_size);
+    buffer = buff->buffer+start;
 }
 
 Buffer::~Buffer()
 {
-    if (0 == pool)
+    if (0 == parent)
     {
         free(buffer);
         buffer = 0;
     }
+    free(param);
+    param = 0;
+}
+
+int Buffer::reference_count() const
+{
+    int count;
+    mutex.lock();
+    count = ref_count+children.size();
+    mutex.unlock();
+    return count;
+}
+
+Buffer* Buffer::split(unsigned int _start, unsigned int _size, unsigned int _type, unsigned int _param_size)
+{
+    Buffer* buff = 0;
+    if ((_start+_size) > size)
+    {
+        return 0;
+    }
+    mutex.lock();
+    if ((ref_count+children.size()) == 0)
+    {
+        mutex.unlock();
+        return 0;
+    }
+    buff = new Buffer(_start, _size, _type, _param_size, this);
+    children.insert(buff);
+    mutex.unlock();
+    return buff;
 }
 
 Buffer* Buffer::request(unsigned int _size, unsigned int _type, unsigned int _param_size)
@@ -53,176 +91,60 @@ Buffer* Buffer::request(unsigned int _size, unsigned int _type, unsigned int _pa
 
 void Buffer::release(Buffer* buffer)
 {
-    Buffer_pool* pool = buffer->pool;
-    if (0 == pool)
+    buffer->mutex.lock();
+    if (buffer->ref_count < 1)
     {
+        MEDIA_ERROR("Error Buffer::release. Invalid reference count: %d\n", buffer->ref_count);
+        buffer->mutex.unlock();
+        return;
+    }
+    --buffer->ref_count;
+    if (0 == (buffer->ref_count+buffer->children.size()))
+    {
+        if (0 != buffer->parent)
+        {
+            Buffer::release(buffer->parent, buffer);
+        }
+        buffer->mutex.unlock();
         delete buffer;
+        buffer = 0;
     }
     else
     {
-        pool->release_buffer(buffer);
+        buffer->mutex.unlock();
     }
 }
 
-Buffer_pool::Buffer_pool(unsigned int _pool_size, unsigned int buffer_size, unsigned int param_size, unsigned int type)
-    :memory(0)
-    , pool_size(_pool_size)
-    , buffer(0)
-    , rear_free(0)
-    , front_free(0)
-    , rear_used(0)
-    , front_used(0)
+void Buffer::release(Buffer*parent, Buffer* child)
 {
-    buffer = new Buffer*[pool_size];
-    memory = (void *) malloc(pool_size*(buffer_size+param_size));
-    for (int i = 0; i < (int)pool_size; i++)
+    parent->mutex.lock();
+    parent->children.erase(child);
+    if (0 == (parent->ref_count+parent->children.size()))
     {
-        buffer[i] = new Buffer(buffer_size, type, param_size, (void*)((unsigned long long)memory+(i*(buffer_size+param_size))), this);
-        buffer[i]->index = i;
-        buffer[i]->is_used = 0;
-        if (i >= 1)
+        if (0 != parent->parent)
         {
-            buffer[i-1]->next = buffer[i];
-            buffer[i]->prev = buffer[i-1];
+            Buffer::release(parent->parent, parent);
         }
+        parent->mutex.unlock();
+        delete parent;
+        parent = 0;
     }
-    front_free = buffer[0];
-    rear_free = buffer[pool_size-1];
-    front_used = rear_used = 0;
-}
-
-Buffer_pool::~Buffer_pool()
-{
-    free(memory);
-    memory = 0;
-
-    for (int i = 0; i < (int)pool_size; i++)
+    else
     {
-        delete buffer[i];
-        buffer[i] = 0;
-    }
-
-    delete [] buffer;
-    buffer = 0;
-}
-
-Buffer* Buffer_pool::request_buffer()
-{
-    if (1 == wait_for_free_buffer())
-    {
-        mutex.lock();
-        Buffer* node = 0;
-        if (front_free == rear_free)
-        {
-            node = front_free;
-            front_free = rear_free = 0;
-        }
-        else
-        {
-            node = front_free;
-            front_free = front_free->next;
-            node->next = 0;
-            front_free->prev = 0;
-        }
-        if (rear_used == 0)
-        {
-            rear_used = front_used = node;
-        }
-        else
-        {
-            rear_used->next = node;
-            node->prev = rear_used;
-            rear_used = node;
-        }
-        mutex.unlock();
-        node->is_used = 1;
-        return node;
-    }
-    return 0;
-}
-
-int Buffer_pool::wait_for_free_buffer()
-{
-    int status = 0;
-    do
-    {
-        mutex.lock();
-        status = (front_free == 0);
-        mutex.unlock();
-        if (status)
-        {
-            cv.wait();
-        }
-        else
-        {
-            break;
-        }
-    }
-    while (1);
-
-    return 1;
-}
-
-void Buffer_pool::release_buffer(Buffer* _buffer)
-{
-    int flag = 0;
-    mutex.lock();
-    if (buffer[_buffer->index] == _buffer)
-    {
-        if (front_used == _buffer)
-        {
-            front_used = _buffer->next;
-            if (0 == front_used)
-            {
-                rear_used = 0;
-            }
-            else
-            {
-                front_used->prev = 0;
-                _buffer->next = 0;
-            }
-        }
-        else if (rear_used == _buffer)
-        {
-            rear_used = _buffer->prev;
-            _buffer->prev = 0;
-        }
-        else
-        {
-            (_buffer->prev)->next = _buffer->next;
-            (_buffer->next)->prev = _buffer->prev;
-            _buffer->next = _buffer->prev = 0;
-        }
-        _buffer->is_used = 0;
-        if (rear_free == 0)
-        {
-            rear_free = front_free = _buffer;
-            flag = 1;
-        }
-        else
-        {
-            rear_free->next = _buffer;
-            _buffer->prev = rear_free;
-            rear_free = _buffer;
-        }
-    }
-    mutex.unlock();
-    if (flag)
-    {
-        cv.signal();
+        parent->mutex.unlock();
     }
 }
 
-void Buffer_pool::print_status()
+void Buffer::print(int level)
 {
-    printf("\n\tPool: memory: %lx, buffer_size: %d, pool_size: %d, buffer: %lx, rear_free: %lx, front_free: %lx, rear_used: %lx, front_used: %lx",
-           (unsigned long)memory, buffer[0]->size, pool_size, (unsigned long)buffer, (unsigned long)rear_free,
-           (unsigned long)front_free, (unsigned long)rear_used, (unsigned long)front_used);
-    for (int i = 0; i < (int)pool_size; i++)
+    printf("\nBuffer, level: %d, data: 0x%llx, param: 0x%llx, ref_count: %d"
+           ", children: %d, this: 0x%llx, parent: 0x%llx", 
+        level, (unsigned long long)buffer, (unsigned long long)param, 
+        reference_count(), (int)children.size(), (unsigned long long)this, 
+        (unsigned long long)parent);
+    for (std::set<Buffer*>::iterator itr = children.begin();
+        itr != children.end(); itr++)
     {
-        printf("\n\tIndex: %d, is_used: %d, data_size: %d, buffer: %lx, current: %lx, prev: %lx, next: %lx, pool: %lx",
-               buffer[i]->index, buffer[i]->is_used, buffer[i]->data_size, (unsigned long)buffer[i]->buffer, (unsigned long)buffer[i],
-               (unsigned long)buffer[i]->prev, (unsigned long)buffer[i]->next, (unsigned long)buffer[i]->pool);
+        (*itr)->print(level+1);
     }
-    printf("\n");
 }
