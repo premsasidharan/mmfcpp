@@ -6,15 +6,13 @@
  * published by the Free Software Foundation.
 */
 
-#include <player_window.h>
-
 #include <QApplication>
+#include <audio_player.h>
 
 int main(int argc, char** argv)
 {
     QApplication app(argc, argv);
-    Player_window window;
-    window.show();
-
+    Audio_player player;
+    player.show();
     return app.exec();
 }

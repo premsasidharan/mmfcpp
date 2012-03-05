@@ -6,8 +6,10 @@
  * published by the Free Software Foundation.
 */
 
-#ifndef _AUDIO_DEINTERLEAVER_H_
-#define _AUDIO_DEINTERLEAVER_H_
+#ifndef _TRACK_VIEWER_H_
+#define _TRACK_VIEWER_H_
+
+#include <stdint.h>
 
 #include <media.h>
 #include <thread.h>
@@ -15,13 +17,18 @@
 #include <pcm_parameters.h>
 #include <abstract_media_object.h>
 
-class Audio_deinterleaver:public Abstract_media_object
+#include <pcm_widget.h>
+
+class Track_viewer:public Abstract_media_object
 {
 public:
-    friend class Thread<Audio_deinterleaver>;
+    friend class Thread<Track_viewer>;
 
-    Audio_deinterleaver(const char* _name);
-    ~Audio_deinterleaver();
+    Track_viewer(const char* _name);
+    ~Track_viewer();
+    
+public:
+    Buffer* get_buffer();
 
 protected:
     int run();
@@ -34,20 +41,19 @@ protected:
     Media::status on_disconnect(int port, Abstract_media_object* pobj);
 
     Media::status input_data(int port, Buffer* buffer);
-
-    void deinterleave();
-    void deinterleave_8bit_data(int32_t* dest, uint8_t* src, int frames, int channels);
-    void deinterleave_16bit_data(int32_t* dest, int16_t* src, int frames, int channels);
-    void deinterleave_24bit_data(int32_t* dest, uint8_t* src, int frames, int channels);
     
+    void display();
+
 private:
     int is_running;
     Condition_variable cv;
-    Thread<Audio_deinterleaver> thread;
+    Thread<Track_viewer> thread;
     Priority_queue<unsigned long long, Buffer*> queue;
-
+    
+    Mutex mutex;
+    Buffer* curr_buff;
+    
     const static Port input_port[];
-    const static Port output_port[];
 };
 
 #endif

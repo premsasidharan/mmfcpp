@@ -26,7 +26,9 @@ INCLUDEPATH += /usr/include/ \
                ../../wave_file_src/include \
                ../../audio_sample_cloner/include \
                ../../audio_deinterleaver/include \
-               ../../audio_renderer/include
+               ../../audio_renderer/include \
+			   ../../track_viewer/include \
+			   ../../pcm_widget/include
 
 FORMS = forms/player_window.ui
 
@@ -39,11 +41,16 @@ SOURCES += ../../wave_file_src/source/wave_file_src.cpp \
 	       ../../audio_sample_cloner/source/audio_sample_cloner.cpp \
 	       ../../audio_deinterleaver/source/audio_deinterleaver.cpp \
 	       ../../audio_renderer/source/audio_renderer.cpp \
+	       ../../track_viewer/source/track_viewer.cpp \
+		   ../../pcm_widget/source/track_widget.cpp \
+		   ../../pcm_widget/source/pcm_widget.cpp \
 		   source/audio_player.cpp \
 	       source/player_window.cpp \
 	       source/main.cpp
 
 HEADERS  += \
 	include/audio_player.h \
-    include/player_window.h
+    include/player_window.h \
+	../../pcm_widget/include/track_widget.h \
+	../../pcm_widget/include/pcm_widget.h
 

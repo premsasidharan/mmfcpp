@@ -11,7 +11,9 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <string.h>
+#include <stdint.h>
 
+#include <media.h>
 #include <buffer.h>
 #include <media_debug.h>
 #include <audio_deinterleaver.h>
@@ -60,6 +62,7 @@ int Audio_deinterleaver::run()
 
             case Media::play:
                 MEDIA_LOG("%s, State: %s", object_name(), "PLAY");
+                deinterleave();
                 break;
 
             default:
@@ -99,17 +102,23 @@ Media::status Audio_deinterleaver::on_pause(int end_time)
 Media::status Audio_deinterleaver::on_connect(int port, Abstract_media_object* pobj)
 {
     MEDIA_TRACE_OBJ_PARAM("%s", object_name());
-    is_running = 1;
-    //thread.start(this);
+    if (0 == is_running)
+    {
+        is_running = 1;
+        thread.start(this);
+    }
     return Media::ok;
 }
 
 Media::status Audio_deinterleaver::on_disconnect(int port, Abstract_media_object* pobj)
 {
     MEDIA_TRACE_OBJ_PARAM("%s", object_name());
-    is_running = 0;
-    cv.signal();
-    //thread.join();
+    if (is_running)
+    {
+        is_running = 0;
+        cv.signal();
+        thread.join();
+    }
     MEDIA_LOG("Thread stopped: %s", object_name());
     return Media::ok;
 }
@@ -119,7 +128,7 @@ Media::status Audio_deinterleaver::input_data(int port, Buffer* buffer)
     MEDIA_TRACE_OBJ_PARAM("%s", object_name());
     if (Media::play == get_state())
     {
-        MEDIA_ERROR("%s, Buffer: 0x%llx, pts: %llu, Status: %d", object_name(), (unsigned long long)buffer, buffer->pts());
+        queue.push(buffer->pts(), buffer, 500);
     }
     else
     {
@@ -129,4 +138,80 @@ Media::status Audio_deinterleaver::input_data(int port, Buffer* buffer)
         return Media::non_play_state;
     }
     return Media::ok;
+}
+
+void Audio_deinterleaver::deinterleave()
+{
+    Buffer* buffer = queue.pop(500);
+    if (0 != buffer)
+    {
+        Pcm_param* param = (Pcm_param *) buffer->parameter();
+        int frames = buffer->get_data_size()/((param->bits_per_sample/8)*(param->channel_count));
+        Buffer* deint_buff = Buffer::request(frames*sizeof(uint32_t)*param->channel_count, Media::AUDIO_DEINT_PCM, buffer->get_parameter_size());
+        memcpy(deint_buff->parameter(), buffer->parameter(), buffer->get_parameter_size());
+        deint_buff->set_data_size(buffer->get_data_size());
+        deint_buff->set_pts(buffer->pts());
+        deint_buff->set_flags(buffer->flags());
+        if (buffer->flags() & LAST_PKT)
+        {
+            set_state(Media::stop);
+        }
+        switch (param->bits_per_sample)
+        {
+            case 8:
+                deinterleave_8bit_data((int32_t*)deint_buff->data(), (uint8_t*)buffer->data(), frames, param->channel_count);
+                break;
+            case 16:
+                deinterleave_16bit_data((int32_t*)deint_buff->data(), (int16_t*)buffer->data(), frames, param->channel_count);
+                break;
+            case 24:
+                deinterleave_24bit_data((int32_t*)deint_buff->data(), (uint8_t*)buffer->data(), frames, param->channel_count);
+                break;
+        }
+        Buffer::release(buffer);
+        push_data(0, deint_buff);
+    }
+}
+
+void Audio_deinterleaver::deinterleave_8bit_data(int32_t* dest, uint8_t* src, int frames, int channels)
+{
+    int i, j;
+    int32_t *chan_offset[10];
+    for (i = 0; i < channels; i++)
+    {
+        chan_offset[i] = &dest[i*frames];
+    }
+    for (i = 0; i < frames; i++)
+    {
+        for (j = 0; j < channels; j++)
+        {
+            (*chan_offset[j]) = (*src);
+            ++chan_offset[j];
+            ++src;
+        }
+    }
+}
+
+void Audio_deinterleaver::deinterleave_16bit_data(int32_t* dest, int16_t* src, int frames, int channels)
+{
+    int i, j;
+    int32_t *chan_offset[10];
+    for (i = 0; i < channels; i++)
+    {
+        chan_offset[i] = &dest[i*frames];
+    }
+    for (i = 0; i < frames; i++)
+    {
+        for (j = 0; j < channels; j++)
+        {
+            (*chan_offset[j]) = (int)(*src);
+            ++chan_offset[j];
+            ++src;
+        }
+    }
+}
+
+void Audio_deinterleaver::deinterleave_24bit_data(int32_t* dest, uint8_t* src, int frames, int channels)
+{
+    
 }

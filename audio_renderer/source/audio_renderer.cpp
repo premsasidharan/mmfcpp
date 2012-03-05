@@ -17,14 +17,17 @@
 #include <audio_renderer.h>
 
 const Port Audio_renderer::input_port[] = {{Media::AUDIO_PCM/*, 0*/, "pcm"}};
+const Port Audio_renderer::output_port[] = {{Media::AUDIO_PCM/*, 0*/, "pcm"}};
 
-Audio_renderer::Audio_renderer(const char* _name, const char* _device)
+Audio_renderer::Audio_renderer(const char* _name, const char* _device, int enable_output)
     :Abstract_media_object(_name)
     , device(0)
     , is_running(0)
     , pcm_handle(0)
     , queue(10)
     , error(-1)
+    , is_output(enable_output)
+    , sample_count(0)
 	, curr_time(0.0)
     , channels(0)
     , bits_per_sample(0)
@@ -35,6 +38,10 @@ Audio_renderer::Audio_renderer(const char* _name, const char* _device)
     device = new char[size];
     strncpy(device, _device, size);
     create_input_ports(input_port, 1);
+    if (enable_output)
+    {
+        create_output_ports(output_port, 1);
+    }
 }
 
 Audio_renderer::~Audio_renderer()
@@ -133,6 +140,19 @@ void Audio_renderer::play_audio()
 			mutex.unlock();
             if (samples > 0)
             {
+                if (is_output && 
+                    ((buffer->flags() & LAST_PKT) ||
+                    (buffer->flags() & FIRST_PKT) ||
+                    (0 == (sample_count%5))))
+                {
+                    Buffer* clone = buffer->split(0, buffer->get_buffer_size(), buffer->type(), buffer->get_parameter_size());
+                    memcpy(clone->parameter(), buffer->parameter(), buffer->get_parameter_size());
+                    clone->set_pts(buffer->pts());
+                    clone->set_data_size(buffer->get_data_size());
+                    clone->set_flags(buffer->flags());
+                    push_data(0, clone);
+                }
+                ++sample_count;
                 error = snd_pcm_writei(pcm_handle, buffer->data(), samples);
                 if (error < 0)
                 {
@@ -173,6 +193,7 @@ Media::status Audio_renderer::on_start(int start_time)
 {
     MEDIA_TRACE_OBJ_PARAM("%s, device: %s", object_name(), device);
     set_state(Media::play);
+    sample_count = 0;
     cv.signal();
     return Media::ok;
 }
@@ -198,8 +219,11 @@ Media::status Audio_renderer::on_pause(int end_time)
 Media::status Audio_renderer::on_connect(int port, Abstract_media_object* pobj)
 {
     MEDIA_TRACE_OBJ_PARAM("%s, device: %s", object_name(), device);
-    is_running = 1;
-    thread.start(this);
+    if (0 == is_running)
+    {
+        is_running = 1;
+        thread.start(this);
+    }
     return Media::ok;
 }
 

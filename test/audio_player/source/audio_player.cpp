@@ -7,35 +7,47 @@
 */
 
 #include <audio_player.h>
+#include <player_window.h>
 
-Audio_player::Audio_player(QObject* parent)
-    :QObject(parent)
+Audio_player::Audio_player()
+    :QObject(0)
     , src("wave")
-    , cloner("audio_cloner")
+    , sink("alsa", "default", 1)
     , deinter("deinterleaver")
-    , audio_sink("alsa", "default")
+    , track_viewer("track_viewer")
+    , window(*this)
 {
-    ::connect(src, cloner);
-    ::connect(cloner, "pcm", audio_sink, "pcm");
-    ::connect(cloner, "sample_pcm", deinter, "pcm");
-    audio_sink.attach(Media::last_pkt_rendered, this);
+    ::connect(src, sink);
+    ::connect(sink, deinter);
+    ::connect(deinter, track_viewer);
+    sink.attach(Media::last_pkt_rendered, this);
+    
+    connect((QObject*)&timer, SIGNAL(timeout()), this, SLOT(on_timer_elapsed()));
+    timer.setInterval(250);
 }
 
 Audio_player::~Audio_player()
 {
-    audio_sink.detach(Media::last_pkt_rendered, this);
-    ::disconnect(src, cloner);
-    ::disconnect(cloner, deinter);
-    ::disconnect(cloner, audio_sink);
+    sink.detach(Media::last_pkt_rendered, this);
+    ::disconnect(src, sink);
+    ::disconnect(sink, deinter);
+    ::disconnect(deinter, track_viewer);
+}
+
+void Audio_player::show()
+{
+    window.show();
 }
 
 int Audio_player::stop(int& time)
 {
+    timer.stop();
     return ::stop(src, time);
 }
 
 int Audio_player::start(int time)
 {
+    timer.start();
     return ::start(src, time);
 }
 
@@ -46,8 +58,15 @@ int Audio_player::set_file_path(const char* path)
 
 int Audio_player::event_handler(Media::events event, Abstract_media_object* obj, Media_params& params)
 {
-    printf("\nevent_handler: %d\n", event);
+    timer.stop();
+    on_timer_elapsed();
+    qDebug() << "event_handler: " << event;
     return 0;
+}
+
+int Audio_player::channels() const
+{
+    return src.channels();
 }
 
 int Audio_player::duration() const
@@ -57,5 +76,21 @@ int Audio_player::duration() const
 
 int Audio_player::current_position() const
 {
-    return audio_sink.current_position();
+    return sink.current_position();
+}
+
+void Audio_player::on_timer_elapsed()
+{
+    window.set_current_position(current_position());
+    Buffer* buffer = track_viewer.get_buffer();
+    if (0 != buffer)
+    {
+        Pcm_param* param = (Pcm_param *) buffer->parameter();
+        int frames = buffer->get_data_size()/((param->bits_per_sample/8)*(param->channel_count));
+        for (int i = 0; i < param->channel_count; i++)
+        {
+            window.set_track_data(i, (int32_t*)buffer->data(), frames, (1<<(param->bits_per_sample-1)));
+        }
+        Buffer::release(buffer);
+    }
 }
