@@ -22,6 +22,7 @@ Wave_file_src::Wave_file_src(const char* _name)
     :Abstract_media_object(_name)
     , is_running(0)
     , packet_size(0)
+    , sample_count(0)
     , packet_count(0)
 {
     MEDIA_TRACE_OBJ_PARAM("%s", object_name());
@@ -43,6 +44,11 @@ int Wave_file_src::set_file_path(const char* path)
         return 1;
     }
     return 0;
+}
+
+int Wave_file_src::channels() const
+{
+    return file.channel_count();
 }
 
 int Wave_file_src::duration() const
@@ -100,6 +106,7 @@ void Wave_file_src::process_wave_file()
     Buffer* buffer = Buffer::request(packet_size, Media::AUDIO_PCM, sizeof(Pcm_param));
     if (file.read((unsigned char*)buffer->data(), packet_size, data_size))
     {
+        sample_count += data_size;
         data_size *= file.frame_size();
         buffer->set_pts(packet_count++);
         buffer->set_data_size(data_size);
@@ -111,7 +118,7 @@ void Wave_file_src::process_wave_file()
         param->bits_per_sample = file.bits_per_sample();
 
         buffer->set_flags((packet_count == 1)?FIRST_PKT:0);
-        if (data_size != packet_size)
+        if (sample_count >= file.frames_count())//data_size != packet_size)
         {
             buffer->set_flags(buffer->flags()|LAST_PKT);
             file.close();
@@ -119,7 +126,7 @@ void Wave_file_src::process_wave_file()
         }
         push_data(0, buffer);
 
-        if (data_size != packet_size)
+        if (sample_count >= file.frames_count())//data_size != packet_size)
         {
             set_state(Media::stop);
         }
@@ -135,6 +142,7 @@ void Wave_file_src::process_wave_file()
 Media::status Wave_file_src::on_start(int start_time)
 {
     MEDIA_TRACE_OBJ_PARAM("%s", object_name());
+    sample_count = 0; //TODO:
     set_state(Media::play);
     cv.signal();
     return Media::ok;

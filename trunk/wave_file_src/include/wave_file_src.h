@@ -26,6 +26,7 @@ public:
     ~Wave_file_src();
 
 public:
+    int channels() const;
 	int duration() const;
     int set_file_path(const char* path);
 
@@ -44,6 +45,7 @@ protected:
 private:
     int is_running;
     int packet_size;
+    int sample_count;
     int packet_count;
     Read_wave_file file;
     Condition_variable cv;

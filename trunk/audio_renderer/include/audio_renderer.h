@@ -22,7 +22,7 @@ class Audio_renderer:public Abstract_media_object
 public:
     friend class Thread<Audio_renderer>;
 
-    Audio_renderer(const char* _name, const char* _device);
+    Audio_renderer(const char* _name, const char* _device, int enable_output = 0);
     ~Audio_renderer();
 
 public:
@@ -54,12 +54,15 @@ private:
 	mutable Mutex mutex;
 
     int error;
+    int is_output;
+    int sample_count;
 	double curr_time;
     unsigned int channels;
     unsigned int bits_per_sample;
     unsigned int samples_per_sec;
 
     const static Port input_port[];
+    const static Port output_port[];
 };
 
 #endif

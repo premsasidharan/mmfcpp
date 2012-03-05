@@ -11,34 +11,35 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <string.h>
+#include <stdint.h>
 
+#include <media.h>
 #include <buffer.h>
 #include <media_debug.h>
-#include <audio_sample_cloner.h>
+#include <track_viewer.h>
 
-const Port Audio_sample_cloner::input_port[] = {{Media::AUDIO_PCM, "pcm"}};
-const Port Audio_sample_cloner::output_port[] = {{Media::AUDIO_PCM, "pcm"}, {Media::AUDIO_PCM, "sample_pcm"}};
+const Port Track_viewer::input_port[] = {{Media::AUDIO_DEINT_PCM, "pcm"}};
 
-Audio_sample_cloner::Audio_sample_cloner(const char* _name)
+Track_viewer::Track_viewer(const char* _name)
     :Abstract_media_object(_name)
-    , packet_count(0)
+    , is_running(0)
     , queue(10)
+    , curr_buff(0)
 {
     MEDIA_TRACE_OBJ_PARAM("%s", _name);
     create_input_ports(input_port, 1);
-    create_output_ports(output_port, 2);
 }
 
-Audio_sample_cloner::~Audio_sample_cloner()
+Track_viewer::~Track_viewer()
 {
     MEDIA_TRACE_OBJ_PARAM("%s", object_name());
 }
 
-int Audio_sample_cloner::run()
+int Track_viewer::run()
 {
     MEDIA_TRACE_OBJ_PARAM("%s", object_name());
     Media::state state = Media::stop;
-    /*while (is_running)
+    while (is_running)
     {
         state = get_state();
         switch (state)
@@ -60,18 +61,19 @@ int Audio_sample_cloner::run()
 
             case Media::play:
                 MEDIA_LOG("%s, State: %s", object_name(), "PLAY");
+                display();
                 break;
 
             default:
                 MEDIA_ERROR("%s, State: %s", object_name(), "Invalid");
                 break;
         }
-    }*/
+    }
     MEDIA_WARNING("Exiting Thread: %s", object_name());
     return 0;
 }
 
-Media::status Audio_sample_cloner::on_start(int start_time)
+Media::status Track_viewer::on_start(int start_time)
 {
     MEDIA_TRACE_OBJ_PARAM("%s", object_name());
     set_state(Media::play);
@@ -79,7 +81,7 @@ Media::status Audio_sample_cloner::on_start(int start_time)
     return Media::ok;
 }
 
-Media::status Audio_sample_cloner::on_stop(int end_time)
+Media::status Track_viewer::on_stop(int end_time)
 {
     MEDIA_TRACE_OBJ_PARAM("%s", object_name());
     set_state(Media::stop);
@@ -88,7 +90,7 @@ Media::status Audio_sample_cloner::on_stop(int end_time)
     return Media::ok;
 }
 
-Media::status Audio_sample_cloner::on_pause(int end_time)
+Media::status Track_viewer::on_pause(int end_time)
 {
     MEDIA_TRACE_OBJ_PARAM("%s", object_name());
     set_state(Media::pause);
@@ -96,40 +98,36 @@ Media::status Audio_sample_cloner::on_pause(int end_time)
     return Media::ok;
 }
 
-Media::status Audio_sample_cloner::on_connect(int port, Abstract_media_object* pobj)
+Media::status Track_viewer::on_connect(int port, Abstract_media_object* pobj)
 {
     MEDIA_TRACE_OBJ_PARAM("%s", object_name());
-    //is_running = 1;
-    //thread.start(this);
+    if (0 == is_running)
+    {
+        is_running = 1;
+        thread.start(this);
+    }
     return Media::ok;
 }
 
-Media::status Audio_sample_cloner::on_disconnect(int port, Abstract_media_object* pobj)
+Media::status Track_viewer::on_disconnect(int port, Abstract_media_object* pobj)
 {
     MEDIA_TRACE_OBJ_PARAM("%s", object_name());
-    //is_running = 0;
-    cv.signal();
-    //thread.join();
+    if (is_running)
+    {
+        is_running = 0;
+        cv.signal();
+        thread.join();
+    }
     MEDIA_LOG("Thread stopped: %s", object_name());
     return Media::ok;
 }
 
-Media::status Audio_sample_cloner::input_data(int port, Buffer* buffer)
+Media::status Track_viewer::input_data(int port, Buffer* buffer)
 {
     MEDIA_TRACE_OBJ_PARAM("%s", object_name());
     if (Media::play == get_state())
     {
-        ++packet_count;
-        if (0 == (packet_count % 10))
-        {
-            Buffer* buff_clone = buffer->split(0, buffer->get_buffer_size(), buffer->type(), buffer->get_parameter_size());
-            memcpy(buff_clone->parameter(), buffer->parameter(), buffer->get_parameter_size());
-            buff_clone->set_pts(buffer->pts());
-            buff_clone->set_data_size(buffer->get_data_size());
-            push_data(1, buff_clone);
-        }
-        push_data(0, buffer);
-        MEDIA_LOG("%s, Buffer: 0x%llx, pts: %llu, Status: %d", object_name(), (unsigned long long)buffer, buffer->pts(), status);
+        queue.push(buffer->pts(), buffer, 500);
     }
     else
     {
@@ -139,4 +137,35 @@ Media::status Audio_sample_cloner::input_data(int port, Buffer* buffer)
         return Media::non_play_state;
     }
     return Media::ok;
+}
+
+void Track_viewer::display()
+{
+    Buffer* buff = queue.pop(500);
+    if (0 != buff)
+    {
+        mutex.lock();
+        if (0 != curr_buff)
+        {
+            Buffer::release(curr_buff);
+        }
+        curr_buff = buff;
+        if (buff->flags() & LAST_PKT)
+        {
+            set_state(Media::stop);
+        }
+        mutex.unlock();
+    }
+}
+
+Buffer* Track_viewer::get_buffer()
+{
+    Buffer* buff = 0;
+    mutex.lock();
+    if (0 != curr_buff)
+    {
+        buff = curr_buff->clone();
+    }
+    mutex.unlock();
+    return buff;
 }

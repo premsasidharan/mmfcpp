@@ -8,6 +8,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 #include <buffer.h>
 #include <buffer_private.h>
@@ -80,6 +81,15 @@ Buffer* Buffer::split(unsigned int _start, unsigned int _size, unsigned int _typ
     buff = new Buffer(_start, _size, _type, _param_size, this);
     children.insert(buff);
     mutex.unlock();
+    return buff;
+}
+
+Buffer* Buffer::clone()
+{
+    Buffer* buff = split(0, get_buffer_size(), type(), get_parameter_size());
+    memcpy(buff->parameter(), parameter(), get_parameter_size());
+    buff->set_pts(pts());
+    buff->set_data_size(get_data_size());
     return buff;
 }
 

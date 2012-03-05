@@ -14,14 +14,18 @@
 #include <QTimer>
 #include <QMainWindow>
 
-#include <audio_player.h>
+class Audio_player;
 
 class Player_window:public QMainWindow, public Ui::Player_window_ui
 {
     Q_OBJECT
 public:
-    Player_window();
+    Player_window(Audio_player& _player);
     ~Player_window();
+    
+public:
+    void set_current_position(int pos);
+    void set_track_data(int channel, int32_t* data, int size, int max_value);
 
 protected:
     void initialize();
@@ -29,11 +33,9 @@ protected:
 protected slots:
     void on_file_open();
     void on_play_pause();
-    void on_timer_elapsed();
 
 private:
-    QTimer timer;
-    Audio_player player;
+    Audio_player& player;
 };
 
 #endif

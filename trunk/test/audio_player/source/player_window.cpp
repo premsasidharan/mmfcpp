@@ -6,6 +6,7 @@
  * published by the Free Software Foundation.
 */
 
+#include <audio_player.h>
 #include <player_window.h>
 
 #include <QDebug>
@@ -13,10 +14,9 @@
 #include <QMessageBox>
 #include <QFileDialog>
 
-Player_window::Player_window()
+Player_window::Player_window(Audio_player& _player)
     :QMainWindow(0)
-    , timer(this)
-    , player(this)
+    , player(_player)
 {
     setupUi(this);
     initialize();
@@ -28,10 +28,8 @@ Player_window::~Player_window()
 
 void Player_window::initialize()
 {
-    connect(&timer, SIGNAL(timeout()), this, SLOT(on_timer_elapsed()));
     connect(file_open, SIGNAL(triggered()), this, SLOT(on_file_open()));
     connect(play_pause_btn, SIGNAL(clicked()), this, SLOT(on_play_pause()));
-    timer.setInterval(250);
 }
 
 void Player_window::on_file_open()
@@ -39,6 +37,7 @@ void Player_window::on_file_open()
     QString path = QFileDialog::getOpenFileName(this, tr("Open File"), QDir::homePath(), tr("Wave File (*.wav)"));
     if (player.set_file_path(path.toAscii()))
     {
+        pcm_widget->set_channels(player.channels());
         playback_slider->setRange(0, player.duration());
         playback_slider->setValue(0);
     }
@@ -48,27 +47,24 @@ void Player_window::on_play_pause()
 {
     if (play_pause_btn->text() == tr("Play"))
     {
-        timer.start();
         player.start(0);
         play_pause_btn->setText(tr("Pause"));
     }
     else
     {
         int time = 0;
-        timer.stop();
         player.stop(time);
         play_pause_btn->setText(tr("Play"));
-        on_timer_elapsed();
     }
 }
 
-void Player_window::on_timer_elapsed()
+void Player_window::set_current_position(int pos)
 {
-    int current_pos = player.current_position();
-    playback_slider->setValue(current_pos);
-    qDebug() << "Here " << current_pos << ", " << playback_slider->maximum();
-    if (current_pos >= playback_slider->maximum())
-    {
-        timer.stop();
-    }
+    playback_slider->setValue(pos);
+    //qDebug() << "Here " << pos << ", " << playback_slider->maximum();
+}
+
+void Player_window::set_track_data(int channel, int32_t* data, int size, int max_value)
+{
+    pcm_widget->set_track_data(channel, data, size, max_value);
 }

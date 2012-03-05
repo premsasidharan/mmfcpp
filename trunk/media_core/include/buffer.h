@@ -47,6 +47,8 @@ public:
     void print(int level);
     
     Buffer* split(unsigned int start, unsigned int size, unsigned int type, unsigned int param_size);
+    
+    Buffer* clone();
 
     static Buffer* request(unsigned int size, unsigned int type, unsigned int _param_size); 
     static void release(Buffer* buffer);
