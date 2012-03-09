@@ -54,3 +54,9 @@ HEADERS  += \
 	../../pcm_widget/include/track_widget.h \
 	../../pcm_widget/include/pcm_widget.h
 
+media_core.commands = make -C ../../media_core -f libmedia_core.mk
+QMAKE_EXTRA_TARGETS += media_core
+PRE_TARGETDEPS += media_core
+
+QMAKE_CLEAN += -r ../../media_core/lib -r ../../media_core/obj
+
