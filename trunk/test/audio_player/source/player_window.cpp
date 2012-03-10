@@ -30,6 +30,8 @@ void Player_window::initialize()
 {
     connect(file_open, SIGNAL(triggered()), this, SLOT(on_file_open()));
     connect(play_pause_btn, SIGNAL(clicked()), this, SLOT(on_play_pause()));
+    connect(playback_slider, SIGNAL(sliderPressed()), this, SLOT(slider_pressed()));
+    connect(playback_slider, SIGNAL(sliderReleased()), this, SLOT(slider_released()));
 }
 
 void Player_window::on_file_open()
@@ -67,4 +69,18 @@ void Player_window::set_current_position(int pos)
 void Player_window::set_track_data(int channel, int32_t* data, int size, int max_value)
 {
     pcm_widget->set_track_data(channel, data, size, max_value);
+}
+
+void Player_window::slider_pressed()
+{
+    int time = 0;
+    player.stop(time);
+    qDebug() << "slider_pressed";
+}
+
+void Player_window::slider_released()
+{
+    int time = playback_slider->value();
+    player.start(time);
+    qDebug() << "slider_released " << time;
 }
