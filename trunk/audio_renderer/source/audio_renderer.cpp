@@ -194,6 +194,7 @@ Media::status Audio_renderer::on_start(int start_time)
     MEDIA_TRACE_OBJ_PARAM("%s, device: %s", object_name(), device);
     set_state(Media::play);
     sample_count = 0;
+    curr_time = start_time;
     cv.signal();
     return Media::ok;
 }

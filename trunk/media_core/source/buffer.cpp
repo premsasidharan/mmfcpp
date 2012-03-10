@@ -89,6 +89,7 @@ Buffer* Buffer::clone()
     Buffer* buff = split(0, get_buffer_size(), type(), get_parameter_size());
     memcpy(buff->parameter(), parameter(), get_parameter_size());
     buff->set_pts(pts());
+    buff->set_flags(flags());
     buff->set_data_size(get_data_size());
     return buff;
 }

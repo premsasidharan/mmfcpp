@@ -121,7 +121,7 @@ void Wave_file_src::process_wave_file()
         if (sample_count >= file.frames_count())//data_size != packet_size)
         {
             buffer->set_flags(buffer->flags()|LAST_PKT);
-            file.close();
+            //file.close();
             MEDIA_WARNING("%s, last packet", object_name());
         }
         push_data(0, buffer);
@@ -135,14 +135,24 @@ void Wave_file_src::process_wave_file()
     {
         Buffer::release(buffer);
         buffer = 0;
-        MEDIA_ERROR("%s, File read failed", object_name());
+        //MEDIA_ERROR("%s, File read failed", object_name());
     }
 }
 
 Media::status Wave_file_src::on_start(int start_time)
 {
     MEDIA_TRACE_OBJ_PARAM("%s", object_name());
-    sample_count = 0; //TODO:
+    if (start_time >= 0)
+    {
+        int offset = (int)((double)start_time*(double)file.sample_rate()/100000.0);
+        sample_count = offset; //TODO:
+        packet_count = offset;
+        file.seek(offset, SEEK_SET);
+    }
+    else
+    {
+        MEDIA_ERROR("Error, Invalid start time: %d", start_time);
+    }
     set_state(Media::play);
     cv.signal();
     return Media::ok;
