@@ -73,6 +73,21 @@ int Read_wave_file::seek(long offset, int whence)
     {
         return 0;
     }
-    fseek(file, offset, whence);
-    return 1;
+    int ret = 0;
+    long byte_offset = offset*frame_size();
+    switch (whence)
+    {
+        case SEEK_SET:
+            ret = fseek(file, sizeof(Wave_hdr)+byte_offset, SEEK_SET);
+            break;
+        case SEEK_CUR:
+            ret = fseek(file, byte_offset, SEEK_CUR);
+            break;
+        case SEEK_END:
+            ret = fseek(file, byte_offset, SEEK_CUR);
+            break;
+        default:
+            ret = -1;
+    }
+    return ret;
 }
