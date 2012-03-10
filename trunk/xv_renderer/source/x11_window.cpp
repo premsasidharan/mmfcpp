@@ -72,7 +72,7 @@ void X11_window::on_paint()
     if (0 != yuv_data)
     {
         XWindowAttributes attr;
-        XGetWindowAttributes(X11_app::display(), X11_app::root_window(), &attr);
+        XGetWindowAttributes(X11_app::display(), window, &attr);
         Xv_video_frame* video_frame = new Xv_video_frame(video_width, video_height, format, port, yuv_data);
         XvPutImage(X11_app::display(), video_frame->port, window, gc, video_frame->image, 0, 0,
                    video_frame->image_width(), video_frame->image_height(), 0, 0, attr.width, attr.height);
