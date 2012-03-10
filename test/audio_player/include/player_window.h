@@ -33,6 +33,8 @@ protected:
 protected slots:
     void on_file_open();
     void on_play_pause();
+    void slider_pressed();
+    void slider_released();
 
 private:
     Audio_player& player;

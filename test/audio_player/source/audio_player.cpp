@@ -22,7 +22,7 @@ Audio_player::Audio_player()
     ::connect(deinter, track_viewer);
     sink.attach(Media::last_pkt_rendered, this);
     
-    connect((QObject*)&timer, SIGNAL(timeout()), this, SLOT(on_timer_elapsed()));
+    connect(&timer, SIGNAL(timeout()), this, SLOT(on_timer_elapsed()));
     timer.setInterval(250);
 }
 
@@ -41,12 +41,16 @@ void Audio_player::show()
 
 int Audio_player::stop(int& time)
 {
+    int ret = 0;
     timer.stop();
-    return ::stop(src, time);
+    ret = ::stop(src, time);
+    on_timer_elapsed();
+    return ret;
 }
 
 int Audio_player::start(int time)
 {
+    qDebug() << "Audio_player::start : " << time;
     timer.start();
     return ::start(src, time);
 }
@@ -87,7 +91,7 @@ void Audio_player::on_timer_elapsed()
     {
         Pcm_param* param = (Pcm_param *) buffer->parameter();
         int frames = buffer->get_data_size()/((param->bits_per_sample/8)*(param->channel_count));
-        for (int i = 0; i < param->channel_count; i++)
+        for (int i = 0; i < (int)param->channel_count; i++)
         {
             window.set_track_data(i, (int32_t*)buffer->data(), frames, (1<<(param->bits_per_sample-1)));
         }
