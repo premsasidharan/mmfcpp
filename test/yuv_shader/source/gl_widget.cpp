@@ -1,26 +1,38 @@
-#include "gl_widget.h"
+#include <gl_widget.h>
 
 #include <QtGui>
 #include <QtOpenGL>
 
-#include <iostream>
-
-Gl_widget::Gl_widget(QWidget* parent)
+Gl_widget::Gl_widget(int width, int height, const QString& path, QWidget* parent)
 	:QGLWidget(QGLFormat(QGL::SampleBuffers), parent)
+    , video_width(width)
+    , video_height(height)
     , y_texture(0)
     , u_texture(0)
     , v_texture(0)
     , y_data(0)
     , u_data(0)
     , v_data(0)
-    //, shader(QGLShader::Fragment, this)
+    , file(path)
+    , timer(this)
     , program(this)
 {
 	setFocusPolicy(Qt::StrongFocus);
+    
+    y_data = new unsigned char[(width*height*3)>>1];
+    u_data = y_data+(width*height);
+    v_data = u_data+((width*height)>>2);
+    file.open(QIODevice::ReadOnly);
 }
 
 Gl_widget::~Gl_widget()
 {
+    file.close();
+    
+    u_data = 0;
+    v_data = 0;
+    delete [] y_data;
+    y_data = 0;
 }
 
 void Gl_widget::initializeGL()
@@ -45,14 +57,6 @@ void Gl_widget::initializeGL()
     qDebug() << program.link();
     qDebug() << program.bind();
     
-    y_data = new unsigned char[352*144*3];
-    FILE* fptr = fopen("/home/prems/Documents/BigBuckBunny_CIF.yuv", "r");
-    fseek(fptr, 800*352*144*3, SEEK_SET);
-    fread(y_data, 1, 352*144*3, fptr);
-    fclose(fptr);
-    u_data = y_data+352*288;
-    v_data = u_data+176*144;
-    
     glGenTextures(1, &y_texture);
     glGenTextures(1, &u_texture);
     glGenTextures(1, &v_texture);
@@ -62,46 +66,50 @@ void Gl_widget::initializeGL()
     glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
     glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
     glTexEnvf(GL_TEXTURE_ENV,GL_TEXTURE_ENV_MODE,GL_DECAL);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_LUMINANCE, 352, 288, 0, GL_LUMINANCE, GL_UNSIGNED_BYTE, y_data);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_LUMINANCE, video_width, video_height, 0, GL_LUMINANCE, GL_UNSIGNED_BYTE, y_data);
     
     glActiveTexture(GL_TEXTURE1); 
     glBindTexture(GL_TEXTURE_2D, u_texture);
     glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
     glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
     glTexEnvf(GL_TEXTURE_ENV,GL_TEXTURE_ENV_MODE,GL_DECAL);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_LUMINANCE, 176, 144, 0, GL_LUMINANCE, GL_UNSIGNED_BYTE, u_data);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_LUMINANCE, video_width>>1, video_height>>1, 0, GL_LUMINANCE, GL_UNSIGNED_BYTE, u_data);
     
     glActiveTexture(GL_TEXTURE2); 
     glBindTexture(GL_TEXTURE_2D, v_texture);
     glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
     glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
     glTexEnvf(GL_TEXTURE_ENV,GL_TEXTURE_ENV_MODE,GL_DECAL);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_LUMINANCE, 176, 144, 0, GL_LUMINANCE, GL_UNSIGNED_BYTE, v_data);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_LUMINANCE, video_width>>1, video_height>>1, 0, GL_LUMINANCE, GL_UNSIGNED_BYTE, v_data);
     
     program.setUniformValue("y_texture", 0);
     program.setUniformValue("u_texture", 1);
     program.setUniformValue("v_texture", 2);
+    
+    connect(&timer, SIGNAL(timeout()), this, SLOT(on_timeout()));
+    timer.setInterval(25);
+    timer.start();
 }
 
 void Gl_widget::paintGL()
 {
-    //QColor color(0, 0xff, 0, 0);
-	//glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
-	//glFlush();
+    file.read((char*)y_data, (video_width*video_height*3)>>1);
     
-    //memset(texture+60*352, 0, 352*100);
-    
-	//glActiveTexture(GL_TEXTURE0);
-    //glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, 352, 288, GL_LUMINANCE, GL_UNSIGNED_BYTE, texture);
-          
+	glActiveTexture(GL_TEXTURE0);
+    glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, video_width, video_height, GL_LUMINANCE, GL_UNSIGNED_BYTE, y_data);
+	glActiveTexture(GL_TEXTURE1);
+    glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, video_width>>1, video_height>>1, GL_LUMINANCE, GL_UNSIGNED_BYTE, u_data);
+	glActiveTexture(GL_TEXTURE2);
+    glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, video_width>>1, video_height>>1, GL_LUMINANCE, GL_UNSIGNED_BYTE, v_data);   
+   
 	glClear(GL_COLOR_BUFFER_BIT);
     
     glEnable(GL_TEXTURE_2D);
-    glBegin(GL_QUADS);                      // Draw A Quad
-        glTexCoord2f(0.0f, 0.0f); glVertex3f(-0.8f, 0.8f, 0.0f);              // Top Left
-        glTexCoord2f(1.0f, 0.0f); glVertex3f( 0.8f, 0.8f, 0.0f);              // Top Right
-        glTexCoord2f(1.0f,1.0f); glVertex3f( 0.8f,-0.8f, 0.0f);              // Bottom Right
-        glTexCoord2f(0.0f,1.0f); glVertex3f(-0.8f,-0.8f, 0.0f);              // Bottom Left
+    glBegin(GL_QUADS);
+        glTexCoord2f(0.0f, 0.0f); glVertex3f(-1.0f, 1.0f, 0.0f);              // Top Left
+        glTexCoord2f(1.0f, 0.0f); glVertex3f( 1.0f, 1.0f, 0.0f);              // Top Right
+        glTexCoord2f(1.0f,1.0f); glVertex3f( 1.0f,-1.0f, 0.0f);              // Bottom Right
+        glTexCoord2f(0.0f,1.0f); glVertex3f(-1.0f,-1.0f, 0.0f);              // Bottom Left
     glEnd(); 
 	glFlush();
     glDisable(GL_TEXTURE_2D);
@@ -117,3 +125,7 @@ void Gl_widget::resizeGL(int width, int height)
 	glMatrixMode(GL_MODELVIEW);*/
 }
 
+void Gl_widget::on_timeout()
+{
+    updateGL();
+}

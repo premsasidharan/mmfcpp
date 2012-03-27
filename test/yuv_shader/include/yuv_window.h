@@ -10,7 +10,7 @@ class Yuv_window: public QWidget
 	Q_OBJECT
 
 public:
-	Yuv_window(QWidget* parent = 0);
+	Yuv_window(int width, int height, const QString& path, QWidget* parent = 0);
 	~Yuv_window();
 
 protected:

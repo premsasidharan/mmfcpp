@@ -1,8 +1,8 @@
 #include "yuv_window.h"
 
-Yuv_window::Yuv_window(QWidget* parent)
+Yuv_window::Yuv_window(int width, int height, const QString& path, QWidget* parent)
 	:QWidget(parent)
-	, gl_widget(this)
+	, gl_widget(width, height, path, this)
 {
 }
 
