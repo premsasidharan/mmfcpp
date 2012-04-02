@@ -29,6 +29,10 @@ Gl_widget::~Gl_widget()
 {
     file.close();
     
+    glDeleteTextures(1, &y_texture);
+    glDeleteTextures(1, &u_texture);
+    glDeleteTextures(1, &v_texture);
+
     u_data = 0;
     v_data = 0;
     delete [] y_data;
