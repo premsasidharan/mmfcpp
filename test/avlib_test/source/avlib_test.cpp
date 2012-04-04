@@ -36,29 +36,29 @@ int main(int argc, char** argv)
 
     if (argc < 2)
     {
-        printf("\n\tInsufficien arguments\n");
-        exit(0);
+        printf("\n\tInsufficient arguments\n");
+        return 0;
     }
 
-    if (1 == src.set_file_path(argv[1]))
+    if (1 != src.set_file_path(argv[1]))
     {
-        window.show();
-        connect(src, video_decoder);
-        connect(src, audio_decoder);
-        connect(audio_decoder, audio_sink);
-        connect(video_decoder, video_sink);
-        start(src, 0);
-        app.exec();
-        stop(src, time);
-        disconnect(audio_decoder, audio_sink);
-        disconnect(video_decoder, video_sink);
-        disconnect(src, audio_decoder);
-        disconnect(src, video_decoder);
-    }
-    else
-    {
-        printf("\nInvalid File Path");
-    }
-    return 0;
+        printf("\nInvalid File Path\n");
+		return 0;
+	}
+
+    window.show();
+    connect(src, video_decoder);
+    connect(src, audio_decoder);
+    connect(audio_decoder, audio_sink);
+    connect(video_decoder, video_sink);
+    start(src, 0);
+    int ret = app.exec();
+    stop(src, time);
+    disconnect(audio_decoder, audio_sink);
+    disconnect(video_decoder, video_sink);
+    disconnect(src, audio_decoder);
+    disconnect(src, video_decoder);
+
+    return ret;
 }
 

@@ -35,23 +35,19 @@ int main(int argc, char** argv)
     Yuv_file_src src("yuv");
     Video_renderer sink("opengl", &window);
 
-    if (1 == src.set_parameters(argv[1], width, height))
-    {
-        window.show();
-
-        connect(&src, &sink);
-        start(&src, 0);
-
-        app.exec();
-
-        stop(&src, time);
-        disconnect(&src, &sink);
-    }
-    else
+    if (1 != src.set_parameters(argv[1], width, height))
     {
         printf("\n\tInvalid Yuv File Path\n");
+		return 0;
     }
+    
+	window.show();
+    connect(&src, &sink);
+    start(&src, 0);
+    int ret = app.exec();
+    stop(&src, time);
+    disconnect(&src, &sink);
 
-    return 0;
+    return ret;
 }
 
