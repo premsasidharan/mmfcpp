@@ -31,11 +31,11 @@ int main(int argc, char** argv)
 	int time = 0;
     int width = atoi(argv[2]);
     int height = atoi(argv[3]);
-    Video_widget window;
+    Video_widget window(0);
     Yuv_file_src src("yuv");
     Video_renderer sink("opengl", &window);
 
-    if (1 != src.set_parameters(argv[1], width, height))
+    if (1 != src.set_parameters(argv[1], Media::I420, 24.0, width, height))
     {
         printf("\n\tInvalid Yuv File Path\n");
 		return 0;
@@ -43,7 +43,7 @@ int main(int argc, char** argv)
     
 	window.show();
     connect(&src, &sink);
-    start(&src, 0);
+    start(&src, 0, src.duration());
     int ret = app.exec();
     stop(&src, time);
     disconnect(&src, &sink);

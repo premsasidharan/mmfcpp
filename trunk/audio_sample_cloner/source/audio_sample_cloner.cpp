@@ -71,7 +71,7 @@ int Audio_sample_cloner::run()
     return 0;
 }
 
-Media::status Audio_sample_cloner::on_start(int start_time)
+Media::status Audio_sample_cloner::on_start(int start_time, int end_time)
 {
     MEDIA_TRACE_OBJ_PARAM("%s", object_name());
     set_state(Media::play);

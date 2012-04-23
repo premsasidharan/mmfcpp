@@ -222,7 +222,7 @@ int Av_file_src::process_av_file()
     return Media::ok;
 }
 
-Media::status Av_file_src::on_start(int start_time)
+Media::status Av_file_src::on_start(int start_time, int end_time)
 {
     MEDIA_TRACE_OBJ_PARAM("%s", object_name());
     set_state(Media::play);

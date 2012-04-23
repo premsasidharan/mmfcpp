@@ -179,7 +179,7 @@ Media::status Abstract_media_object::push_data(int port, Buffer* buffer)
         MEDIA_ERROR("Port Not Conected: %s, Port: %d, Buffer: 0x%llx, pts: %llu", object_name(), port, (unsigned long long)buffer, buffer->pts());
         return Media::port_not_connected;
     }
-    if (output[port]->port.type != buffer->type())
+    if (buffer->type() != (output[port]->port.type & buffer->type()))
     {
         MEDIA_ERROR("Type Mismatch: %s, Port: %d, Buffer: 0x%llx, pts: %llu", object_name(), port, (unsigned long long)buffer, buffer->pts());
         return Media::invalid_type;
@@ -198,14 +198,14 @@ Media::status Abstract_media_object::push_data(int port, Buffer* buffer)
     return ret;
 }
 
-Media::status Abstract_media_object::private_start(int start_time)
+Media::status Abstract_media_object::private_start(int start_time, int end_time)
 {
-    MEDIA_TRACE_OBJ_PARAM("%s, Start time: %d", object_name(), start_time);
-    if (Media::play == get_state())
+    MEDIA_TRACE_OBJ_PARAM("%s, Start time: %d, End time: %d", object_name(), start_time, end_time);
+    /*if (Media::play == get_state())
     {
-        MEDIA_WARNING("Already in Play State: %s, Start time: %d", object_name(), start_time);
+        MEDIA_WARNING("Already in Play State: %s, Start time: %d, End time: %d", object_name(), start_time, end_time);
         return Media::ok;
-    }
+    }*/
 
     Media::status status = Media::ok;
     set_state(Media::play);
@@ -213,10 +213,10 @@ Media::status Abstract_media_object::private_start(int start_time)
     {
         if (0 != output[i]->object)
         {
-            status = (status == Media::ok)?output[i]->object->private_start(start_time):status;
+            status = (status == Media::ok)?output[i]->object->private_start(start_time, end_time):status;
         }
     }
-    on_start(start_time);
+    on_start(start_time, end_time);
 
     return status;
 }
@@ -268,27 +268,27 @@ Media::status Abstract_media_object::private_pause(int& end_time)
     return status;
 }
 
-Media::status start(Abstract_media_object* src, int start_time)
+Media::status start(Abstract_media_object* src, int start_time, int end_time)
 {
     if (src == 0)
     {
-        MEDIA_ERROR("Source object NULL, start time: %d", start_time);
+        MEDIA_ERROR("Source object NULL, start time: %d, end time: %d", start_time, end_time);
         return Media::invalid_object;
     }
-    MEDIA_TRACE_PARAM("%s, start time: %d", src->object_name(), start_time);
+    MEDIA_TRACE_PARAM("%s, start time: %d, end time: %d", src->object_name(), start_time, end_time);
 
     if (src->input_count != 0)
     {
-        MEDIA_ERROR("Not a valid source, start time: %d", start_time);
+        MEDIA_ERROR("Not a valid source, start time: %d, end time: %d", start_time, end_time);
         return Media::invalid_object;
     }
 
-    return src->private_start(start_time);
+    return src->private_start(start_time, end_time);
 }
 
-Media::status start(Abstract_media_object& src, int start_time)
+Media::status start(Abstract_media_object& src, int start_time, int end_time)
 {
-    return start(&src, start_time);
+    return start(&src, start_time, end_time);
 }
 
 Media::status stop(Abstract_media_object* src, int& end_time)

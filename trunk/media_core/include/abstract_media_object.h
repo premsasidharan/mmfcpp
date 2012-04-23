@@ -45,8 +45,8 @@ public:
     virtual Media::status attach(Media::events event, Observer* obs);
     virtual Media::status detach(Media::events event, Observer* obs);
 
-    friend Media::status start(Abstract_media_object* src, int start_time);
-    friend Media::status start(Abstract_media_object& src, int start_time);
+    friend Media::status start(Abstract_media_object* src, int start_time, int end_time);
+    friend Media::status start(Abstract_media_object& src, int start_time, int end_time);
     friend Media::status stop(Abstract_media_object* src, int& end_time);
     friend Media::status stop(Abstract_media_object& src, int& end_time);
     friend Media::status pause(Abstract_media_object* src, int& end_time);
@@ -60,7 +60,7 @@ public:
     friend Media::status disconnect(Abstract_media_object& src, Abstract_media_object& dest);
 
 protected:
-    virtual Media::status on_start(int start_time) = 0;
+    virtual Media::status on_start(int start_time, int end_time) = 0;
     virtual Media::status on_stop(int end_time) = 0;
     virtual Media::status on_pause(int end_time) = 0;
 
@@ -87,7 +87,7 @@ private:
     Abstract_media_object(const Abstract_media_object& obj) { (void)obj; };
     Abstract_media_object& operator=(const Abstract_media_object& obj) { (void)obj; return *this; };
 
-    Media::status private_start(int start_time);
+    Media::status private_start(int start_time, int end_time);
     Media::status private_stop(int& end_time);
     Media::status private_pause(int& end_time);
 
@@ -103,8 +103,8 @@ private:
     std::multimap<Media::events, Observer*> obs_map;
 };
 
-Media::status start(Abstract_media_object* src, int start_time);
-Media::status start(Abstract_media_object& src, int start_time);
+Media::status start(Abstract_media_object* src, int start_time, int end_time);
+Media::status start(Abstract_media_object& src, int start_time, int end_time);
 Media::status stop(Abstract_media_object* src, int& end_time);
 Media::status stop(Abstract_media_object& src, int& end_time);
 Media::status pause(Abstract_media_object* src, int& end_time);

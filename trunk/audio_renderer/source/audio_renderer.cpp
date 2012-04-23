@@ -189,7 +189,7 @@ void Audio_renderer::play_audio()
     }
 }
 
-Media::status Audio_renderer::on_start(int start_time)
+Media::status Audio_renderer::on_start(int start_time, int end_time)
 {
     MEDIA_TRACE_OBJ_PARAM("%s, device: %s", object_name(), device);
     set_state(Media::play);

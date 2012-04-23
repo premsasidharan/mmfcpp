@@ -12,15 +12,24 @@
 #include <media.h>
 #include <video_widget.h>
 
-Video_widget::Video_widget(QWidget* parent)
+#include <QMouseEvent>
+
+Video_widget::Video_widget(QWidget* _control, QWidget* parent)
     :QGLWidget(parent)
+    , controls(_control)
     , format(0)
 	, is_changed(false)
     , video_width(0)
     , video_height(0)
+    , scale(1.0)
 	, texture_count(0)
 	, program(this)
 {
+    if (0 != controls)
+    {
+        controls->setParent(this);
+        controls->hide();
+    }
 	setFocusPolicy(Qt::StrongFocus);
     connect(this, SIGNAL(update_frame()), this, SLOT(repaint()));
 }
@@ -28,6 +37,10 @@ Video_widget::Video_widget(QWidget* parent)
 Video_widget::~Video_widget()
 {
 	delete_textures();
+    if (0 != controls)
+    {
+        controls->setParent(0);
+    }
 }
 
 void Video_widget::show_frame(unsigned char* _yuv, int fmt, int width, int height)
@@ -88,10 +101,10 @@ void Video_widget::paintGL()
 	glClear(GL_COLOR_BUFFER_BIT);
 	glEnable(GL_TEXTURE_2D);
 	glBegin(GL_QUADS);
-	    glTexCoord2f(0.0f, 0.0f); glVertex3f(-1.0f, 1.0f, 0.0f);
-	    glTexCoord2f(1.0f, 0.0f); glVertex3f( 1.0f, 1.0f, 0.0f);
-	    glTexCoord2f(1.0f,1.0f); glVertex3f( 1.0f,-1.0f, 0.0f);
-	    glTexCoord2f(0.0f,1.0f); glVertex3f(-1.0f,-1.0f, 0.0f);
+	    glTexCoord2f(0.0f, 0.0f); glVertex3f(-scale, scale, 0.0f);
+	    glTexCoord2f(1.0f, 0.0f); glVertex3f(scale, scale, 0.0f);
+	    glTexCoord2f(1.0f,1.0f); glVertex3f(scale, -scale, 0.0f);
+	    glTexCoord2f(0.0f,1.0f); glVertex3f(-scale, -scale, 0.0f);
 	glEnd(); 
 	glFlush();
 	glDisable(GL_TEXTURE_2D);
@@ -100,6 +113,11 @@ void Video_widget::paintGL()
 void Video_widget::resizeGL(int width, int height)
 {
 	glViewport(0, 0, width, height);
+    if (0 != controls)
+    {
+        controls->resize(width-50, 30);
+        controls->move(25, height-40);
+    }
 }
 
 void Video_widget::moveEvent(QMoveEvent* event)
@@ -112,6 +130,45 @@ void Video_widget::closeEvent(QCloseEvent* event)
 {
 	(void)event;
     emit renderer_close();
+}
+    
+void Video_widget::mousePressEvent(QMouseEvent* event)
+{
+    if (0 != controls)
+    {
+        if (event->button() & Qt::LeftButton)
+        {
+            if (controls->isVisible())
+            {
+                qDebug() << "Hide";
+                controls->hide();
+            }
+            else
+            {
+                qDebug() << "Show";
+                controls->show();
+            }
+        }
+    }
+}
+
+void Video_widget::keyPressEvent(QKeyEvent* event)
+{
+    switch (event->key())
+    {
+        case Qt::Key_Up:
+            if ((scale+0.1f) <= 1.0f)
+            {
+                scale += 0.1f;
+            }
+            break;
+        case Qt::Key_Down:
+            if (scale > 0.5f)
+            {
+                scale -= 0.1f;
+            }
+            break;
+    }
 }
 
 void Video_widget::create_textures()

@@ -14,11 +14,12 @@
 #include <media_debug.h>
 #include <video_renderer.h>
 
-const Port Video_renderer::input_port[] = {{Media::YUV420_PLANAR/*, 0*/, "yuv420"}};
+const Port Video_renderer::input_port[] = {{Media::YUY2|Media::YV12|Media::I420|Media::UYVY, "yuv"}};
 
 Video_renderer::Video_renderer(const char* _name, Video_widget* _window)
     :Abstract_media_object(_name)
     , prev(0)
+    , curr_pos(0)
     , is_running(0)
     , window(_window)
     , queue(5)
@@ -43,10 +44,13 @@ void Video_renderer::play_video()
     Buffer* buffer = queue.pop(2000);
     if (0 != buffer)
     {
-        I420_param* parameter = (I420_param*) buffer->parameter();
+        Yuv_param* parameter = (Yuv_param*) buffer->parameter();
         //MEDIA_ERROR(": %s, Buffer: %llx, pts: %llu (%dx%d) State: %s", object_name(),
         //	(unsigned long long)buffer, buffer->pts(), parameter->width, parameter->height, "PLAY");
-        window->show_frame((unsigned char*)buffer->data(), Media::I420, parameter->width, parameter->height);
+        window->show_frame((unsigned char*)buffer->data(), buffer->type(), parameter->width, parameter->height);
+        mutex.lock();
+        curr_pos = buffer->pts();
+        mutex.unlock();
         if (0 !=  prev)
         {
             Buffer::release(prev);
@@ -57,6 +61,9 @@ void Video_renderer::play_video()
         if (buffer->flags() & LAST_PKT)
         {
             set_state(Media::stop);
+            Media_params params;
+            memset(&params, 0, sizeof(Media_params));
+            notify(Media::last_pkt_rendered, params);
         }
         //TODO:Free Last packet
     }
@@ -82,7 +89,7 @@ int Video_renderer::run()
 
             case Media::stop:
                 MEDIA_LOG("%s, State: %s", object_name(), "STOP");
-                //stop_cv.signal();
+                stop_cv.signal();
                 cv.wait();
                 break;
 
@@ -105,7 +112,7 @@ int Video_renderer::run()
     return 0;
 }
 
-Media::status Video_renderer::on_start(int start_time)
+Media::status Video_renderer::on_start(int start_time, int end_time)
 {
     MEDIA_TRACE_OBJ_PARAM("%s, start_time: %d", object_name(), start_time);
     set_state(Media::play);
@@ -117,7 +124,7 @@ Media::status Video_renderer::on_stop(int end_time)
 {
     MEDIA_TRACE_OBJ_PARAM("%s", object_name());
     set_state(Media::stop);
-    //stop_cv.wait();
+    stop_cv.wait();
     MEDIA_LOG("Stop state: %s", object_name());
     return Media::ok;
 }
@@ -154,15 +161,24 @@ Media::status Video_renderer::input_data(int port, Buffer* buffer)
     int status = 0;
     if (Media::play == get_state())
     {
-        status = queue.push(buffer->pts(), buffer, 2000);
+        status = queue.push(buffer->pts(), buffer, 500);
         MEDIA_LOG("Video_renderer: %s, Buffer: 0x%llx, pts: %llu, Status: %d", object_name(), (unsigned long long)buffer, buffer->pts(), status);
     }
     else
     {
         Buffer::release(buffer);
-        sleep(1);
+        //sleep(1);
         MEDIA_ERROR("Packet received under non-play state: %s, Buffer: 0x%llx, pts: %llu", object_name(), (unsigned long long)buffer, buffer->pts());
         return Media::non_play_state;
     }
     return Media::ok;
+}
+
+int Video_renderer::current_position() const
+{
+	int time = 0;
+	mutex.lock();
+	time = curr_pos;
+	mutex.unlock();
+	return time;
 }

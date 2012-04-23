@@ -33,7 +33,7 @@ protected:
     void play_audio();
     snd_pcm_format_t format(unsigned int bits_per_sample);
 
-    Media::status on_start(int start_time);
+    Media::status on_start(int start_time, int end_time);
     Media::status on_stop(int end_time);
     Media::status on_pause(int end_time);
 

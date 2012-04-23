@@ -25,10 +25,13 @@ public:
     Video_renderer(const char* _name, Video_widget* _window);
     ~Video_renderer();
 
+public:
+    int current_position() const;
+
 protected:
     int run();
 
-    Media::status on_start(int start_time);
+    Media::status on_start(int start_time, int end_time);
     Media::status on_stop(int end_time);
     Media::status on_pause(int end_time);
 
@@ -41,7 +44,9 @@ protected:
 
 private:
     Buffer* prev;
+    int curr_pos;
     int is_running;
+    mutable Mutex mutex;
     Video_widget* window;
     Condition_variable cv;
     Condition_variable stop_cv;

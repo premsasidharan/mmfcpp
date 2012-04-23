@@ -34,7 +34,7 @@ int Audio_player::stop(int& time)
 
 int Audio_player::start(int time)
 {
-    return ::start(src, time);
+    return ::start(src, time, src.duration());
 }
 
 int Audio_player::set_file_path(const char* path)

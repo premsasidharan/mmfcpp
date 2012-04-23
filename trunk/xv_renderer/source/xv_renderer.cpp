@@ -106,7 +106,7 @@ int Xv_renderer::run()
     return 0;
 }
 
-Media::status Xv_renderer::on_start(int start_time)
+Media::status Xv_renderer::on_start(int start_time, int end_time)
 {
     MEDIA_TRACE_OBJ_PARAM("%s, start_time: %d", object_name(), start_time);
     set_state(Media::play);

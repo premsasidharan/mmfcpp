@@ -25,7 +25,7 @@ int main(int argc, char** argv)
     MEDIA_TRACE();
 
     QApplication app(argc, argv);
-    Video_widget window;
+    Video_widget window(0);
 
     int time = 0;
     Av_file_src src("av");
@@ -51,7 +51,7 @@ int main(int argc, char** argv)
     connect(src, audio_decoder);
     connect(audio_decoder, audio_sink);
     connect(video_decoder, video_sink);
-    start(src, 0);
+    start(src, 0, 0);
     int ret = app.exec();
     stop(src, time);
     disconnect(audio_decoder, audio_sink);
