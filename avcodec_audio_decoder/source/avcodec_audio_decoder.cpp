@@ -80,7 +80,7 @@ int Avcodec_audio_decoder::run()
     return 0;
 }
 
-Media::status Avcodec_audio_decoder::on_start(int start_time)
+Media::status Avcodec_audio_decoder::on_start(int start_time, int end_time)
 {
     MEDIA_TRACE_OBJ_PARAM("%s", object_name());
     set_state(Media::play);

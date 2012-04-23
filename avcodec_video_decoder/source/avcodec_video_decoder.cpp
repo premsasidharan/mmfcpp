@@ -24,7 +24,7 @@ extern "C"
 #include <avcodec_video_decoder.h>
 
 const Port Avcodec_video_decoder::input_port[] = {{Media::VIDEO_FFMPEG_PKT, "video"}};
-const Port Avcodec_video_decoder::output_port[] = {{Media::YUV420_PLANAR, "video"}};
+const Port Avcodec_video_decoder::output_port[] = {{Media::I420, "video"}};
 
 Avcodec_video_decoder::Avcodec_video_decoder(const char* _name)
     :Abstract_media_object(_name)
@@ -85,7 +85,7 @@ int Avcodec_video_decoder::run()
     return 0;
 }
 
-Media::status Avcodec_video_decoder::on_start(int start_time)
+Media::status Avcodec_video_decoder::on_start(int start_time, int end_time)
 {
     MEDIA_TRACE_OBJ_PARAM("%s", object_name());
     set_state(Media::play);
@@ -171,9 +171,9 @@ void Avcodec_video_decoder::decode()
             if (flag || (buffer->flags() & LAST_PKT))
             {
                 int frame_size = avpicture_get_size(PIX_FMT_YUV420P, video_ctx->width, video_ctx->height);
-                Buffer* frame_buffer = Buffer::request(frame_size, Media::YUV420_PLANAR, sizeof(I420_param));
+                Buffer* frame_buffer = Buffer::request(frame_size, Media::I420, sizeof(Yuv_param));
 
-                I420_param* frame_param = (I420_param *) frame_buffer->parameter();
+                Yuv_param* frame_param = (Yuv_param *) frame_buffer->parameter();
                 frame_param->width = video_ctx->width;
                 frame_param->height = video_ctx->height;
 

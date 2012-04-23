@@ -74,7 +74,7 @@ int Audio_deinterleaver::run()
     return 0;
 }
 
-Media::status Audio_deinterleaver::on_start(int start_time)
+Media::status Audio_deinterleaver::on_start(int start_time, int end_time)
 {
     MEDIA_TRACE_OBJ_PARAM("%s", object_name());
     set_state(Media::play);

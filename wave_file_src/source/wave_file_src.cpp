@@ -139,7 +139,7 @@ void Wave_file_src::process_wave_file()
     }
 }
 
-Media::status Wave_file_src::on_start(int start_time)
+Media::status Wave_file_src::on_start(int start_time, int end_time)
 {
     MEDIA_TRACE_OBJ_PARAM("%s", object_name());
     if (start_time >= 0)

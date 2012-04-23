@@ -52,7 +52,7 @@ int Audio_player::start(int time)
 {
     qDebug() << "Audio_player::start : " << time;
     timer.start();
-    return ::start(src, time);
+    return ::start(src, time, src.duration());
 }
 
 int Audio_player::set_file_path(const char* path)

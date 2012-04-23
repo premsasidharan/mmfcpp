@@ -31,7 +31,7 @@ public:
     ~Avcodec_audio_decoder();
 
 protected:
-    Media::status on_start(int start_time);
+    Media::status on_start(int start_time, int end_time);
     Media::status on_stop(int end_time);
     Media::status on_pause(int end_time);
 

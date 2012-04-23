@@ -13,6 +13,7 @@
 
 #include <media.h>
 #include <thread.h>
+#include <read_yuv_file.h>
 #include <yuv_parameters.h>
 #include <abstract_media_object.h>
 
@@ -25,10 +26,13 @@ public:
     ~Yuv_file_src();
 
 public:
-    int set_parameters(const char* path, int _width, int _height);
+    int duration() const;
+    /*int is_trick_mode() const;
+    void set_trick_mode(int mode);*/
+    int set_parameters(const char* path, Media::type _fmt, float _fps, int _width, int _height);
 
 protected:
-    Media::status on_start(int start_time);
+    Media::status on_start(int start_time, int end_time);
     Media::status on_stop(int end_time);
     Media::status on_pause(int end_time);
 
@@ -40,14 +44,18 @@ protected:
     int process_yuv_file();
 
 private:
-    int width;
-    int height;
-    FILE* file;
+    Mutex mutex;
+    int start_flag;
+    int trick_mode;
     int is_running;
-    char* file_path;
+    float frame_rate;
+    Read_yuv_file* file;
     Condition_variable cv;
     unsigned int data_size;
+    Condition_variable stop_cv;
     Thread<Yuv_file_src> thread;
+    unsigned long long int end_frame;
+    unsigned long long int start_frame;
     unsigned long long int frame_count;
     unsigned long long int total_frames;
 

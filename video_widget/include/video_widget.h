@@ -17,7 +17,7 @@ class Video_widget:public QGLWidget
 {
     Q_OBJECT
 public:
-    Video_widget(QWidget* parent = 0);
+    Video_widget(QWidget* _control, QWidget* parent = 0);
     ~Video_widget();
 
 public:
@@ -34,6 +34,8 @@ protected:
 
     void moveEvent(QMoveEvent* event);
     void closeEvent(QCloseEvent* event);
+    void mousePressEvent(QMouseEvent* event); 
+    void keyPressEvent(QKeyEvent* event);
 
 	void delete_textures();
 	void create_textures();
@@ -43,12 +45,14 @@ protected:
 
 private:
     QMutex mutex;
+    QWidget* controls;
 
     int format;
 	bool is_changed;
     int video_width;
     int video_height;
 
+    float scale;
 	int texture_count;
     QGLShaderProgram program;
 

@@ -7,6 +7,7 @@ QT += opengl
 DEPENDPATH += .
 INCLUDEPATH += ../../media_core/include \
 			   ../../video_widget/include \
+			   ../../yuv_file/include \
 			   ../../yuv_file_src/include \
 			   ../../video_renderer/include \
 			   ./include ./obj
@@ -15,6 +16,8 @@ LIBS += -L/usr/lib -lpthread -lm -lsupc++ -lrt -L../../media_core/lib -lmedia_co
 HEADERS = ../../video_widget/include/video_widget.h
 
 SOURCES = ../../video_widget/source/video_widget.cpp \
+	      ../../yuv_file/source/yuv_file.cpp \
+	      ../../yuv_file/source/read_yuv_file.cpp \
 	      ../../yuv_file_src/source/yuv_file_src.cpp \
 		  ../../video_renderer/source/video_renderer.cpp \
           source/main.cpp
