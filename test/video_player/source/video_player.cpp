@@ -16,14 +16,12 @@ Video_player::Video_player()
     , trick_mode(0)
     , button("Pause", this)
     , layout(this)
+    , state(Media::stop)
+    , master("master")
     , window(this)
     , source("yuv")
-    , sink("opengl", &window)
+    , sink("opengl", master.create_child("child"), &window)
 {
-    layout.addWidget(&button);
-    layout.addWidget(&slider);
-    setLayout(&layout);
-    
     initialize();
 }
 
@@ -34,18 +32,27 @@ Video_player::~Video_player()
 
 void Video_player::initialize()
 {
+    layout.addWidget(&button);
+    layout.addWidget(&slider);
+    
+    setLayout(&layout);
+    
+    connect_signals_slots();
+    
+    timer.setInterval(400);
+    sink.attach(Media::last_pkt_rendered, this);
+}
+
+void Video_player::connect_signals_slots()
+{
     ::connect(source, sink);
     
     connect(&timer, SIGNAL(timeout()), this, SLOT(on_timeout()));
     connect(&button, SIGNAL(pressed()), this, SLOT(on_play_pause()));
     connect(&slider, SIGNAL(sliderPressed()), this, SLOT(slider_pressed()));
     connect(&slider, SIGNAL(sliderReleased()), this, SLOT(slider_released()));
-    
-    timer.setInterval(400);
-    
-    sink.attach(Media::last_pkt_rendered, this);
 }
-    
+
 void Video_player::show()
 {
     window.show();
@@ -53,8 +60,17 @@ void Video_player::show()
 
 int Video_player::start(int start, int end)
 {
+    int ret = 0;
     timer.start();
-    return ::start(source, start, end);
+    ret = ::start(source, start, end);
+    master.start(start);
+    if (0 == trick_mode)
+    {
+        state = Media::play;
+        button.setText("Pause");
+    }
+    MEDIA_LOG("\nStart: %d", start);
+    return ret;
 }
 
 int Video_player::stop(int& time)
@@ -62,6 +78,10 @@ int Video_player::stop(int& time)
     int ret = 0;
     timer.stop();
     ret = ::stop(source, time);
+    uint64_t tmp = 0;
+    master.stop(tmp);
+    state = Media::stop;
+    button.setText("Play");
     return ret;
 }
 
@@ -85,8 +105,8 @@ void Video_player::on_timeout()
     if (trick_mode)
     {
         int time = slider.value();
-        int end = (button.text() == QString("Pause"))?source.duration():time;
-        ::start(source, time, end);
+        int end = (state == Media::play)?source.duration():time;
+        start(time, end);
     }
     else
     {
@@ -98,7 +118,7 @@ void Video_player::slider_pressed()
 {
     qDebug() << "slider_pressed";
     trick_mode = 1;
-    if (button.text() == QString("Play"))
+    if (state == Media::stop)
     {
         timer.start();
     }
@@ -106,31 +126,27 @@ void Video_player::slider_pressed()
 
 void Video_player::slider_released()
 {
-    trick_mode = 0;
     qDebug() << "slider_released " << slider.value();
-    int start = slider.value();
-    int end = (button.text() == QString("Pause"))?source.duration():start;
-    ::start(source, start, end);
-    if (button.text() == QString("Play"))
+    int time = slider.value();
+    int end = (state == Media::play)?source.duration():time;
+    start(time, end);
+    if (state == Media::stop)
     {
         timer.stop();
     }
+    trick_mode = 0;
 }
 
 void Video_player::on_play_pause()
 {
-    if (button.text() == QString("Pause"))
+    if (state == Media::play)
     {
         int time = 0;
-        timer.stop();
-        ::stop(source, time);
-        button.setText("Play");
+        stop(time);
     }
     else
     {
-        ::start(source, slider.value(), source.duration());
-        timer.start();
-        button.setText("Pause");
+        start(slider.value(), source.duration());
     }
 }
 
@@ -140,6 +156,7 @@ int Video_player::event_handler(Media::events event, Abstract_media_object* obj,
     {
         timer.stop();
         on_timeout();
+        state == Media::stop;
     }
     qDebug() << "event_handler: " << event;
     return 0;
