@@ -16,12 +16,13 @@
 
 const Port Video_renderer::input_port[] = {{Media::YUY2|Media::YV12|Media::I420|Media::UYVY, "yuv"}};
 
-Video_renderer::Video_renderer(const char* _name, Video_widget* _window)
+Video_renderer::Video_renderer(const char* _name, Child_clock* clk, Video_widget* _window)
     :Abstract_media_object(_name)
     , prev(0)
     , curr_pos(0)
     , is_running(0)
     , window(_window)
+    , child_clk(clk)
     , queue(5)
 {
     MEDIA_TRACE_OBJ_PARAM("%s", _name);
@@ -41,6 +42,7 @@ Video_renderer::~Video_renderer()
 void Video_renderer::play_video()
 {
     MEDIA_TRACE_OBJ_PARAM("%s", object_name());
+    int64_t delay = 0;
     Buffer* buffer = queue.pop(2000);
     if (0 != buffer)
     {
@@ -56,8 +58,16 @@ void Video_renderer::play_video()
             Buffer::release(prev);
         }
         prev = buffer;
-        //TODO: AVSync
-        usleep(41667); //TODO: hard coding
+        child_clk->get_deviation(curr_pos, delay);
+
+        if (delay > 0)
+        {
+            wait_cv.timed_uwait(delay);
+        }
+        else
+        {
+            //MEDIA_ERROR(": %s, pts: %lld, Delay: %lld", object_name(), curr_pos, delay);
+        }
         if (buffer->flags() & LAST_PKT)
         {
             set_state(Media::stop);

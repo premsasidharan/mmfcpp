@@ -15,6 +15,7 @@
 #include <yuv_parameters.h>
 #include <abstract_media_object.h>
 
+#include <child_clock.h>
 #include <video_widget.h>
 
 class Video_renderer:public Abstract_media_object
@@ -22,7 +23,7 @@ class Video_renderer:public Abstract_media_object
 public:
     friend class Thread<Video_renderer>;
 
-    Video_renderer(const char* _name, Video_widget* _window);
+    Video_renderer(const char* _name, Child_clock* clk, Video_widget* _window);
     ~Video_renderer();
 
 public:
@@ -49,6 +50,8 @@ private:
     mutable Mutex mutex;
     Video_widget* window;
     Condition_variable cv;
+    Child_clock* child_clk;
+    Condition_variable wait_cv;
     Condition_variable stop_cv;
     Thread<Video_renderer> thread;
     Priority_queue<unsigned long long, Buffer*> queue;

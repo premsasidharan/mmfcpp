@@ -59,7 +59,8 @@ public:
 
 public:
     int wait();
-    int timed_wait(int);
+    int timed_wait(int msec);
+    int timed_uwait(int timeout_us);
 
     int signal();
     int broadcast();
@@ -67,6 +68,8 @@ public:
 private:
     Condition_variable(const Condition_variable& _cv) { (void)_cv; };
     Condition_variable& operator=(const Condition_variable& _cv) { (void)_cv; return *this; };
+    
+    int timed_nwait(int timeout_ns);
 
 private:
     Mutex* _mutex;

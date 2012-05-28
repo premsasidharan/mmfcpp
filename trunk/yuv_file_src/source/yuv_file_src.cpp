@@ -68,7 +68,7 @@ int Yuv_file_src::duration() const
 {
 	if (frame_rate > 0.0f)
     {
-        return (int)(100000.0*((double)total_frames/(double)frame_rate));
+        return (int)(1000000.0*((double)total_frames/(double)frame_rate));
     }
     return 0;
 }
@@ -141,7 +141,7 @@ int Yuv_file_src::process_yuv_file()
     mutex.unlock();
     if (frame_rate > 0.0f)
     {
-        buffer->set_pts((int)(100000.0*((double)frame_count/(double)frame_rate)));
+        buffer->set_pts((int)(1000000.0*((double)frame_count/(double)frame_rate)));
     }
     else
     {
@@ -179,8 +179,8 @@ Media::status Yuv_file_src::on_start(int start_time, int end_time)
     MEDIA_TRACE_OBJ_PARAM("%s", object_name());
     mutex.lock();
     start_flag = 1;
-    end_frame = (int) ((double)frame_rate*(double)end_time/(double)100000.0);
-    start_frame = (int) ((double)frame_rate*(double)start_time/(double)100000.0);
+    end_frame = (int) ((double)frame_rate*(double)end_time/(double)1000000.0);
+    start_frame = (int) ((double)frame_rate*(double)start_time/(double)1000000.0);
     mutex.unlock();
     set_state(Media::play);
     cv.signal();

@@ -1,5 +1,7 @@
 #include <mutex.h>
 
+#include <stdio.h>
+
 Condition_variable::Condition_variable(Mutex* mutex)
     :_mutex(mutex)
     , is_created(mutex == 0)
@@ -32,17 +34,29 @@ int Condition_variable::wait()
 
 int Condition_variable::timed_wait(int timeout_ms)
 {
+    return timed_nwait(timeout_ms*1000000);
+}
+
+int Condition_variable::timed_uwait(int timeout_us)
+{
+    return timed_nwait(timeout_us*1000);
+}
+
+int Condition_variable::timed_nwait(int timeout_ns)
+{
     int ret = EINVAL;
     struct timespec ts;
     _mutex->lock();
     if (0 == clock_gettime(CLOCK_REALTIME, &ts))
     {
-        ts.tv_sec += (timeout_ms/1000);
-        ts.tv_nsec += ((timeout_ms%1000)*1000000);
+        int temp = (timeout_ns+ts.tv_nsec);
+        ts.tv_sec += (temp/1000000000); 
+        ts.tv_nsec = (temp%1000000000);
         ret = pthread_cond_timedwait(&cond, &(_mutex->_mutex), &ts);
     }
     _mutex->unlock();
     return ret;
+    
 }
 
 int Condition_variable::signal()
