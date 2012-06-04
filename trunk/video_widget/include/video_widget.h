@@ -51,6 +51,7 @@ private:
 	bool is_changed;
     int video_width;
     int video_height;
+    unsigned int fmt;
 
     float scale;
 	int texture_count;

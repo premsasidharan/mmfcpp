@@ -14,6 +14,40 @@
 
 #include <QMouseEvent>
 
+static const char shader_program[] =
+"uniform int color;\n"
+"uniform int format;\n"
+"uniform sampler2D texture_0;\n"
+"uniform sampler2D texture_1;\n"
+"uniform sampler2D texture_2;\n"
+"void extract_yuv(out float y, out float u, out float v)\n"
+"{\n"
+"    if (format == 0x30323449) {\n"
+"        y = texture2D(texture_0, gl_TexCoord[0].st).r;\n"
+"        y =  1.1643 * (y - 0.0625);\n"
+"        u = texture2D(texture_1, gl_TexCoord[0].st).r - 0.5;\n"
+"        v = texture2D(texture_2, gl_TexCoord[0].st).r - 0.5;\n"
+"    } else if (format == 0x32595559) {\n"
+"        y = texture2D(texture_0, gl_TexCoord[0].st).r;\n"
+"        y = 1.1643*(y-0.0625);\n"
+"        u = texture2D(texture_1, gl_TexCoord[0].st).g-0.5;\n"
+"        v = texture2D(texture_1, gl_TexCoord[0].st).a-0.5;\n"
+"    }\n"
+"}\n"
+"void main(void)\n"
+"{\n"
+"    float y, u, v;\n"
+"    float red, green, blue;\n"
+"    extract_yuv(y, u, v);\n"
+"    red = y+1.5958*v;\n"
+"    green = y-0.39173*u-0.81290*v;\n"
+"    blue = y+2.017*u;\n"
+"    if (color == 0)\n"
+"        gl_FragColor = vec4(y, y, y, 1.0);\n"
+"    else\n"
+"        gl_FragColor = vec4(red, green, blue, 1.0);\n"
+"}\n";
+
 Video_widget::Video_widget(QWidget* _control, QWidget* parent)
     :QGLWidget(parent)
     , controls(_control)
@@ -94,7 +128,8 @@ void Video_widget::paintGL()
 	for (int i = 0; i < texture_count; i++)
 	{
 		glActiveTexture(GL_TEXTURE0+i);
-		glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, texture_width[i], texture_height[i], texture_format[i], GL_UNSIGNED_BYTE, texture_data[i]);
+		glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, texture_width[i], texture_height[i], 
+            texture_format[i], GL_UNSIGNED_BYTE, texture_data[i]);
 	}
     mutex.unlock();
 
@@ -138,14 +173,13 @@ void Video_widget::mousePressEvent(QMouseEvent* event)
     {
         if (event->button() & Qt::LeftButton)
         {
+            program.setUniformValue("color", controls->isVisible());
             if (controls->isVisible())
             {
-                qDebug() << "Hide";
                 controls->hide();
             }
             else
             {
-                qDebug() << "Show";
                 controls->show();
             }
         }
@@ -190,24 +224,26 @@ void Video_widget::create_textures()
 
 void Video_widget::create_yuy2_textures()
 {
-	qDebug() << program.addShaderFromSourceCode(QGLShader::Fragment,
-		"uniform sampler2D y_texture;\n"
-		"uniform sampler2D uv_texture;\n"
-		"void main(void)\n"
-		"{\n"
-		"   float y, u, v, red, green, blue;\n"
-		"   y = texture2D(y_texture, gl_TexCoord[0].st).r;\n"
-		"   y =  1.1643 * (y - 0.0625);\n"
-		"   u = texture2D(uv_texture, gl_TexCoord[0].st).g-0.5;\n"
-		"   v = texture2D(uv_texture, gl_TexCoord[0].st).a-0.5;\n"
-		"   red = y+1.5958*v;\n"
-		"   green = y-0.39173*u-0.81290*v;\n"
-		"   blue = y+2.017*u;\n"
-		"   gl_FragColor = vec4(red, green, blue, 1.0);\n"
-		"}");
+	program.addShaderFromSourceCode(QGLShader::Fragment,
+        "uniform int color;\n"
+        "uniform sampler2D texture_0;\n"
+        "uniform sampler2D texture_1;\n"
+        "uniform sampler2D texture_2;\n"
+        "void main(void)\n"
+        "{\n"
+        "    float y, u, v, red, green, blue;\n"	
+        "    y = texture2D(texture_0, gl_TexCoord[0].st).r;\n"
+        "    u = texture2D(texture_1, gl_TexCoord[0].st).g-0.5;\n"
+        "    v = texture2D(texture_1, gl_TexCoord[0].st).a-0.5;\n"
+        "    y = 1.1643*(y-0.0625);\n"
+        "    red = y+1.5958*v;\n"
+        "    green = y-0.39173*u-0.81290*v;\n"
+        "    blue = y+2.017*u;\n"
+        "    gl_FragColor = vec4(red, green, blue, 1.0);\n"
+        "}");
 
-    qDebug() << program.link();
-    qDebug() << program.bind();
+    program.link();
+    program.bind();
 
     glGenTextures(2, texture);
 	texture_count = 2;
@@ -231,31 +267,40 @@ void Video_widget::create_yuy2_textures()
 		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 		glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_DECAL);
-		glTexImage2D(GL_TEXTURE_2D, 0, texture_int_format[i], texture_width[i], texture_height[i], 0, texture_format[i], GL_UNSIGNED_BYTE, 0);
+		glTexImage2D(GL_TEXTURE_2D, 0, texture_int_format[i], texture_width[i], texture_height[i], 0, 
+            texture_format[i], GL_UNSIGNED_BYTE, 0);
     }
     
-    program.setUniformValue("y_texture", 0);
-    program.setUniformValue("uv_texture", 1);
+    program.setUniformValue("width", 640.0f);
+    program.setUniformValue("color", 1);
+    program.setUniformValue("format", 0x32595559);
+    program.setUniformValue("texture_0", 0);
+    program.setUniformValue("texture_1", 1);
 }
 
 void Video_widget::create_i420_textures()
 {
 	qDebug() << program.addShaderFromSourceCode(QGLShader::Fragment,
-		"uniform sampler2D y_texture;\n"
-		"uniform sampler2D u_texture;\n"
-		"uniform sampler2D v_texture;\n"
+        shader_program
+		//"uniform int fmt;\n"
+        /*"uniform sampler2D texture_y;\n"
+		"uniform sampler2D texture_u;\n"
+		"uniform sampler2D texture_v;\n"
 		"void main(void)\n"
 		"{\n"
 		"   float y, u, v, red, green, blue;\n"
-		"   y = texture2D(y_texture, gl_TexCoord[0].st).r;\n"
+		"   y = texture2D(texture_y, gl_TexCoord[0].st).r;\n"
 		"   y =  1.1643 * (y - 0.0625);\n"
-		"   u = texture2D(u_texture, gl_TexCoord[0].st).r - 0.5;\n"
-		"   v = texture2D(v_texture, gl_TexCoord[0].st).r - 0.5;\n"
+		"   u = texture2D(texture_u, gl_TexCoord[0].st).r - 0.5;\n"
+		"   v = texture2D(texture_v, gl_TexCoord[0].st).r - 0.5;\n"
 		"   red = y+1.5958*v;\n"
 		"   green = y-0.39173*u-0.81290*v;\n"
 		"   blue = y+2.017*u;\n"
-		"   gl_FragColor = vec4(red, green, blue, 1.0);\n"
-		"}");
+        "   if (fmt >= 1)\n"
+		"      gl_FragColor = vec4(red, red, red, 1.0);\n"
+        "   else\n"
+		"      gl_FragColor = vec4(red, green, blue, 1.0);\n"
+		"}"*/);
     
     qDebug() << program.link();
     qDebug() << program.bind();
@@ -284,12 +329,14 @@ void Video_widget::create_i420_textures()
 		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 		glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_DECAL);
-		glTexImage2D(GL_TEXTURE_2D, 0, texture_int_format[i], texture_width[i], texture_height[i], 0, texture_format[i], GL_UNSIGNED_BYTE, 0);
+		glTexImage2D(GL_TEXTURE_2D, 0, texture_int_format[i], texture_width[i], 
+            texture_height[i], 0, texture_format[i], GL_UNSIGNED_BYTE, 0);
     }
-    
-    program.setUniformValue("y_texture", 0);
-    program.setUniformValue("u_texture", 1);
-    program.setUniformValue("v_texture", 2);
+    program.setUniformValue("color", 1);
+    program.setUniformValue("format", 0x30323449);
+    program.setUniformValue("texture_0", 0);
+    program.setUniformValue("texture_1", 1);
+    program.setUniformValue("texture_2", 2);
 }
 
 void Video_widget::create_uyvy_textures()
@@ -307,3 +354,36 @@ void Video_widget::delete_textures()
 	}
 }
 
+/*
+"uniform int color;\n"
+"uniform float width;\n"
+"uniform sampler2D texture_0;\n"
+"uniform sampler2D texture_1;\n"
+"void main(void)\n"
+"{\n"
+"    float xcoord;\n"
+"    float y, u, v, red, green, blue;\n"	  
+"    float fx, fy;\n"
+"    fx = gl_TexCoord[0].x;\n"	  
+"    fy = gl_TexCoord[0].y;\n"
+"    y = texture2D(texture_0, vec2(fx, fy)).s;\n"
+"    y =  1.1643 * (y - 0.0625);\n"
+"    xcoord = fx*width;\n"
+"    if (mod(xcoord, 2.0) == 0.0)\n"
+"    {\n"
+"        u = texture2D(texture_0, vec2(fx, fy)).t;\n"
+"        v = texture2D(texture_0, vec2((fx+(1.0/width)), fy)).t;\n"
+"    }\n"
+"    else\n"
+"    {\n"
+"        v = texture2D(texture_0, vec2(fx, fy)).t;\n"
+"        u = texture2D(texture_0, vec2((fx-(1.0/width)), fy)).t;\n"     
+"    }\n"
+"    red = y+1.5958*v;\n"
+"    green = y-0.39173*u-0.81290*v;\n"
+"    blue = y+2.017*u;\n"
+"    if (1 == color)\n"
+"        gl_FragColor = vec4(v, 0.0, 0.0, 1.0);\n"
+"     else\n"
+"        gl_FragColor = vec4(y, 0.0, 0.0, 1.0);\n"
+"}"*/
