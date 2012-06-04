@@ -31,7 +31,7 @@ int main(int argc, char** argv)
     int height = atoi(argv[3]);
     Video_player player;
 
-    if (1 != player.set_parameters(width, height, Media::I420, 24.0, argv[1]))
+    if (1 != player.set_parameters(width, height, (0 == atoi(argv[4]))?Media::YUY2:Media::I420, 24.0, argv[1]))
     {
         printf("\n\tInvalid Yuv File Path\n");
 		return 0;
