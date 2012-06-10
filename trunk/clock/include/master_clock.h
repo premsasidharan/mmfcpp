@@ -22,6 +22,8 @@ class Child_clock;
 class Master_clock:public Abstract_clock
 {
 public:
+    friend class Child_clock;
+    
     Master_clock(const char* _name);
     ~Master_clock();
 
@@ -35,6 +37,10 @@ public:
     
     void release(Child_clock* child);
     
+protected:
+    void reset_children_start();
+    void wait_and_update_start(Child_clock* child);
+    
 private:
     int correction;
     Media::state state;
@@ -42,6 +48,7 @@ private:
     struct timeval start_time;
     
     Mutex mutex;
+    Condition_variable cv;
     std::set<Child_clock*> children;
 };
 

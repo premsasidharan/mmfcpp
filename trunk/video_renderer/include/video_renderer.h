@@ -51,7 +51,6 @@ private:
     Video_widget* window;
     Condition_variable cv;
     Child_clock* child_clk;
-    Condition_variable wait_cv;
     Condition_variable stop_cv;
     Thread<Video_renderer> thread;
     Priority_queue<unsigned long long, Buffer*> queue;

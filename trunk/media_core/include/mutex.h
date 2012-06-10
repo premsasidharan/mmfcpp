@@ -51,6 +51,16 @@ private:
     pthread_mutex_t _mutex;
 };
 
+class Guard
+{
+public:
+    Guard(Mutex& m):mutex(m) { mutex.lock(); };
+    ~Guard() { mutex.unlock(); };
+    
+private:
+    Mutex& mutex;
+};
+
 class Condition_variable
 {
 public:

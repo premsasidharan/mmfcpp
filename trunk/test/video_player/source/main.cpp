@@ -13,25 +13,44 @@
 
 #include <QtGui/QApplication>
 
+void print_usage();
+Media::type media_format(char* str);
+int parse_args(char** argv, int size, char* str, int& result);
+int parse_args(char** argv, int size, char* str, char*& result);
+
 int main(int argc, char** argv)
 {
     MEDIA_TRACE();
     QApplication app(argc, argv);
 
-    if (argc < 3)
+    if (argc < 11)
     {
-        printf("\n\tInsufficient arguments");
-        printf("\n\tUsage yuv_test yuv_file_with_path width height");
-        printf("\n\tEg:- ./yuv_test test.yuv 320 240\n");
+        printf("\nInsufficient arguments");
+        print_usage();
 		return 0;
     }
 
 	int time = 0;
-    int width = atoi(argv[2]);
-    int height = atoi(argv[3]);
+    char* path = 0;
+    char* format = 0;
+    int ret, width = 0, height = 0, fps = 0;
+    
+    ret = parse_args(argv, argc-1, "-p", path);
+    ret = ret && parse_args(argv, argc-1, "-w", width);
+    ret = ret && parse_args(argv, argc-1, "-h", height);
+    ret = ret && parse_args(argv, argc-1, "-fmt", format);
+    ret = ret && parse_args(argv, argc-1, "-fps", fps);
+    
+    if (0 == ret)
+    {
+        printf("\nFailed to parse parameters !!!");
+        print_usage();
+        return 0;
+    }
+    
     Video_player player;
 
-    if (1 != player.set_parameters(width, height, (0 == atoi(argv[4]))?Media::YUY2:Media::I420, 24.0, argv[1]))
+    if (1 != player.set_parameters(width, height, media_format(format), (float)fps, path))
     {
         printf("\n\tInvalid Yuv File Path\n");
 		return 0;
@@ -39,8 +58,68 @@ int main(int argc, char** argv)
     
 	player.show();
     player.start(0, player.duration());
-    int ret = app.exec();
+    ret = app.exec();
     player.stop(time);
 
     return ret;
+}
+
+int parse_args(char** argv, int size, char* str, int& result)
+{
+    int i;
+    int ret = 0;
+    for (i = 0; i < size; i++)
+    {
+        if (0 == strcmp(argv[i], str))
+        {
+            ret = 1;
+            result = atoi(argv[i+1]);
+            break;
+        }
+    }
+    return ret;
+}
+
+int parse_args(char** argv, int size, char* str, char*& result)
+{
+    int i;
+    int ret = 0;
+    for (i = 0; i < size; i++)
+    {
+        if (0 == strcmp(argv[i], str))
+        {
+            ret = 1;
+            result = argv[i+1];
+            break;
+        }
+    }
+    return ret;
+}
+
+Media::type media_format(char* str)
+{
+    Media::type type = Media::I420;
+    if (0 == strcmp(str, "I420"))
+    {
+        type = Media::I420;
+    }
+    else if (0 == strcmp(str, "YUY2"))
+    {
+        type = Media::YUY2;
+    }
+    else if (0 == strcmp(str, "YV12"))
+    {
+        type = Media::YV12;
+    }
+    else if (0 == strcmp(str, "UYVY"))
+    {
+        type = Media::UYVY;
+    }
+    return type;
+}
+
+void print_usage()
+{
+    printf("\nUsage video_player -p path -w width -h height -fmt format -fps frame_rate");
+    printf("\nEg:- ./video_player -p test.yuv -w 320 -h 240 -fmt I420 -fps 24\n");   
 }

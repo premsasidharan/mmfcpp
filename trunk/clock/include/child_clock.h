@@ -18,7 +18,7 @@ class Child_clock:public Abstract_clock
 public:
     friend class Master_clock;
 
-    int get_deviation(uint64_t pts, int64_t& lag);
+    int wait_for_sync(uint64_t pts);
     
 protected:
     static Child_clock* create(const char* _name, Master_clock* clk);
@@ -29,7 +29,9 @@ private:
     ~Child_clock();
     
 private:
+    bool started;
     Master_clock* master;
+    Condition_variable cv;
 };
 
 #endif

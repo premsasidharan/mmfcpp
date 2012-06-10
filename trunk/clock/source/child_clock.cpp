@@ -20,11 +20,6 @@ Child_clock::~Child_clock()
 {
 }
 
-int Child_clock::get_deviation(uint64_t pts, int64_t& lag)
-{
-    return master->get_deviation(pts, lag);
-}
-
 Child_clock* Child_clock::create(const char* _name, Master_clock* clk)
 {
     return new Child_clock(_name, clk);
@@ -33,4 +28,15 @@ Child_clock* Child_clock::create(const char* _name, Master_clock* clk)
 void Child_clock::release(Child_clock* clk)
 {
     delete clk;
+}
+
+int Child_clock::wait_for_sync(uint64_t pts)
+{
+    int64_t lag = 0;
+    master->wait_and_update_start(this);
+    master->get_deviation(pts, lag);        
+    if (lag > 0)
+    {
+        cv.timed_uwait(lag);
+    }
 }
