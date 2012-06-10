@@ -58,16 +58,7 @@ void Video_renderer::play_video()
             Buffer::release(prev);
         }
         prev = buffer;
-        child_clk->get_deviation(curr_pos, delay);
-
-        if (delay > 0)
-        {
-            wait_cv.timed_uwait(delay);
-        }
-        else
-        {
-            //MEDIA_ERROR(": %s, pts: %lld, Delay: %lld", object_name(), curr_pos, delay);
-        }
+        child_clk->wait_for_sync(curr_pos);
         if (buffer->flags() & LAST_PKT)
         {
             set_state(Media::stop);

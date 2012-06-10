@@ -2,6 +2,7 @@ TEMPLATE = app
 TARGET = video_player
 DESTDIR = bin
 MOC_DIR = obj
+UI_DIR = obj
 OBJECTS_DIR = obj
 QT += opengl
 DEPENDPATH += .
@@ -18,6 +19,8 @@ LIBS += -L/usr/lib -lpthread -lm -lsupc++ -lrt -L../../media_core/lib -lmedia_co
 
 HEADERS = include/video_player.h \
           ../../video_widget/include/video_widget.h
+
+#FORMS = forms/yuv_dlg.ui
 
 SOURCES = ../../video_widget/source/video_widget.cpp \
 	      ../../yuv_file/source/yuv_file.cpp \
