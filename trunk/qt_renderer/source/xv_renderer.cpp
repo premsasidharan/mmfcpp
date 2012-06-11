@@ -87,11 +87,6 @@ int Xv_renderer::run()
                 cv.wait();
                 break;
 
-            case Media::pause:
-                MEDIA_LOG("%s, State: %s", object_name(), "PAUSE");
-                cv.wait();
-                break;
-
             case Media::play:
                 MEDIA_LOG("%s, State: %s", object_name(), "PLAY");
                 play_video();
@@ -120,14 +115,6 @@ Media::status Xv_renderer::on_stop(int end_time)
     set_state(Media::stop);
     //stop_cv.wait();
     MEDIA_LOG("Stop state: %s", object_name());
-    return Media::ok;
-}
-
-Media::status Xv_renderer::on_pause(int end_time)
-{
-    MEDIA_TRACE_OBJ_PARAM("%s", object_name());
-    set_state(Media::pause);
-    cv.signal();
     return Media::ok;
 }
 

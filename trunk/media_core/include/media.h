@@ -18,7 +18,6 @@ namespace Media
     {
         init,
         stop,
-        pause,
         play
     };
 

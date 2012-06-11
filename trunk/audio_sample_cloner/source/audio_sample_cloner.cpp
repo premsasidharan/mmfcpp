@@ -53,11 +53,6 @@ int Audio_sample_cloner::run()
                 cv.wait();
                 break;
 
-            case Media::pause:
-                MEDIA_LOG("%s, State: %s", object_name(), "PAUSE");
-                cv.wait();
-                break;
-
             case Media::play:
                 MEDIA_LOG("%s, State: %s", object_name(), "PLAY");
                 break;
@@ -85,14 +80,6 @@ Media::status Audio_sample_cloner::on_stop(int end_time)
     set_state(Media::stop);
     cv.signal();
     MEDIA_LOG("on_stop: %s", object_name());
-    return Media::ok;
-}
-
-Media::status Audio_sample_cloner::on_pause(int end_time)
-{
-    MEDIA_TRACE_OBJ_PARAM("%s", object_name());
-    set_state(Media::pause);
-    cv.signal();
     return Media::ok;
 }
 

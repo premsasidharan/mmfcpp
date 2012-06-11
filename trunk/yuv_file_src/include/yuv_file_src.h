@@ -27,14 +27,11 @@ public:
 
 public:
     int duration() const;
-    /*int is_trick_mode() const;
-    void set_trick_mode(int mode);*/
     int set_parameters(const char* path, Media::type _fmt, float _fps, int _width, int _height);
 
 protected:
     Media::status on_start(int start_time, int end_time);
     Media::status on_stop(int end_time);
-    Media::status on_pause(int end_time);
 
     Media::status on_connect(int port, Abstract_media_object* pobj);
     Media::status on_disconnect(int port, Abstract_media_object* pobj);

@@ -35,7 +35,6 @@ public:
 protected:
     Media::status on_start(int start_time, int end_time);
     Media::status on_stop(int end_time);
-    Media::status on_pause(int end_time);
 
     Media::status on_connect(int port, Abstract_media_object* pobj);
     Media::status on_disconnect(int port, Abstract_media_object* pobj);

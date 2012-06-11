@@ -244,30 +244,6 @@ Media::status Abstract_media_object::private_stop(int& end_time)
     return status;
 }
 
-Media::status Abstract_media_object::private_pause(int& end_time)
-{
-    MEDIA_TRACE_OBJ_PARAM("%s", object_name());
-    if (Media::pause == get_state())
-    {
-        MEDIA_WARNING("Already in Pause State: %s", object_name());
-        return Media::ok;
-    }
-
-    Media::status status = Media::ok;
-    set_state(Media::pause);
-    for (int i = 0; i < output_count; i++)
-    {
-        if (0 != output[i]->object)
-        {
-            status = (status == Media::ok)?output[i]->object->private_pause(end_time):status;
-        }
-    }
-    on_pause(end_time);
-
-    MEDIA_LOG(": %s, End time: %d", object_name(), end_time);
-    return status;
-}
-
 Media::status start(Abstract_media_object* src, int start_time, int end_time)
 {
     if (src == 0)
@@ -314,31 +290,6 @@ Media::status stop(Abstract_media_object* src, int& end_time)
 Media::status stop(Abstract_media_object& src, int& end_time)
 {
     return stop(&src, end_time);
-}
-
-Media::status pause(Abstract_media_object* src, int& end_time)
-{
-    if (src == 0)
-    {
-        MEDIA_ERROR("Source object %s", "NULL");
-        return Media::invalid_object;
-    }
-    MEDIA_TRACE_PARAM("%s", src->object_name());
-
-    if (src->input_count != 0)
-    {
-        MEDIA_ERROR("Not a valid source, Input ports exist: %d", src->input_count);
-        return Media::invalid_object;
-    }
-
-    Media::status ret = src->private_pause(end_time);
-    MEDIA_LOG(": %s, end time: %d", src->object_name(), end_time);
-    return ret;
-}
-
-Media::status pause(Abstract_media_object& src, int& end_time)
-{
-    return pause(&src, end_time);
 }
 
 Media::status connect(Abstract_media_object* src, Abstract_media_object* dest)
