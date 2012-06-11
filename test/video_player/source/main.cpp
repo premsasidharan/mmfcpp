@@ -15,8 +15,9 @@
 
 void print_usage();
 Media::type media_format(char* str);
-int parse_args(char** argv, int size, char* str, int& result);
-int parse_args(char** argv, int size, char* str, char*& result);
+int find_args_index(char** argv, int size, const char* str);
+int parse_args(char** argv, int size, const char* str, int& result);
+int parse_args(char** argv, int size, const char* str, char*& result);
 
 int main(int argc, char** argv)
 {
@@ -64,36 +65,36 @@ int main(int argc, char** argv)
     return ret;
 }
 
-int parse_args(char** argv, int size, char* str, int& result)
+int find_args_index(char** argv, int size, const char* str)
 {
-    int i;
-    int ret = 0;
-    for (i = 0; i < size; i++)
+    for (int i = 0; i < size; i++)
     {
         if (0 == strcmp(argv[i], str))
         {
-            ret = 1;
-            result = atoi(argv[i+1]);
-            break;
+            return i;
         }
     }
-    return ret;
+    return -1;
 }
 
-int parse_args(char** argv, int size, char* str, char*& result)
+int parse_args(char** argv, int size, const char* str, int& result)
 {
-    int i;
-    int ret = 0;
-    for (i = 0; i < size; i++)
+    int ret = find_args_index(argv, size, str);
+    if (ret >= 0)
     {
-        if (0 == strcmp(argv[i], str))
-        {
-            ret = 1;
-            result = argv[i+1];
-            break;
-        }
+        result = atoi(argv[ret+1]);
     }
-    return ret;
+    return (ret >= 0);
+}
+
+int parse_args(char** argv, int size, const char* str, char*& result)
+{
+    int ret = find_args_index(argv, size, str);
+    if (ret >= 0)
+    {
+        result = argv[ret+1];
+    }
+    return (ret >= 0);
 }
 
 Media::type media_format(char* str)
