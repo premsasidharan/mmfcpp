@@ -24,7 +24,6 @@ struct _Port;
 struct Port
 {
     unsigned int type;
-    //unsigned int port_num;
     char port_name[OBJ_NAME_MAX_CHARS];
 };
 
@@ -49,8 +48,6 @@ public:
     friend Media::status start(Abstract_media_object& src, int start_time, int end_time);
     friend Media::status stop(Abstract_media_object* src, int& end_time);
     friend Media::status stop(Abstract_media_object& src, int& end_time);
-    friend Media::status pause(Abstract_media_object* src, int& end_time);
-    friend Media::status pause(Abstract_media_object& src, int& end_time);
 
     friend Media::status connect(Abstract_media_object* src, Abstract_media_object* dest);
     friend Media::status connect(Abstract_media_object& src, Abstract_media_object& dest);
@@ -62,7 +59,6 @@ public:
 protected:
     virtual Media::status on_start(int start_time, int end_time) = 0;
     virtual Media::status on_stop(int end_time) = 0;
-    virtual Media::status on_pause(int end_time) = 0;
 
     virtual Media::status on_connect(int port, Abstract_media_object* pobj) = 0;
     virtual Media::status on_disconnect(int port, Abstract_media_object* pobj) = 0;
@@ -89,7 +85,6 @@ private:
 
     Media::status private_start(int start_time, int end_time);
     Media::status private_stop(int& end_time);
-    Media::status private_pause(int& end_time);
 
 private:
     char *obj_name;
@@ -107,8 +102,6 @@ Media::status start(Abstract_media_object* src, int start_time, int end_time);
 Media::status start(Abstract_media_object& src, int start_time, int end_time);
 Media::status stop(Abstract_media_object* src, int& end_time);
 Media::status stop(Abstract_media_object& src, int& end_time);
-Media::status pause(Abstract_media_object* src, int& end_time);
-Media::status pause(Abstract_media_object& src, int& end_time);
 Media::status connect(Abstract_media_object* src, Abstract_media_object* dest);
 Media::status connect(Abstract_media_object& src, Abstract_media_object& dest);
 Media::status connect(Abstract_media_object* src, char* src_port, Abstract_media_object* dest, char* dest_port);
