@@ -24,14 +24,14 @@ static const char shader_program[] =
 "{\n"
 "    if (format == 0x30323449) {\n"
 "        y = texture2D(texture_0, gl_TexCoord[0].st).r;\n"
-"        y =  1.1643 * (y - 0.0625);\n"
+"        y = 1.1643 * (y - 0.0625);\n"
 "        u = texture2D(texture_1, gl_TexCoord[0].st).r - 0.5;\n"
 "        v = texture2D(texture_2, gl_TexCoord[0].st).r - 0.5;\n"
 "    } else if (format == 0x32595559) {\n"
 "        y = texture2D(texture_0, gl_TexCoord[0].st).r;\n"
 "        y = 1.1643*(y-0.0625);\n"
-"        u = texture2D(texture_1, gl_TexCoord[0].st).g-0.5;\n"
-"        v = texture2D(texture_1, gl_TexCoord[0].st).a-0.5;\n"
+"        u = texture2D(texture_1, gl_TexCoord[0].st).r-0.5;\n"
+"        v = texture2D(texture_1, gl_TexCoord[0].st).g-0.5;\n"
 "    }\n"
 "}\n"
 "void main(void)\n"
@@ -106,7 +106,6 @@ void Video_widget::show_frame(unsigned char* _yuv, int fmt, int width, int heigh
 			break;
 		case Media::UYVY:
 			break;
-		
 	}
     mutex.unlock();
     emit update_frame();
@@ -125,15 +124,27 @@ void Video_widget::paintGL()
 		create_textures();
 		is_changed = false;
 	}
-	for (int i = 0; i < texture_count; i++)
-	{
-		glActiveTexture(GL_TEXTURE0+i);
-		glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, texture_width[i], texture_height[i], 
-            texture_format[i], GL_UNSIGNED_BYTE, texture_data[i]);
-	}
+    
+    if (program.isLinked())
+    {
+        program.bind();
+        program.setUniformValue("texture_0", 0);
+        program.setUniformValue("texture_1", 1);
+        program.setUniformValue("texture_2", 2);
+        program.setUniformValue("format", 0x30323449);
+        program.setUniformValue("color", !controls->isVisible());
+    
+        for (int i = 0; i < texture_count; i++)
+        {
+            glActiveTexture(GL_TEXTURE0+i);
+            glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, texture_width[i], texture_height[i], 
+                texture_format[i], GL_UNSIGNED_BYTE, texture_data[i]);
+        }
+    }
     mutex.unlock();
 
-	glClear(GL_COLOR_BUFFER_BIT);
+	glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
+	//glClear(GL_COLOR_BUFFER_BIT);
 	glEnable(GL_TEXTURE_2D);
 	glBegin(GL_QUADS);
 	    glTexCoord2f(0.0f, 0.0f); glVertex3f(-scale, scale, 0.0f);
@@ -141,8 +152,22 @@ void Video_widget::paintGL()
 	    glTexCoord2f(1.0f,1.0f); glVertex3f(scale, -scale, 0.0f);
 	    glTexCoord2f(0.0f,1.0f); glVertex3f(-scale, -scale, 0.0f);
 	glEnd(); 
-	glFlush();
 	glDisable(GL_TEXTURE_2D);
+    
+    program.release();
+    
+    glEnable(GL_BLEND);	
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    glColor4f(1.0, 0.0, 0.0, 0.5);
+    glBegin(GL_QUADS);
+	    glVertex3f(-scale/5.0, scale/5.0, 0.0f);
+	    glVertex3f(scale/5.0, scale/5.0, 0.0f);
+	    glVertex3f(scale/5.0, -scale/5.0, 0.0f);
+	    glVertex3f(-scale/5.0, -scale/5.0, 0.0f);
+	glEnd(); 
+    glDisable(GL_BLEND);
+    
+	glFlush();
 }
 
 void Video_widget::resizeGL(int width, int height)
@@ -173,7 +198,7 @@ void Video_widget::mousePressEvent(QMouseEvent* event)
     {
         if (event->button() & Qt::LeftButton)
         {
-            program.setUniformValue("color", controls->isVisible());
+            //program.setUniformValue("color", controls->isVisible());
             if (controls->isVisible())
             {
                 controls->hide();
@@ -225,10 +250,11 @@ void Video_widget::create_textures()
 void Video_widget::create_yuy2_textures()
 {
 	program.addShaderFromSourceCode(QGLShader::Fragment,
+        //shader_program
         "uniform int color;\n"
         "uniform sampler2D texture_0;\n"
         "uniform sampler2D texture_1;\n"
-        "uniform sampler2D texture_2;\n"
+        //"uniform sampler2D texture_2;\n"
         "void main(void)\n"
         "{\n"
         "    float y, u, v, red, green, blue;\n"	
@@ -239,11 +265,14 @@ void Video_widget::create_yuy2_textures()
         "    red = y+1.5958*v;\n"
         "    green = y-0.39173*u-0.81290*v;\n"
         "    blue = y+2.017*u;\n"
-        "    gl_FragColor = vec4(red, green, blue, 1.0);\n"
+        "    if (color == 0)\n"
+        "        gl_FragColor = vec4(y, y, y, 1.0);\n"
+        "    else\n"
+        "        gl_FragColor = vec4(red, green, blue, 1.0);\n"
         "}");
 
     program.link();
-    program.bind();
+    //program.bind();
 
     glGenTextures(2, texture);
 	texture_count = 2;
@@ -271,11 +300,11 @@ void Video_widget::create_yuy2_textures()
             texture_format[i], GL_UNSIGNED_BYTE, 0);
     }
     
-    program.setUniformValue("width", 640.0f);
+    /*program.setUniformValue("width", 640.0f);
     program.setUniformValue("color", 1);
     program.setUniformValue("format", 0x32595559);
     program.setUniformValue("texture_0", 0);
-    program.setUniformValue("texture_1", 1);
+    program.setUniformValue("texture_1", 1);*/
 }
 
 void Video_widget::create_i420_textures()
@@ -303,7 +332,7 @@ void Video_widget::create_i420_textures()
 		"}"*/);
     
     qDebug() << program.link();
-    qDebug() << program.bind();
+    //qDebug() << program.bind();
 
     glGenTextures(3, texture);
 	texture_count = 3;
@@ -332,11 +361,11 @@ void Video_widget::create_i420_textures()
 		glTexImage2D(GL_TEXTURE_2D, 0, texture_int_format[i], texture_width[i], 
             texture_height[i], 0, texture_format[i], GL_UNSIGNED_BYTE, 0);
     }
-    program.setUniformValue("color", 1);
+    /*program.setUniformValue("color", 1);
     program.setUniformValue("format", 0x30323449);
     program.setUniformValue("texture_0", 0);
     program.setUniformValue("texture_1", 1);
-    program.setUniformValue("texture_2", 2);
+    program.setUniformValue("texture_2", 2);*/
 }
 
 void Video_widget::create_uyvy_textures()
