@@ -43,6 +43,8 @@ protected:
 	void create_i420_textures();
 	void create_uyvy_textures();
 
+	int format_code() const;
+
 private:
     QMutex mutex;
     QWidget* controls;
@@ -51,7 +53,6 @@ private:
 	bool is_changed;
     int video_width;
     int video_height;
-    unsigned int fmt;
 
     float scale;
 	int texture_count;
@@ -66,6 +67,8 @@ private:
 	GLint texture_int_format[MAX_TEXTURE_COUNT];
     
 	unsigned char* texture_data[MAX_TEXTURE_COUNT];
+
+	static const char shader_program[];
 };
 
 #endif
