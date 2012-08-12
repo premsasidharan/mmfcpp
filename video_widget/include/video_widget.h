@@ -21,6 +21,7 @@ public:
     ~Video_widget();
 
 public:
+    void set_gray_scale(const bool gray);
     void show_frame(unsigned char* _yuv, int fmt, int width, int height);
 
 signals:
@@ -50,9 +51,11 @@ private:
     QWidget* controls;
 
     int format;
-	bool is_changed;
     int video_width;
     int video_height;
+
+	bool is_changed;
+    bool is_grayscale;
 
     float scale;
 	int texture_count;
