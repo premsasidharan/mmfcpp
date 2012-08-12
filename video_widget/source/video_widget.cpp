@@ -312,10 +312,10 @@ void Video_widget::delete_textures()
 {
     if (texture_count > 0)
     {
-	    program.removeAllShaders();
-	    program.release();
-	    glDeleteTextures(texture_count, texture);
-	    texture_count = 0;
+        program.removeAllShaders();
+        program.release();
+        glDeleteTextures(texture_count, texture);
+        texture_count = 0;
     }
 }
 
@@ -324,18 +324,18 @@ int Video_widget::format_code() const
     int code = 1;
     switch (format)
     {
-	    case Media::I420:
-	    case Media::YV12:
-		    code = 1;
-		    break;
+        case Media::I420:
+        case Media::YV12:
+            code = 1;
+            break;
 
-	    case Media::YUY2:	
-		    code = 2;		
-		    break;
+        case Media::YUY2:	
+            code = 2;		
+            break;
 
-	    case Media::UYVY:
-		    code = 3;
-		    break;
+        case Media::UYVY:
+            code = 3;
+            break;
     }
     return code;
 }
