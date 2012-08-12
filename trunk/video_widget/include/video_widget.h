@@ -38,13 +38,13 @@ protected:
     void mousePressEvent(QMouseEvent* event); 
     void keyPressEvent(QKeyEvent* event);
 
-	void delete_textures();
-	void create_textures();
-	void create_yuy2_textures();
-	void create_i420_textures();
-	void create_uyvy_textures();
+    void delete_textures();
+    void create_textures();
+    void create_yuy2_textures();
+    void create_i420_textures();
+    void create_uyvy_textures();
 
-	int format_code() const;
+    int format_code() const;
 
 private:
     QMutex mutex;
@@ -54,24 +54,24 @@ private:
     int video_width;
     int video_height;
 
-	bool is_changed;
+    bool is_changed;
     bool is_grayscale;
 
     float scale;
-	int texture_count;
+    int texture_count;
     QGLShaderProgram program;
 
-	enum TEXTURE_COUNT {MAX_TEXTURE_COUNT = 3};
+    enum TEXTURE_COUNT {MAX_TEXTURE_COUNT = 3};
 
-	GLuint texture[MAX_TEXTURE_COUNT];
-	GLenum texture_format[MAX_TEXTURE_COUNT];
-	GLsizei texture_width[MAX_TEXTURE_COUNT];
-	GLsizei texture_height[MAX_TEXTURE_COUNT];
-	GLint texture_int_format[MAX_TEXTURE_COUNT];
-    
-	unsigned char* texture_data[MAX_TEXTURE_COUNT];
+    GLuint texture[MAX_TEXTURE_COUNT];
+    GLenum texture_format[MAX_TEXTURE_COUNT];
+    GLsizei texture_width[MAX_TEXTURE_COUNT];
+    GLsizei texture_height[MAX_TEXTURE_COUNT];
+    GLint texture_int_format[MAX_TEXTURE_COUNT];
 
-	static const char shader_program[];
+    unsigned char* texture_data[MAX_TEXTURE_COUNT];
+
+    static const char shader_program[];
 };
 
 #endif
