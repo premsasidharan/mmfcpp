@@ -11,10 +11,11 @@
 
 Video_player::Video_player()
     :QWidget(0)
+    , trick_mode(0)
     , timer(this)
     , slider(Qt::Horizontal, this)
-    , trick_mode(0)
     , button("Pause", this)
+    , gray_chk_box("Gray", this)
     , layout(this)
     , state(Media::stop)
     , master("master")
@@ -34,6 +35,7 @@ void Video_player::initialize()
 {
     layout.addWidget(&button);
     layout.addWidget(&slider);
+    layout.addWidget(&gray_chk_box);
     
     setLayout(&layout);
     
@@ -51,6 +53,7 @@ void Video_player::connect_signals_slots()
     connect(&button, SIGNAL(pressed()), this, SLOT(on_play_pause()));
     connect(&slider, SIGNAL(sliderPressed()), this, SLOT(slider_pressed()));
     connect(&slider, SIGNAL(sliderReleased()), this, SLOT(slider_released()));
+    connect(&gray_chk_box, SIGNAL(stateChanged(int)), this, SLOT(on_gray_chk_box_state_change(int)));
 }
 
 void Video_player::show()
@@ -96,6 +99,7 @@ int Video_player::set_parameters(int width, int height, Media::type fmt, float f
     if (ret == 1)
     {
         slider.setRange(0, source.duration());
+        window.setWindowTitle(path);
     }
     return ret;
 }
@@ -150,8 +154,15 @@ void Video_player::on_play_pause()
     }
 }
 
+void Video_player::on_gray_chk_box_state_change(int state)
+{
+    qDebug() << "on_gray_chk_box_state_change " << state;
+    window.set_gray_scale((Qt::Checked == state));
+}
+
 int Video_player::event_handler(Media::events event, Abstract_media_object* obj, Media_params& params)
 {
+    (void)params;
     if (!trick_mode)
     {
         timer.stop();
