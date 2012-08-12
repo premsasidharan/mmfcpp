@@ -11,6 +11,7 @@
 
 #include <QTimer>
 #include <QSlider>
+#include <QCheckBox>
 #include <QHBoxLayout>
 #include <QPushButton>
 
@@ -45,12 +46,17 @@ protected slots:
     void on_play_pause();
     void slider_pressed();
     void slider_released();
+    void on_gray_chk_box_state_change(int state);
 
 private:
-    QTimer timer;
-    QSlider slider;
     int trick_mode;
+
+    QTimer timer;
+
+    QSlider slider;
     QPushButton button;
+    QCheckBox gray_chk_box;
+
     QHBoxLayout layout;
     
     Media::state state;

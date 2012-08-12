@@ -15,7 +15,7 @@ INCLUDEPATH += ../../media_core/include \
 			   ./include \
 			   ./obj \
 
-LIBS += -L/usr/lib -lpthread -lm -lsupc++ -lrt -L../../media_core/lib -lmedia_core
+LIBS += -L/usr/lib -lpthread -lm -lsupc++ -L../../media_core/lib -lmedia_core
 
 HEADERS = include/video_player.h \
           ../../video_widget/include/video_widget.h
