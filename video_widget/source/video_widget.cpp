@@ -90,30 +90,30 @@ void Video_widget::show_frame(unsigned char* _yuv, int fmt, int width, int heigh
     mutex.lock();
     if ((fmt != format) || (width != video_width) || (height != video_height))
     {
-	    delete_textures();
-	    is_changed = true;
-	    format = fmt;
-	    video_width = width;
-	    video_height = height;
+        delete_textures();
+        is_changed = true;
+        format = fmt;
+        video_width = width;
+        video_height = height;
     }
     switch (fmt)
     {
-	    case Media::YUY2:
-		    texture_data[0] = _yuv;
-		    texture_data[1] = _yuv;
-		    break;
-	    case Media::YV12:
-		    texture_data[0] = _yuv;
-		    texture_data[2] = texture_data[0]+(width*height);
-		    texture_data[1] = texture_data[2]+((width*height)>>2);
-		    break;
-	    case Media::I420:
-		    texture_data[0] = _yuv;
-		    texture_data[1] = texture_data[0]+(width*height);
-		    texture_data[2] = texture_data[1]+((width*height)>>2);
-		    break;
-	    case Media::UYVY:
-		    break;
+        case Media::YUY2:
+            texture_data[0] = _yuv;
+            texture_data[1] = _yuv;
+            break;
+        case Media::YV12:
+            texture_data[0] = _yuv;
+            texture_data[2] = texture_data[0]+(width*height);
+            texture_data[1] = texture_data[2]+((width*height)>>2);
+            break;
+        case Media::I420:
+            texture_data[0] = _yuv;
+            texture_data[1] = texture_data[0]+(width*height);
+            texture_data[2] = texture_data[1]+((width*height)>>2);
+            break;
+        case Media::UYVY:
+            break;
     }
     mutex.unlock();
     emit update_frame();
@@ -121,8 +121,8 @@ void Video_widget::show_frame(unsigned char* _yuv, int fmt, int width, int heigh
 
 void Video_widget::initializeGL()
 {
-	glClearColor(0.0, 0.0, 0.0, 0.0);
-	program.addShaderFromSourceCode(QGLShader::Fragment, shader_program);
+    glClearColor(0.0, 0.0, 0.0, 0.0);
+    program.addShaderFromSourceCode(QGLShader::Fragment, shader_program);
     program.link();
 }
 
@@ -131,8 +131,8 @@ void Video_widget::paintGL()
     mutex.lock();
     if (is_changed)
     {
-	    create_textures();
-	    is_changed = false;
+        create_textures();
+        is_changed = false;
     }
     
     if (program.isLinked())
@@ -231,16 +231,16 @@ void Video_widget::create_textures()
 {
     switch (format)
     {
-	    case Media::YUY2:
-		    create_yuy2_textures();
-		    break;
-	    case Media::YV12:
-	    case Media::I420:
-		    create_i420_textures();
-		    break;
-	    case Media::UYVY:
-		    create_uyvy_textures();
-		    break;
+        case Media::YUY2:
+            create_yuy2_textures();
+            break;
+        case Media::YV12:
+        case Media::I420:
+            create_i420_textures();
+            break;
+        case Media::UYVY:
+            create_uyvy_textures();
+            break;
     }
 }
 
@@ -263,12 +263,12 @@ void Video_widget::create_yuy2_textures()
 
     for (int i = 0; i < 2; i++)
     {
-	    glActiveTexture(GL_TEXTURE0+i);
-	    glBindTexture(GL_TEXTURE_2D, texture[i]);
-	    glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-	    glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-	    glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_DECAL);
-	    glTexImage2D(GL_TEXTURE_2D, 0, texture_int_format[i], texture_width[i], texture_height[i], 0, 
+        glActiveTexture(GL_TEXTURE0+i);
+        glBindTexture(GL_TEXTURE_2D, texture[i]);
+        glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+        glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+        glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_DECAL);
+        glTexImage2D(GL_TEXTURE_2D, 0, texture_int_format[i], texture_width[i], texture_height[i], 0, 
             texture_format[i], GL_UNSIGNED_BYTE, 0);
     }
 }
@@ -294,12 +294,12 @@ void Video_widget::create_i420_textures()
 
     for (int i = 0; i < 3; i++)
     {
-	    glActiveTexture(GL_TEXTURE0+i);
-	    glBindTexture(GL_TEXTURE_2D, texture[i]);
-	    glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-	    glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-	    glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_DECAL);
-	    glTexImage2D(GL_TEXTURE_2D, 0, texture_int_format[i], texture_width[i], 
+        glActiveTexture(GL_TEXTURE0+i);
+        glBindTexture(GL_TEXTURE_2D, texture[i]);
+        glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+        glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+        glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_DECAL);
+        glTexImage2D(GL_TEXTURE_2D, 0, texture_int_format[i], texture_width[i], 
             texture_height[i], 0, texture_format[i], GL_UNSIGNED_BYTE, 0);
     }
 }
