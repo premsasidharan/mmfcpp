@@ -42,7 +42,6 @@ protected:
     void create_textures();
     void create_yuy2_textures();
     void create_i420_textures();
-    void create_uyvy_textures();
 
     int format_code() const;
 

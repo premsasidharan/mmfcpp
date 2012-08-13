@@ -33,6 +33,11 @@ const char Video_widget::shader_program[] =
     "        y = 1.1643*(y-0.0625);\n"
     "        u = texture2D(texture_1, gl_TexCoord[0].st).g-0.5;\n"
     "        v = texture2D(texture_1, gl_TexCoord[0].st).a-0.5;\n"
+    "    } else if (format == 3) {\n"
+    "        y = texture2D(texture_0, gl_TexCoord[0].st).g;\n"
+    "        y = 1.1643*(y-0.0625);\n"
+    "        u = texture2D(texture_1, gl_TexCoord[0].st).r-0.5;\n"
+    "        v = texture2D(texture_1, gl_TexCoord[0].st).b-0.5;\n"
     "    }\n"
     "}\n"
     "void main(void)\n"
@@ -232,14 +237,13 @@ void Video_widget::create_textures()
     switch (format)
     {
         case Media::YUY2:
+        case Media::UYVY:
             create_yuy2_textures();
             break;
+
         case Media::YV12:
         case Media::I420:
             create_i420_textures();
-            break;
-        case Media::UYVY:
-            create_uyvy_textures();
             break;
     }
 }
@@ -302,10 +306,6 @@ void Video_widget::create_i420_textures()
         glTexImage2D(GL_TEXTURE_2D, 0, texture_int_format[i], texture_width[i], 
             texture_height[i], 0, texture_format[i], GL_UNSIGNED_BYTE, 0);
     }
-}
-
-void Video_widget::create_uyvy_textures()
-{
 }
 
 void Video_widget::delete_textures()
