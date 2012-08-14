@@ -104,6 +104,7 @@ void Video_widget::show_frame(unsigned char* _yuv, int fmt, int width, int heigh
     switch (fmt)
     {
         case Media::YUY2:
+        case Media::UYVY:
             texture_data[0] = _yuv;
             texture_data[1] = _yuv;
             break;
@@ -117,7 +118,15 @@ void Video_widget::show_frame(unsigned char* _yuv, int fmt, int width, int heigh
             texture_data[1] = texture_data[0]+(width*height);
             texture_data[2] = texture_data[1]+((width*height)>>2);
             break;
-        case Media::UYVY:
+        case Media::I422:
+            texture_data[0] = _yuv;
+            texture_data[1] = texture_data[0]+(width*height);
+            texture_data[2] = texture_data[1]+((width*height)>>1);
+            break;
+        case Media::I444:
+            texture_data[0] = _yuv;
+            texture_data[1] = texture_data[0]+(width*height);
+            texture_data[2] = texture_data[1]+(width*height);
             break;
     }
     mutex.unlock();
@@ -133,6 +142,12 @@ void Video_widget::initializeGL()
 
 void Video_widget::paintGL()
 {
+
+    if (false == program.isLinked())
+    {
+        return;
+    }
+
     mutex.lock();
     if (is_changed)
     {
@@ -140,21 +155,18 @@ void Video_widget::paintGL()
         is_changed = false;
     }
     
-    if (program.isLinked())
+    program.bind();
+    program.setUniformValue("texture_0", 0);
+    program.setUniformValue("texture_1", 1);
+    program.setUniformValue("texture_2", 2);
+    program.setUniformValue("format", format_code());
+    program.setUniformValue("grayscale", is_grayscale);
+
+    for (int i = 0; i < texture_count; i++)
     {
-        program.bind();
-        program.setUniformValue("texture_0", 0);
-        program.setUniformValue("texture_1", 1);
-        program.setUniformValue("texture_2", 2);
-        program.setUniformValue("format", format_code());
-        program.setUniformValue("grayscale", is_grayscale);
-    
-        for (int i = 0; i < texture_count; i++)
-        {
-            glActiveTexture(GL_TEXTURE0+i);
-            glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, texture_width[i], texture_height[i], 
-                texture_format[i], GL_UNSIGNED_BYTE, texture_data[i]);
-        }
+        glActiveTexture(GL_TEXTURE0+i);
+        glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, texture_width[i], texture_height[i], 
+            texture_format[i], GL_UNSIGNED_BYTE, texture_data[i]);
     }
     mutex.unlock();
 
@@ -243,6 +255,8 @@ void Video_widget::create_textures()
 
         case Media::YV12:
         case Media::I420:
+        case Media::I422:
+        case Media::I444:
             create_i420_textures();
             break;
     }
@@ -285,8 +299,22 @@ void Video_widget::create_i420_textures()
     texture_width[0] = video_width;
     texture_height[0] = video_height;
 
-    texture_width[1] = texture_width[2] = video_width>>1;
-    texture_height[1] = texture_height[2] = video_height>>1;
+    switch (format)
+    {
+        case Media::YV12:
+        case Media::I420:
+            texture_width[1] = texture_width[2] = video_width>>1;
+            texture_height[1] = texture_height[2] = video_height>>1;    
+            break;
+        case Media::I422:
+            texture_width[1] = texture_width[2] = video_width>>1;
+            texture_height[1] = texture_height[2] = video_height;  
+            break;
+        case Media::I444:
+            texture_width[1] = texture_width[2] = video_width;
+            texture_height[1] = texture_height[2] = video_height;  
+            break;
+    }
 
     texture_format[0] = GL_LUMINANCE;
     texture_format[1] = GL_LUMINANCE;
@@ -324,8 +352,10 @@ int Video_widget::format_code() const
     int code = 1;
     switch (format)
     {
-        case Media::I420:
         case Media::YV12:
+        case Media::I420:
+        case Media::I422:
+        case Media::I444:
             code = 1;
             break;
 

@@ -41,9 +41,13 @@ int Yuv_file::frame_size() const
         case Media::YV12:
             size = (width*height*3)>>1;
             break;
+        case Media::I422:
         case Media::YUY2:
         case Media::UYVY:
             size = (width*height)<<1;
+            break;
+        case Media::I444:
+            size = width*height*3;
             break;
         default:
             size = 0;

@@ -32,7 +32,7 @@ INCLUDEPATH += /usr/include/ \
 
 FORMS = forms/player_window.ui
 
-LIBS += -L/usr/lib -lpthread -lm -lsupc++ -lrt -lasound \
+LIBS += -L/usr/lib -lpthread -lm -lsupc++ -lasound \
        -L../../media_core/lib -lmedia_core
 
 SOURCES += ../../wave_file_src/source/wave_file_src.cpp \
