@@ -16,7 +16,16 @@
 #include <media_debug.h>
 #include <yuv_file_src.h>
 
-const Port Yuv_file_src::output_port[] = {{Media::YUY2|Media::YV12|Media::I420|Media::UYVY, "yuv"}};
+const Port Yuv_file_src::output_port[] = 
+    {{
+        Media::YUY2 |
+        Media::YV12 |
+        Media::I420 |
+        Media::I422 |
+        Media::I444 |
+        Media::UYVY, 
+        "yuv"
+    }};
 
 Yuv_file_src::Yuv_file_src(const char* _name)
     :Abstract_media_object(_name)

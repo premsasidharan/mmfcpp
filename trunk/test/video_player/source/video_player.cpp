@@ -168,7 +168,9 @@ int Video_player::event_handler(Media::events event, Abstract_media_object* obj,
         timer.stop();
         on_timeout();
         state == Media::stop;
+        slider.setValue(slider.maximum());
     }
     qDebug() << "event_handler: " << event;
     return 0;
 }
+

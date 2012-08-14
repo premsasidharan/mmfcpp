@@ -14,7 +14,16 @@
 #include <media_debug.h>
 #include <video_renderer.h>
 
-const Port Video_renderer::input_port[] = {{Media::YUY2|Media::YV12|Media::I420|Media::UYVY, "yuv"}};
+const Port Video_renderer::input_port[] = 
+    {{
+        Media::YUY2 |
+        Media::YV12 |
+        Media::I420 |
+        Media::I422 |
+        Media::I444 |
+        Media::UYVY, 
+        "yuv"
+    }};
 
 Video_renderer::Video_renderer(const char* _name, Child_clock* clk, Video_widget* _window)
     :Abstract_media_object(_name)
