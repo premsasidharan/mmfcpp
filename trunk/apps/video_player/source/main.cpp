@@ -149,6 +149,7 @@ int parse_args(char** argv, int size, const char* str, char*& result)
 void print_usage()
 {
     printf("\nUsage video_player -p path -w width -h height -fmt format -fps frame_rate");
+    printf("\nFormat - YUV420(I420)|YUV422(I422)|YUV444(I444)|YV12|YUY2|UYVY");
     printf("\nEg:- ./video_player -p test.yuv -w 320 -h 240 -fmt I420 -fps 24\n");   
 }
 
