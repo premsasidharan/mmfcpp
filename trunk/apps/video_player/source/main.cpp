@@ -16,8 +16,8 @@
 void print_usage();
 int find_args_index(char** argv, int size, const char* str);
 int parse_args(char** argv, int size, const char* str, int& result);
-int parse_args(char** argv, int size, const char* str, Media::type& result);
 int parse_args(char** argv, int size, const char* str, char*& result);
+int parse_args(char** argv, int size, const char* str, Media::type& result);
 
 int main(int argc, char** argv)
 {
@@ -31,7 +31,7 @@ int main(int argc, char** argv)
 		return 0;
     }
 
-	int time = 0;
+    int time = 0;
     char* path = 0;
     Media::type format;
     int ret, width = 0, height = 0, fps = 0;
@@ -54,7 +54,7 @@ int main(int argc, char** argv)
     if (1 != player.set_parameters(width, height, format, (float)fps, path))
     {
         printf("\n\tInvalid Yuv File Path\n");
-		return 0;
+        return 0;
     }
     
 	player.show();
