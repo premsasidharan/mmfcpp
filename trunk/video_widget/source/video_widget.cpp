@@ -96,11 +96,13 @@ void Video_widget::show_frame(unsigned char* _yuv, int fmt, int width, int heigh
     if ((fmt != format) || (width != video_width) || (height != video_height))
     {
         delete_textures();
-        is_changed = true;
         format = fmt;
         video_width = width;
         video_height = height;
+
+        is_changed = true;
     }
+
     switch (fmt)
     {
         case Media::YUY2:
@@ -142,18 +144,13 @@ void Video_widget::initializeGL()
 
 void Video_widget::paintGL()
 {
-
     if (false == program.isLinked())
     {
         return;
     }
 
     mutex.lock();
-    if (is_changed)
-    {
-        create_textures();
-        is_changed = false;
-    }
+    create_textures();
     
     program.bind();
     program.setUniformValue("texture_0", 0);
@@ -246,6 +243,11 @@ void Video_widget::keyPressEvent(QKeyEvent* event)
 
 void Video_widget::create_textures()
 {
+    if (false == is_changed)
+    {
+        return;
+    }
+
     switch (format)
     {
         case Media::YUY2:
@@ -260,6 +262,8 @@ void Video_widget::create_textures()
             create_i420_textures();
             break;
     }
+
+    is_changed = false;
 }
 
 void Video_widget::create_yuy2_textures()
