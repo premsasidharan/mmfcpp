@@ -28,7 +28,7 @@ int main(int argc, char** argv)
     {
         printf("\nInsufficient arguments");
         print_usage();
-		return 0;
+        return 0;
     }
 
     int time = 0;
@@ -57,7 +57,7 @@ int main(int argc, char** argv)
         return 0;
     }
     
-	player.show();
+    player.show();
     player.start(0, player.duration());
     ret = app.exec();
     player.stop(time);
