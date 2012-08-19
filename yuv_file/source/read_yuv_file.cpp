@@ -28,11 +28,7 @@ int Read_yuv_file::open()
 {
     close();
     file = fopen(file_path, "r");
-    if (0 == file)
-    {
-        return 0;
-    }
-    return 1;
+    return (NULL != file);
 }
 
 int Read_yuv_file::frame_count() const
