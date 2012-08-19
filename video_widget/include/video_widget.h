@@ -32,6 +32,7 @@ protected:
     void paintGL();
     void initializeGL();
     void resizeGL(int width, int height);
+    void render_image(int disp_mode, int mode);
 
     void moveEvent(QMoveEvent* event);
     void closeEvent(QCloseEvent* event);

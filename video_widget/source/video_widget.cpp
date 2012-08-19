@@ -16,7 +16,7 @@
 
 const char Video_widget::shader_program[] =
     "uniform int format;\n"
-    "uniform int grayscale;\n"
+    "uniform int mode;\n"
     "uniform sampler2D texture_0;\n"
     "uniform sampler2D texture_1;\n"
     "uniform sampler2D texture_2;\n"
@@ -40,18 +40,34 @@ const char Video_widget::shader_program[] =
     "        v = texture2D(texture_1, gl_TexCoord[0].st).b-0.5;\n"
     "    }\n"
     "}\n"
+    "void display(in float y, in float u, in float v)\n"
+    "{\n"
+    "    float red = 0.0, green = 0.0, blue = 0.0;\n"
+    "    if (mode >= 3) {\n"
+    "        red = y+1.5958*v;\n"
+    "        green = y-0.39173*u-0.81290*v;\n"
+    "        blue = y+2.017*u;\n"
+    "    }\n"
+    "    if (mode == 0)\n"
+    "        gl_FragColor = vec4(y, y, y, 1.0);\n"
+    "    else if (mode == 1)\n"
+    "        gl_FragColor = vec4(u, u, u, 1.0);\n"
+    "    else if (mode == 2)\n"
+    "        gl_FragColor = vec4(v, v, v, 1.0);\n"
+    "    else if (mode == 3)\n"
+    "        gl_FragColor = vec4(red, 0.0, 0.0, 1.0);\n"
+    "    else if (mode == 4)\n"
+    "        gl_FragColor = vec4(0.0, green, 0.0, 1.0);\n"
+    "    else if (mode == 5)\n"
+    "        gl_FragColor = vec4(0.0, 0.0, blue, 1.0);\n"
+    "    else\n"
+    "        gl_FragColor = vec4(red, green, blue, 1.0);\n"
+    "}\n"
     "void main(void)\n"
     "{\n"
     "    float y, u, v;\n"
-    "    float red, green, blue;\n"
     "    extract_yuv(y, u, v);\n"
-    "    red = y+1.5958*v;\n"
-    "    green = y-0.39173*u-0.81290*v;\n"
-    "    blue = y+2.017*u;\n"
-    "    if (grayscale == 1)\n"
-    "        gl_FragColor = vec4(y, y, y, 1.0);\n"
-    "    else\n"
-    "        gl_FragColor = vec4(red, green, blue, 1.0);\n"
+    "    display(y, u, v);\n"
     "}\n";
 
 Video_widget::Video_widget(QWidget* _control, QWidget* parent)
@@ -142,6 +158,41 @@ void Video_widget::initializeGL()
     program.link();
 }
 
+void Video_widget::render_image(int disp_mode, int mode)
+{
+
+    static GLfloat vertex[][4][2] = {{{-1.0, 1.0}, {0.0, 1.0}, {0.0, 0.0}, {-1.0, 0.0}},
+                                     {{0.0, 1.0}, {1.0, 1.0}, {1.0, 0.0}, {0.0, 0.0}},
+                                     {{-1.0, 0.0}, {0.0, 0.0}, {0.0, -1.0}, {-1.0, -1.0}},
+                                     {{0.0, 0.0}, {1.0, 0.0}, {1.0, -1.0}, {0.0, -1.0}},
+                                     {{-1.0, 1.0}, {1.0, 1.0}, {1.0, -1.0}, {-1.0, -1.0}}};
+    program.bind();
+
+    program.setUniformValue("texture_0", 0);
+    program.setUniformValue("texture_1", 1);
+    program.setUniformValue("texture_2", 2);
+    program.setUniformValue("format", format_code());
+    program.setUniformValue("mode", mode);
+
+    for (int i = 0; i < texture_count; i++)
+    {
+        glActiveTexture(GL_TEXTURE0+i);
+        glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, texture_width[i], texture_height[i], 
+            texture_format[i], GL_UNSIGNED_BYTE, texture_data[i]);
+    }
+
+    glEnable(GL_TEXTURE_2D);
+    glBegin(GL_QUADS);
+        glTexCoord2f(0.0f, 0.0f); glVertex2fv(vertex[disp_mode][0]);
+        glTexCoord2f(1.0f, 0.0f); glVertex2fv(vertex[disp_mode][1]);
+        glTexCoord2f(1.0f, 1.0f); glVertex2fv(vertex[disp_mode][2]);
+        glTexCoord2f(0.0f, 1.0f); glVertex2fv(vertex[disp_mode][3]);
+    glEnd(); 
+    glDisable(GL_TEXTURE_2D);
+
+    program.release();
+}
+
 void Video_widget::paintGL()
 {
     if (false == program.isLinked())
@@ -151,33 +202,29 @@ void Video_widget::paintGL()
 
     mutex.lock();
     create_textures();
+    glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
     
-    program.bind();
-    program.setUniformValue("texture_0", 0);
-    program.setUniformValue("texture_1", 1);
-    program.setUniformValue("texture_2", 2);
-    program.setUniformValue("format", format_code());
-    program.setUniformValue("grayscale", is_grayscale);
+    int my_mode = is_grayscale?5:4;
 
-    for (int i = 0; i < texture_count; i++)
+    if (my_mode < 5)
     {
-        glActiveTexture(GL_TEXTURE0+i);
-        glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, texture_width[i], texture_height[i], 
-            texture_format[i], GL_UNSIGNED_BYTE, texture_data[i]);
+        render_image(4, 6);
+    }
+    else if (my_mode == 5)
+    {
+        render_image(0, 6);
+        render_image(1, 0);
+        render_image(2, 1);
+        render_image(3, 2);
+    }
+    else if (my_mode == 6)
+    {
+        render_image(0, 6);
+        render_image(1, 3);
+        render_image(2, 4);
+        render_image(3, 5);
     }
     mutex.unlock();
-
-    glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
-    glEnable(GL_TEXTURE_2D);
-    glBegin(GL_QUADS);
-        glTexCoord2f(0.0f, 0.0f); glVertex3f(-scale, scale, 0.0f);
-        glTexCoord2f(1.0f, 0.0f); glVertex3f(scale, scale, 0.0f);
-        glTexCoord2f(1.0f, 1.0f); glVertex3f(scale, -scale, 0.0f);
-        glTexCoord2f(0.0f, 1.0f); glVertex3f(-scale, -scale, 0.0f);
-    glEnd(); 
-    glDisable(GL_TEXTURE_2D);
-
-    program.release();
 
     glFlush();
 }
@@ -290,8 +337,8 @@ void Video_widget::create_yuy2_textures()
         glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
         glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
         glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_DECAL);
-        glTexImage2D(GL_TEXTURE_2D, 0, texture_int_format[i], texture_width[i], texture_height[i], 0, 
-            texture_format[i], GL_UNSIGNED_BYTE, 0);
+        glTexImage2D(GL_TEXTURE_2D, 0, texture_int_format[i], texture_width[i], 
+            texture_height[i], 0, texture_format[i], GL_UNSIGNED_BYTE, 0);
     }
 }
 
