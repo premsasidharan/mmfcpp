@@ -51,6 +51,7 @@ Yuv_file_src::~Yuv_file_src()
 
 int Yuv_file_src::set_parameters(const char* path, Media::type fmt, float fps, int width, int height)
 {
+    int ret = 0;
     MEDIA_TRACE_OBJ_PARAM("%s width: %d, height: %d", object_name(), _width, _height);
     if (fps <= 0.0f)
     {
@@ -62,6 +63,7 @@ int Yuv_file_src::set_parameters(const char* path, Media::type fmt, float fps, i
     file = new Read_yuv_file(path, width, height, fmt);
     if (0 != file->open())
     {
+        ret = 1;
         data_size = file->frame_size();
         total_frames = file->frame_count();
         file->close();
@@ -70,7 +72,7 @@ int Yuv_file_src::set_parameters(const char* path, Media::type fmt, float fps, i
     frame_rate = fps;
     MEDIA_LOG("No Frames: %llu, Frame Size: %u", total_frames, data_size);
 
-    return 1;
+    return ret;
 }
 
 int Yuv_file_src::duration() const
@@ -97,7 +99,7 @@ int Yuv_file_src::run()
                 break;
 
             case Media::stop:
-                MEDIA_ERROR("%s, State: %s", object_name(), "STOP");
+                MEDIA_LOG("%s, State: %s", object_name(), "STOP");
                 mutex.lock();
                 if (0 != file)
                 {
