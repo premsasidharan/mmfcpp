@@ -232,8 +232,8 @@ void Video_widget::resizeGL(int _width, int _height)
     glViewport(0, 0, _width, _height);
     if (0 != controls)
     {
-        controls->resize(_width-50, 50);
-        controls->move(25, _height-140);
+        controls->resize(_width-50, controls->height());
+        controls->move(25, _height-controls->height()-10);
     }
 }
 
