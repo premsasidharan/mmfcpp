@@ -34,6 +34,7 @@ Video_player::Video_player()
     , source("yuv")
     , sink("opengl", master.create_child("child"), &window)
 {
+    resize(100, 50);
     initialize();
 }
 
@@ -243,15 +244,17 @@ void Video_player::on_mode_change(bool status)
 
 void Video_player::on_show(int state)
 {
-    qDebug() << "on_show " << state;
+    qDebug() << "on_show " << (state == Qt::Checked);
     show_radio_controls((state == Qt::Checked));
     if (state == Qt::Checked)
     {
         resize(width(), 120);
+        move(x(), window.height()-130);
     }
     else
     {
         resize(width(), 50);
+        move(x(), window.height()-60);
     }    
 }
 
