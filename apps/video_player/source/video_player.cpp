@@ -15,8 +15,19 @@ Video_player::Video_player()
     , timer(this)
     , slider(Qt::Horizontal, this)
     , button("Pause", this)
-    , gray_chk_box("Gray", this)
-    , layout(this)
+    , show_chk_box("Show", this)
+    , luma_radio("Luma", this)
+    , chromau_radio("Chroma U", this)
+    , chromav_radio("Chroma V", this)
+    , red_radio("Red", this)
+    , green_radio("Blue", this)
+    , blue_radio("Green", this)
+    , norm_radio("Normal", this)
+    , nyuv_radio("N.Y.U.V", this)
+    , nrgb_radio("N.R.G.B", this)
+    , vert_layout(this)
+    , horz_layout(this)
+    , grid_layout(this)
     , state(Media::stop)
     , master("master")
     , window(this)
@@ -33,11 +44,25 @@ Video_player::~Video_player()
 
 void Video_player::initialize()
 {
-    layout.addWidget(&button);
-    layout.addWidget(&slider);
-    layout.addWidget(&gray_chk_box);
+    horz_layout.addWidget(&button);
+    horz_layout.addWidget(&slider);
+    horz_layout.addWidget(&show_chk_box);
+
+    grid_layout.addWidget(&luma_radio, 0, 0); 
+    grid_layout.addWidget(&red_radio, 0, 1); 
+    grid_layout.addWidget(&norm_radio, 0, 2); 
+
+    grid_layout.addWidget(&chromau_radio, 1, 0);
+    grid_layout.addWidget(&green_radio, 1, 1);
+    grid_layout.addWidget(&nyuv_radio, 1, 2);
+
+    grid_layout.addWidget(&chromav_radio, 2, 0);
+    grid_layout.addWidget(&blue_radio, 2, 1);
+    grid_layout.addWidget(&nrgb_radio, 2, 2);
     
-    setLayout(&layout);
+    vert_layout.addLayout(&horz_layout);
+    vert_layout.addLayout(&grid_layout);
+    setLayout(&vert_layout);
     
     connect_signals_slots();
     
@@ -53,7 +78,20 @@ void Video_player::connect_signals_slots()
     connect(&button, SIGNAL(pressed()), this, SLOT(on_play_pause()));
     connect(&slider, SIGNAL(sliderPressed()), this, SLOT(slider_pressed()));
     connect(&slider, SIGNAL(sliderReleased()), this, SLOT(slider_released()));
-    connect(&gray_chk_box, SIGNAL(stateChanged(int)), this, SLOT(on_gray_chk_box_state_change(int)));
+    connect(&show_chk_box, SIGNAL(stateChanged(int)), this, SLOT(on_show(int)));
+   
+    connect(&luma_radio, SIGNAL(toggled(bool)), this, SLOT(on_mode_change(bool)));
+    connect(&chromau_radio, SIGNAL(toggled(bool)), this, SLOT(on_mode_change(bool)));
+    connect(&chromav_radio, SIGNAL(toggled(bool)), this, SLOT(on_mode_change(bool)));
+    connect(&red_radio, SIGNAL(toggled(bool)), this, SLOT(on_mode_change(bool)));
+    connect(&green_radio, SIGNAL(toggled(bool)), this, SLOT(on_mode_change(bool)));
+    connect(&blue_radio, SIGNAL(toggled(bool)), this, SLOT(on_mode_change(bool)));
+    connect(&norm_radio, SIGNAL(toggled(bool)), this, SLOT(on_mode_change(bool)));
+    connect(&nyuv_radio, SIGNAL(toggled(bool)), this, SLOT(on_mode_change(bool)));
+    connect(&nrgb_radio, SIGNAL(toggled(bool)), this, SLOT(on_mode_change(bool)));
+
+    norm_radio.setChecked(true);
+    show_radio_controls(false);
 }
 
 void Video_player::show()
@@ -154,10 +192,105 @@ void Video_player::on_play_pause()
     }
 }
 
-void Video_player::on_gray_chk_box_state_change(int state)
+void Video_player::on_mode_change(bool status)
 {
-    qDebug() << "on_gray_chk_box_state_change " << state;
-    window.set_gray_scale((Qt::Checked == state));
+    (void)status;
+    int mode = -1;
+
+    if (luma_radio.isChecked())
+    {
+        mode = 0;
+    }
+    else if (chromau_radio.isChecked())
+    {
+        mode = 1;
+    }
+    else if (chromav_radio.isChecked())
+    {
+        mode = 2;
+    }
+    else if (red_radio.isChecked())
+    {
+        mode = 3;
+    }
+    else if (green_radio.isChecked())
+    {
+        mode = 4;
+    }
+    else if (blue_radio.isChecked())
+    {
+        mode = 5;
+    }
+    else if (norm_radio.isChecked())
+    {
+        mode = 6;
+    }
+    else if (nyuv_radio.isChecked())
+    {
+        mode = 7;
+    }
+    else if (nrgb_radio.isChecked())
+    {
+        mode = 8;
+    }
+
+    if (mode >= 0)
+    {
+        window.set_mode(mode);
+    }
+    qDebug() << "on_mode_change " << mode;
+}
+
+void Video_player::on_show(int state)
+{
+    qDebug() << "on_show " << state;
+    show_radio_controls((state == Qt::Checked));
+    if (state == Qt::Checked)
+    {
+        resize(width(), 120);
+    }
+    else
+    {
+        resize(width(), 50);
+    }    
+}
+
+void Video_player::show_radio_controls(bool ok)
+{
+    if (ok)
+    {
+        luma_radio.show();
+        chromau_radio.show();
+        chromav_radio.show();
+
+        red_radio.show();
+        green_radio.show();
+        blue_radio.show();
+
+        norm_radio.show();
+        nyuv_radio.show();
+        nrgb_radio.show();
+    }
+    else
+    {
+        luma_radio.hide();
+        chromau_radio.hide();
+        chromav_radio.hide();
+
+        red_radio.hide();
+        green_radio.hide();
+        blue_radio.hide();
+
+        norm_radio.hide();
+        nyuv_radio.hide();
+        nrgb_radio.hide(); 
+    }
+
+}
+
+void Video_player::resizeEvent(QResizeEvent* event)
+{
+    qDebug() << "resizeEvent";
 }
 
 int Video_player::event_handler(Media::events event, Abstract_media_object* obj, Media_params& params)

@@ -21,7 +21,7 @@ public:
     ~Video_widget();
 
 public:
-    void set_gray_scale(const bool gray);
+    void set_mode(int _mode);
     void show_frame(unsigned char* _yuv, int fmt, int width, int height);
 
 signals:
@@ -54,8 +54,8 @@ private:
     int video_width;
     int video_height;
 
+    int mode;
     bool is_changed;
-    bool is_grayscale;
 
     float scale;
     int texture_count;

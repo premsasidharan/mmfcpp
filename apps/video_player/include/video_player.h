@@ -13,7 +13,10 @@
 #include <QSlider>
 #include <QCheckBox>
 #include <QHBoxLayout>
+#include <QVBoxLayout>
+#include <QGridLayout>
 #include <QPushButton>
+#include <QRadioButton>
 
 #include <master_clock.h>
 
@@ -39,6 +42,10 @@ public:
 protected:
     void initialize();
     void connect_signals_slots();
+
+    void show_radio_controls(bool ok);
+    void resizeEvent(QResizeEvent* event);
+
     int event_handler(Media::events event, Abstract_media_object* obj, Media_params& params);
 
 protected slots:
@@ -46,7 +53,8 @@ protected slots:
     void on_play_pause();
     void slider_pressed();
     void slider_released();
-    void on_gray_chk_box_state_change(int state);
+    void on_show(int state);
+    void on_mode_change(bool status);
 
 private:
     int trick_mode;
@@ -55,9 +63,23 @@ private:
 
     QSlider slider;
     QPushButton button;
-    QCheckBox gray_chk_box;
+    QCheckBox show_chk_box;
 
-    QHBoxLayout layout;
+    QRadioButton luma_radio;
+    QRadioButton chromau_radio;
+    QRadioButton chromav_radio;
+
+    QRadioButton red_radio;
+    QRadioButton green_radio;
+    QRadioButton blue_radio;
+
+    QRadioButton norm_radio;
+    QRadioButton nyuv_radio;
+    QRadioButton nrgb_radio;
+
+    QVBoxLayout vert_layout;
+    QHBoxLayout horz_layout;
+    QGridLayout grid_layout;
     
     Media::state state;
     Master_clock master;

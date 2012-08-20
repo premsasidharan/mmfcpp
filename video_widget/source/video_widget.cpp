@@ -76,8 +76,8 @@ Video_widget::Video_widget(QWidget* _control, QWidget* parent)
     , format(Media::I420)
     , video_width(0)
     , video_height(0)
+    , mode(6)
     , is_changed(false)
-    , is_grayscale(false)
     , scale(1.0)
     , texture_count(0)
     , program(this)
@@ -100,9 +100,9 @@ Video_widget::~Video_widget()
     }
 }
 
-void Video_widget::set_gray_scale(const bool gray)
+void Video_widget::set_mode(int _mode)
 {
-    is_grayscale = gray;
+    mode = _mode;
     repaint();
 }
 
@@ -203,21 +203,19 @@ void Video_widget::paintGL()
     mutex.lock();
     create_textures();
     glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
-    
-    int my_mode = is_grayscale?5:4;
 
-    if (my_mode < 5)
+    if (mode <= 6)
     {
-        render_image(4, 6);
+        render_image(4, mode);
     }
-    else if (my_mode == 5)
+    else if (mode == 7)
     {
         render_image(0, 6);
         render_image(1, 0);
         render_image(2, 1);
         render_image(3, 2);
     }
-    else if (my_mode == 6)
+    else if (mode == 8)
     {
         render_image(0, 6);
         render_image(1, 3);
@@ -229,13 +227,13 @@ void Video_widget::paintGL()
     glFlush();
 }
 
-void Video_widget::resizeGL(int width, int height)
+void Video_widget::resizeGL(int _width, int _height)
 {
-    glViewport(0, 0, width, height);
+    glViewport(0, 0, _width, _height);
     if (0 != controls)
     {
-        controls->resize(width-50, 40);
-        controls->move(25, height-50);
+        controls->resize(_width-50, 50);
+        controls->move(25, _height-140);
     }
 }
 
