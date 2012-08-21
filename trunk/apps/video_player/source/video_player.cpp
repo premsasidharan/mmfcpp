@@ -15,19 +15,19 @@ Video_player::Video_player()
     , timer(this)
     , slider(Qt::Horizontal, this)
     , button("Pause", this)
-    , show_chk_box("Show", this)
-    , luma_radio("Luma", this)
-    , chromau_radio("Chroma U", this)
-    , chromav_radio("Chroma V", this)
+    , show_chk_box("More", this)
+    , luma_radio("Luma (Y)", this)
+    , chru_radio("Chroma.U", this)
+    , chrv_radio("Chroma,V", this)
     , red_radio("Red", this)
-    , green_radio("Blue", this)
-    , blue_radio("Green", this)
+    , blue_radio("Blue", this)
+    , green_radio("Green", this)
     , norm_radio("Normal", this)
-    , nyuv_radio("N.Y.U.V", this)
-    , nrgb_radio("N.R.G.B", this)
+    , nyuv_radio("Normal.Y.U.V", this)
+    , nrgb_radio("Normal.R.G.B", this)
     , vert_layout(this)
-    , horz_layout(this)
-    , grid_layout(this)
+    , horz_layout(0)
+    , grid_layout(0)
     , state(Media::stop)
     , master("master")
     , window(this)
@@ -53,16 +53,16 @@ void Video_player::initialize()
     grid_layout.addWidget(&red_radio, 0, 1); 
     grid_layout.addWidget(&norm_radio, 0, 2); 
 
-    grid_layout.addWidget(&chromau_radio, 1, 0);
+    grid_layout.addWidget(&chru_radio, 1, 0);
     grid_layout.addWidget(&green_radio, 1, 1);
     grid_layout.addWidget(&nyuv_radio, 1, 2);
 
-    grid_layout.addWidget(&chromav_radio, 2, 0);
+    grid_layout.addWidget(&chrv_radio, 2, 0);
     grid_layout.addWidget(&blue_radio, 2, 1);
     grid_layout.addWidget(&nrgb_radio, 2, 2);
     
-    vert_layout.addLayout(&horz_layout);
     vert_layout.addLayout(&grid_layout);
+    vert_layout.addLayout(&horz_layout);
     setLayout(&vert_layout);
     
     connect_signals_slots();
@@ -82,8 +82,8 @@ void Video_player::connect_signals_slots()
     connect(&show_chk_box, SIGNAL(stateChanged(int)), this, SLOT(on_show(int)));
    
     connect(&luma_radio, SIGNAL(toggled(bool)), this, SLOT(on_mode_change(bool)));
-    connect(&chromau_radio, SIGNAL(toggled(bool)), this, SLOT(on_mode_change(bool)));
-    connect(&chromav_radio, SIGNAL(toggled(bool)), this, SLOT(on_mode_change(bool)));
+    connect(&chru_radio, SIGNAL(toggled(bool)), this, SLOT(on_mode_change(bool)));
+    connect(&chrv_radio, SIGNAL(toggled(bool)), this, SLOT(on_mode_change(bool)));
     connect(&red_radio, SIGNAL(toggled(bool)), this, SLOT(on_mode_change(bool)));
     connect(&green_radio, SIGNAL(toggled(bool)), this, SLOT(on_mode_change(bool)));
     connect(&blue_radio, SIGNAL(toggled(bool)), this, SLOT(on_mode_change(bool)));
@@ -195,18 +195,22 @@ void Video_player::on_play_pause()
 
 void Video_player::on_mode_change(bool status)
 {
-    (void)status;
     int mode = -1;
+
+    if (false == status)
+    {
+        return;
+    }
 
     if (luma_radio.isChecked())
     {
         mode = 0;
     }
-    else if (chromau_radio.isChecked())
+    else if (chru_radio.isChecked())
     {
         mode = 1;
     }
-    else if (chromav_radio.isChecked())
+    else if (chrv_radio.isChecked())
     {
         mode = 2;
     }
@@ -263,8 +267,8 @@ void Video_player::show_radio_controls(bool ok)
     if (ok)
     {
         luma_radio.show();
-        chromau_radio.show();
-        chromav_radio.show();
+        chru_radio.show();
+        chrv_radio.show();
 
         red_radio.show();
         green_radio.show();
@@ -277,8 +281,8 @@ void Video_player::show_radio_controls(bool ok)
     else
     {
         luma_radio.hide();
-        chromau_radio.hide();
-        chromav_radio.hide();
+        chru_radio.hide();
+        chrv_radio.hide();
 
         red_radio.hide();
         green_radio.hide();
@@ -288,12 +292,10 @@ void Video_player::show_radio_controls(bool ok)
         nyuv_radio.hide();
         nrgb_radio.hide(); 
     }
-
 }
 
 void Video_player::resizeEvent(QResizeEvent* event)
 {
-    qDebug() << "resizeEvent";
 }
 
 int Video_player::event_handler(Media::events event, Abstract_media_object* obj, Media_params& params)
@@ -304,7 +306,6 @@ int Video_player::event_handler(Media::events event, Abstract_media_object* obj,
         timer.stop();
         on_timeout();
         state == Media::stop;
-        slider.setValue(slider.maximum());
     }
     qDebug() << "event_handler: " << event;
     return 0;

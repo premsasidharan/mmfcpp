@@ -20,7 +20,7 @@ Yuv_file::Yuv_file(const char* path, int w, int h, Media::type _fmt)
 {
     int length = strlen(path);
     file_path = new char[1+length];
-    strncpy(file_path, path, length);
+    strncpy(file_path, path, length+1);
 }
 
 Yuv_file::~Yuv_file()

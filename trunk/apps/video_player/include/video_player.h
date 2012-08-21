@@ -66,12 +66,12 @@ private:
     QCheckBox show_chk_box;
 
     QRadioButton luma_radio;
-    QRadioButton chromau_radio;
-    QRadioButton chromav_radio;
+    QRadioButton chru_radio;
+    QRadioButton chrv_radio;
 
     QRadioButton red_radio;
-    QRadioButton green_radio;
     QRadioButton blue_radio;
+    QRadioButton green_radio;
 
     QRadioButton norm_radio;
     QRadioButton nyuv_radio;
