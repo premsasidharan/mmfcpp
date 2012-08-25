@@ -1,5 +1,5 @@
 TEMPLATE = app
-TARGET = video_player
+TARGET = yuv_player
 DESTDIR = bin
 MOC_DIR = obj
 UI_DIR = obj
