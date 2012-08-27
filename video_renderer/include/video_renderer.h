@@ -53,6 +53,9 @@ private:
     Condition_variable stop_cv;
     Thread<Video_renderer> thread;
     Priority_queue<unsigned long long, Buffer*> queue;
+    
+    enum { MAX_DISP_TEXT_LENGTH = 100 };
+    char disp_text[MAX_DISP_TEXT_LENGTH];
 
     const static Port input_port[];
 };
