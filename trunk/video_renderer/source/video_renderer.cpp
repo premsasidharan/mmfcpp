@@ -58,7 +58,13 @@ void Video_renderer::play_video()
         Yuv_param* parameter = (Yuv_param*) buffer->parameter();
         //MEDIA_ERROR(": %s, Buffer: %llx, pts: %llu (%dx%d) State: %s", object_name(),
         //	(unsigned long long)buffer, buffer->pts(), parameter->width, parameter->height, "PLAY");
-        window->show_frame((unsigned char*)buffer->data(), buffer->type(), parameter->width, parameter->height);
+        int sec = buffer->pts()/1000000;
+        int min = sec/60;
+        int hr = min/60;
+        min %= 60;
+        sec %= 60;
+        snprintf(disp_text, MAX_DISP_TEXT_LENGTH, "%02d:%02d:%02d:%06d", hr, min, sec, buffer->pts()%1000000);
+        window->show_frame((unsigned char*)buffer->data(), buffer->type(), parameter->width, parameter->height, disp_text);
         mutex.lock();
         curr_pos = buffer->pts();
         mutex.unlock();

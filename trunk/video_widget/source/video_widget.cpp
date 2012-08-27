@@ -81,7 +81,10 @@ Video_widget::Video_widget(QWidget* _control, QWidget* parent)
     , scale(1.0)
     , texture_count(0)
     , program(this)
+    , disp_text(0)
+    , font_offset(0)
 {
+    font_color[0] = font_color[1] = font_color[2] = 1.0;
     if (0 != controls)
     {
         controls->setParent(this);
@@ -93,6 +96,7 @@ Video_widget::Video_widget(QWidget* _control, QWidget* parent)
 
 Video_widget::~Video_widget()
 {
+    glDeleteLists(font_offset, 256);
     delete_textures();
     if (0 != controls)
     {
@@ -106,7 +110,7 @@ void Video_widget::set_mode(int _mode)
     repaint();
 }
 
-void Video_widget::show_frame(unsigned char* _yuv, int fmt, int width, int height)
+void Video_widget::show_frame(unsigned char* _yuv, int fmt, int width, int height, const char* text)
 {
     mutex.lock();
     if ((fmt != format) || (width != video_width) || (height != video_height))
@@ -115,6 +119,7 @@ void Video_widget::show_frame(unsigned char* _yuv, int fmt, int width, int heigh
         format = fmt;
         video_width = width;
         video_height = height;
+        disp_text = (char *)text;
 
         is_changed = true;
     }
@@ -154,11 +159,46 @@ void Video_widget::show_frame(unsigned char* _yuv, int fmt, int width, int heigh
 void Video_widget::initializeGL()
 {
     glClearColor(0.0, 0.0, 0.0, 0.0);
+    glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
+    create_font_disp_lists();
     program.addShaderFromSourceCode(QGLShader::Fragment, shader_program);
     program.link();
 }
 
-void Video_widget::render_image(int disp_mode, int mode)
+void Video_widget::create_font_disp_lists()
+{
+	QFont font("Arial", 18, QFont::Bold);
+	QFontMetrics fm(font);
+	
+    font_offset = glGenLists(256);
+	for (int i = 0; i <= 255; i++)
+	{
+        char ch = (char)i;
+		QImage image(fm.width(ch), fm.height(), QImage::Format_Mono);
+		image.fill(0);
+		QPainter painter;
+		painter.begin(&image);
+		painter.setFont(font);
+		painter.setPen(QPen(Qt::white));
+		painter.drawText(QRect(0, 0, fm.width(ch), fm.height()), Qt::AlignCenter, QString("%1").arg(ch));
+		painter.end();
+		image = image.mirrored();
+		
+        glNewList(font_offset+ch, GL_COMPILE);
+		glBitmap(fm.width(ch), fm.height(), 0, 0, fm.width(ch), 0, image.bits());
+		glEndList();
+	}
+    char_width = fm.width('W');
+}
+
+void Video_widget::draw_text(GLfloat x, GLfloat y, const char* text)
+{
+    glRasterPos2f(x, y);
+	glListBase(font_offset);
+	glCallLists(strlen(text), GL_UNSIGNED_BYTE, (GLubyte *) text);
+}
+
+void Video_widget::render_frame(int disp_mode, int mode)
 {
 
     static GLfloat vertex[][4][2] = {{{-1.0, 1.0}, {0.0, 1.0}, {0.0, 0.0}, {-1.0, 0.0}},
@@ -193,6 +233,18 @@ void Video_widget::render_image(int disp_mode, int mode)
     program.release();
 }
 
+void Video_widget::render_text()
+{
+    if (0 != disp_text)
+    {
+        glColor3fv(font_color);
+        int tw = char_width*(2+strlen(disp_text));
+        GLfloat x = 1.0-((float)tw/(float)width());
+
+        draw_text(x, -0.75, disp_text);
+    }
+}
+
 void Video_widget::paintGL()
 {
     if (false == program.isLinked())
@@ -202,28 +254,27 @@ void Video_widget::paintGL()
 
     mutex.lock();
     create_textures();
-    glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
 
     if (mode <= 6)
     {
-        render_image(4, mode);
+        render_frame(4, mode);
     }
     else if (mode == 7)
     {
-        render_image(0, 6);
-        render_image(1, 0);
-        render_image(2, 1);
-        render_image(3, 2);
+        render_frame(0, 6);
+        render_frame(1, 0);
+        render_frame(2, 1);
+        render_frame(3, 2);
     }
     else if (mode == 8)
     {
-        render_image(0, 6);
-        render_image(1, 3);
-        render_image(2, 4);
-        render_image(3, 5);
+        render_frame(0, 6);
+        render_frame(1, 3);
+        render_frame(2, 4);
+        render_frame(3, 5);
     }
+    render_text();
     mutex.unlock();
-
     glFlush();
 }
 
@@ -271,12 +322,21 @@ void Video_widget::keyPressEvent(QKeyEvent* event)
 {
     switch (event->key())
     {
+        case Qt::Key_N:
+            showNormal();
+            break;
+
+        case Qt::Key_F:
+            showFullScreen();
+            break;
+
         case Qt::Key_Up:
             if ((scale+0.1f) <= 1.0f)
             {
                 scale += 0.1f;
             }
             break;
+
         case Qt::Key_Down:
             if (scale > 0.5f)
             {

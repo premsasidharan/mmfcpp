@@ -22,7 +22,7 @@ public:
 
 public:
     void set_mode(int _mode);
-    void show_frame(unsigned char* _yuv, int fmt, int width, int height);
+    void show_frame(unsigned char* _yuv, int fmt, int width, int height, const char* text = 0);
 
 signals:
     void update_frame();
@@ -32,7 +32,11 @@ protected:
     void paintGL();
     void initializeGL();
     void resizeGL(int width, int height);
-    void render_image(int disp_mode, int mode);
+
+    void create_font_disp_lists();
+
+    void render_text();
+    void render_frame(int disp_mode, int mode);
 
     void moveEvent(QMoveEvent* event);
     void closeEvent(QCloseEvent* event);
@@ -45,6 +49,8 @@ protected:
     void create_i420_textures();
 
     int format_code() const;
+
+    void draw_text(GLfloat x, GLfloat y, const char* text);
 
 private:
     QMutex mutex;
@@ -61,7 +67,13 @@ private:
     int texture_count;
     QGLShaderProgram program;
 
-    enum TEXTURE_COUNT {MAX_TEXTURE_COUNT = 3};
+    enum {MAX_TEXTURE_COUNT = 3};
+
+    int char_width;
+    char* disp_text;
+    GLfloat font_color[3];
+
+    GLuint font_offset;
 
     GLuint texture[MAX_TEXTURE_COUNT];
     GLenum texture_format[MAX_TEXTURE_COUNT];
