@@ -24,7 +24,9 @@
 #include <yuv_file_src.h>
 #include <video_renderer.h>
 
-class Video_player:public QWidget, public Observer
+#include <ui_player.h>
+
+class Video_player:public QWidget, public Ui_player, public Observer
 {
     Q_OBJECT
 public:
@@ -43,43 +45,23 @@ protected:
     void initialize();
     void connect_signals_slots();
 
-    void show_radio_controls(bool ok);
+    void show_extra_controls(bool ok);
     void resizeEvent(QResizeEvent* event);
 
     int event_handler(Media::events event, Abstract_media_object* obj, Media_params& params);
 
 protected slots:
-    void on_timeout();
-    void on_play_pause();
+    void time_out();
+    void play_pause();
     void slider_pressed();
     void slider_released();
-    void on_show(int state);
-    void on_mode_change(bool status);
+    void more_controls(int state);
+    void mode_change(bool status);
 
 private:
     int trick_mode;
 
     QTimer timer;
-
-    QSlider slider;
-    QPushButton button;
-    QCheckBox show_chk_box;
-
-    QRadioButton luma_radio;
-    QRadioButton chru_radio;
-    QRadioButton chrv_radio;
-
-    QRadioButton red_radio;
-    QRadioButton blue_radio;
-    QRadioButton green_radio;
-
-    QRadioButton norm_radio;
-    QRadioButton nyuv_radio;
-    QRadioButton nrgb_radio;
-
-    QVBoxLayout vert_layout;
-    QHBoxLayout horz_layout;
-    QGridLayout grid_layout;
     
     Media::state state;
     Master_clock master;

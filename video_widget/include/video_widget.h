@@ -70,6 +70,7 @@ private:
     enum {MAX_TEXTURE_COUNT = 3};
 
     int char_width;
+    int char_height;
     char* disp_text;
     GLfloat font_color[3];
 

@@ -1,0 +1,187 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>player</class>
+ <widget class="QWidget" name="player">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>715</width>
+    <height>179</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>Form</string>
+  </property>
+  <layout class="QGridLayout" name="gridLayout_4">
+   <item row="0" column="0">
+    <layout class="QVBoxLayout" name="verticalLayout_2">
+     <item>
+      <layout class="QHBoxLayout" name="horizontalLayout_2">
+       <item>
+        <widget class="QFrame" name="video_mode_frame">
+         <property name="frameShape">
+          <enum>QFrame::StyledPanel</enum>
+         </property>
+         <property name="frameShadow">
+          <enum>QFrame::Raised</enum>
+         </property>
+         <layout class="QGridLayout" name="gridLayout_5">
+          <item row="0" column="0">
+           <layout class="QGridLayout" name="gridLayout">
+            <item row="0" column="0">
+             <widget class="QRadioButton" name="luma_radio">
+              <property name="text">
+               <string>Luma(Y)</string>
+              </property>
+             </widget>
+            </item>
+            <item row="0" column="1">
+             <widget class="QRadioButton" name="red_radio">
+              <property name="text">
+               <string>Red</string>
+              </property>
+             </widget>
+            </item>
+            <item row="0" column="2">
+             <widget class="QRadioButton" name="norm_radio">
+              <property name="text">
+               <string>Normal</string>
+              </property>
+             </widget>
+            </item>
+            <item row="1" column="0">
+             <widget class="QRadioButton" name="chru_radio">
+              <property name="text">
+               <string>Chroma.U</string>
+              </property>
+             </widget>
+            </item>
+            <item row="1" column="1">
+             <widget class="QRadioButton" name="green_radio">
+              <property name="text">
+               <string>Green</string>
+              </property>
+             </widget>
+            </item>
+            <item row="1" column="2">
+             <widget class="QRadioButton" name="nrgb_radio">
+              <property name="text">
+               <string>Normal.R.G.B</string>
+              </property>
+             </widget>
+            </item>
+            <item row="2" column="0">
+             <widget class="QRadioButton" name="chrv_radio">
+              <property name="text">
+               <string>Chroma.V</string>
+              </property>
+             </widget>
+            </item>
+            <item row="2" column="1">
+             <widget class="QRadioButton" name="blue_radio">
+              <property name="text">
+               <string>Blue</string>
+              </property>
+             </widget>
+            </item>
+            <item row="2" column="2">
+             <widget class="QRadioButton" name="nyuv_radio">
+              <property name="text">
+               <string>Normal.Y.U.V</string>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </item>
+         </layout>
+        </widget>
+       </item>
+       <item>
+        <widget class="QFrame" name="text_frame">
+         <property name="frameShape">
+          <enum>QFrame::StyledPanel</enum>
+         </property>
+         <property name="frameShadow">
+          <enum>QFrame::Raised</enum>
+         </property>
+         <layout class="QGridLayout" name="gridLayout_3">
+          <item row="0" column="0">
+           <layout class="QVBoxLayout" name="verticalLayout">
+            <item>
+             <widget class="QRadioButton" name="no_text_radio">
+              <property name="text">
+               <string>None</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QRadioButton" name="time_code_radio">
+              <property name="text">
+               <string>Time code</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QRadioButton" name="frame_count_radio">
+              <property name="text">
+               <string>Frame count</string>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </item>
+         </layout>
+        </widget>
+       </item>
+      </layout>
+     </item>
+     <item>
+      <widget class="QFrame" name="frame_2">
+       <property name="frameShape">
+        <enum>QFrame::StyledPanel</enum>
+       </property>
+       <property name="frameShadow">
+        <enum>QFrame::Raised</enum>
+       </property>
+       <layout class="QGridLayout" name="gridLayout_2">
+        <item row="0" column="0">
+         <layout class="QHBoxLayout" name="horizontalLayout">
+          <item>
+           <widget class="QPushButton" name="button">
+            <property name="text">
+             <string>Play</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QSlider" name="slider">
+            <property name="orientation">
+             <enum>Qt::Horizontal</enum>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QCheckBox" name="more_chk_box">
+            <property name="text">
+             <string>More</string>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </item>
+       </layout>
+      </widget>
+     </item>
+    </layout>
+   </item>
+  </layout>
+  <zorder>layoutWidget</zorder>
+  <zorder>video_mode_frame</zorder>
+  <zorder>frame_2</zorder>
+  <zorder>text_frame</zorder>
+  <zorder>horizontalSpacer</zorder>
+ </widget>
+ <resources/>
+ <connections/>
+</ui>
