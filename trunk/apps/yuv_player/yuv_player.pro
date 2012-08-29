@@ -21,6 +21,7 @@ HEADERS = include/video_player.h \
           ../../video_widget/include/video_widget.h
 
 #FORMS = forms/yuv_dlg.ui
+FORMS = forms/player.ui
 
 SOURCES = ../../video_widget/source/video_widget.cpp \
 	      ../../yuv_file/source/yuv_file.cpp \

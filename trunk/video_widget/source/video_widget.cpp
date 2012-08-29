@@ -81,6 +81,8 @@ Video_widget::Video_widget(QWidget* _control, QWidget* parent)
     , scale(1.0)
     , texture_count(0)
     , program(this)
+    , char_width(0)
+    , char_height(0)
     , disp_text(0)
     , font_offset(0)
 {
@@ -189,6 +191,7 @@ void Video_widget::create_font_disp_lists()
 		glEndList();
 	}
     char_width = fm.width('W');
+    char_height = fm.height();
 }
 
 void Video_widget::draw_text(GLfloat x, GLfloat y, const char* text)
@@ -238,10 +241,9 @@ void Video_widget::render_text()
     if (0 != disp_text)
     {
         glColor3fv(font_color);
-        int tw = char_width*(2+strlen(disp_text));
-        GLfloat x = 1.0-((float)tw/(float)width());
-
-        draw_text(x, -0.75, disp_text);
+        GLfloat x = 1.0-((float)(char_width*(2+strlen(disp_text)))/(float)width());
+        GLfloat y = -1.0+((float)(char_height*2)/(float)height());
+        draw_text(x, y, disp_text);
     }
 }
 
