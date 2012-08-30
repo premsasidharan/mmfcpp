@@ -1,13 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
  <class>Yuv_player_ui</class>
- <widget class="QWidget" name="Yuv_player_ui">
+ <widget class="QDialog" name="Yuv_player_ui">
   <property name="geometry">
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>543</width>
-    <height>125</height>
+    <width>435</width>
+    <height>120</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -33,7 +33,7 @@
              <widget class="QComboBox" name="fmt_cbox">
               <property name="minimumSize">
                <size>
-                <width>0</width>
+                <width>70</width>
                 <height>28</height>
                </size>
               </property>
@@ -137,7 +137,7 @@
              <widget class="QComboBox" name="res_cbox">
               <property name="minimumSize">
                <size>
-                <width>0</width>
+                <width>70</width>
                 <height>28</height>
                </size>
               </property>
