@@ -9,6 +9,7 @@
 #include <stdlib.h>
 #include <unistd.h>
 
+#include <yuv_dlg.h>
 #include <video_player.h>
 
 #include <QtGui/QApplication>
@@ -24,43 +25,56 @@ int main(int argc, char** argv)
     MEDIA_TRACE();
     QApplication app(argc, argv);
 
+    int ret = 0;
+
     if (argc < 11)
     {
         printf("\nInsufficient arguments");
         print_usage();
-        return 0;
+        ret = 1;
     }
 
-    int time = 0;
-    char* path = 0;
-    Media::type format;
-    int ret, width = 0, height = 0, fps = 0;
-    
-    ret = parse_args(argv, argc-1, "-p", path);
-    ret = ret && parse_args(argv, argc-1, "-w", width);
-    ret = ret && parse_args(argv, argc-1, "-h", height);
-    ret = ret && parse_args(argv, argc-1, "-fmt", format);
-    ret = ret && parse_args(argv, argc-1, "-fps", fps);
-    
-    if (0 == ret)
-    {
-        printf("\nFailed to parse parameters !!!");
-        print_usage();
-        return 0;
-    }
-    
     Video_player player;
 
-    if (1 != player.set_parameters(width, height, format, (float)fps, path))
+    if (ret)
     {
-        printf("\n\tInvalid Yuv File Path\n");
-        return 0;
+        Yuv_dlg yuv_dlg(&player);
+        ret = yuv_dlg.exec();
     }
-    
-    player.show();
-    player.start(0, player.duration());
-    ret = app.exec();
-    player.stop(time);
+    else
+    {
+        char* path = 0;
+        Media::type format;
+        int width = 0, height = 0, fps = 0;
+        
+        ret = parse_args(argv, argc-1, "-p", path);
+        ret = ret && parse_args(argv, argc-1, "-w", width);
+        ret = ret && parse_args(argv, argc-1, "-h", height);
+        ret = ret && parse_args(argv, argc-1, "-fmt", format);
+        ret = ret && parse_args(argv, argc-1, "-fps", fps);
+        
+        if (0 == ret)
+        {
+            printf("\nFailed to parse parameters !!!");
+            print_usage();
+            return 0;
+        }
+
+        if (1 != player.set_parameters(width, height, format, (float)fps, path))
+        {
+            printf("\n\tInvalid Yuv File Path\n");
+            return 0;
+        }
+    }
+  
+    if (ret)
+    {
+        int time = 0;  
+        player.show();
+        player.start(0, player.duration());
+        ret = app.exec();
+        player.stop(time);
+    }
 
     return ret;
 }

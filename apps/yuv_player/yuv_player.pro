@@ -18,10 +18,11 @@ INCLUDEPATH += ../../media_core/include \
 LIBS += -L/usr/lib -lpthread -lm -lsupc++ -L../../media_core/lib -lmedia_core
 
 HEADERS = include/video_player.h \
+          include/yuv_dlg.h \
           ../../video_widget/include/video_widget.h
 
-#FORMS = forms/yuv_dlg.ui
-FORMS = forms/player.ui
+FORMS = forms/player.ui \
+        forms/yuv_dlg.ui
 
 SOURCES = ../../video_widget/source/video_widget.cpp \
 	      ../../yuv_file/source/yuv_file.cpp \
@@ -32,6 +33,7 @@ SOURCES = ../../video_widget/source/video_widget.cpp \
 		  ../../clock/source/child_clock.cpp \
 		  ../../clock/source/master_clock.cpp \
           source/video_player.cpp \
+          source/yuv_dlg.cpp \
           source/main.cpp
 
 CONFIG += qt debug
