@@ -90,7 +90,7 @@ Video_widget::Video_widget(QWidget* _control, QWidget* parent)
     if (0 != controls)
     {
         controls->setParent(this);
-        controls->hide();
+        //controls->hide();
     }
     setFocusPolicy(Qt::StrongFocus);
     connect(this, SIGNAL(update_frame()), this, SLOT(repaint()));

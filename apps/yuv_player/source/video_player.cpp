@@ -20,7 +20,6 @@ Video_player::Video_player()
     , sink("opengl", master.create_child("child"), &window)
 {
     setupUi(this);
-    resize(100, 65);
     initialize();
 }
 
@@ -31,6 +30,9 @@ Video_player::~Video_player()
 
 void Video_player::initialize()
 {
+    resize(100, 65);
+    window.resize(640, 480);
+
     connect_signals_slots();
     
     timer.setInterval(400);
@@ -244,6 +246,8 @@ void Video_player::resizeEvent(QResizeEvent* event)
 
 int Video_player::event_handler(Media::events event, Abstract_media_object* obj, Media_params& params)
 {
+    (void)event;
+    (void)obj;
     (void)params;
     if (!trick_mode)
     {
