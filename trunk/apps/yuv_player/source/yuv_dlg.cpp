@@ -11,17 +11,15 @@
 #include <QDebug>
 #include <QFileDialog>
 
-Yuv_dlg::Yuv_dlg(Video_player* _player)
-    :QDialog(0)
+Yuv_dlg::Yuv_dlg(QWidget* parent)
+    :QDialog(parent)
     , fps(24.0)
     , width(352)
     , height(288)
     , path("")
     , format(Media::I420)
-    , player(_player)
 {
     setupUi(this);
-
     initialize();
 }
 
@@ -45,23 +43,28 @@ void Yuv_dlg::set_validators()
 
 void Yuv_dlg::connect_signals()
 {
-    connect(file_btn, SIGNAL(clicked()), this, SLOT(set_yuv_file_path()));
     connect(start_btn, SIGNAL(clicked()), this, SLOT(start_playback()));
+    connect(file_btn, SIGNAL(clicked()), this, SLOT(set_yuv_file_path()));
+
     connect(res_cbox, SIGNAL(currentIndexChanged(int)), this, SLOT(resolution_change(int)));
+    connect(fmt_cbox, SIGNAL(currentIndexChanged(const QString&)), this, SLOT(format_change(const QString&)));
+
+    connect(fps_edit, SIGNAL(textChanged(const QString&)), this, SLOT(fps_changed(const QString&)));
+    connect(xres_edit, SIGNAL(textChanged(const QString&)), this, SLOT(width_changed(const QString&)));
+    connect(yres_edit, SIGNAL(textChanged(const QString&)), this, SLOT(height_changed(const QString&)));
 }
 
 void Yuv_dlg::initialize_controls()
 {
     fps_edit->setText("24.00");
+    start_btn->setEnabled(false);
+    path_edit->setEnabled(false);
     res_cbox->setCurrentIndex(Yuv_dlg::CIF);
 }
 
 void Yuv_dlg::start_playback()
 {
     QDialog::accept();
-    player->set_parameters(xres_edit->text().toInt(), 
-        yres_edit->text().toInt(), Media::I420, 
-        fps_edit->text().toFloat(), path.toAscii().data());
 }
 
 void Yuv_dlg::set_yuv_file_path()
@@ -69,6 +72,7 @@ void Yuv_dlg::set_yuv_file_path()
     path = QFileDialog::getOpenFileName(this, tr("Select Yuv File"),
                              path, tr("Yuv File (*.yuv)"));
     path_edit->setText(path);
+    validate_parameters();
 }
 
 void Yuv_dlg::resolution_change(int index)
@@ -103,5 +107,60 @@ void Yuv_dlg::resolution_change(int index)
             yres_edit->setText("");
             break;
     }
+}
+
+void Yuv_dlg::format_change(const QString& text)
+{
+    if (text == "YUV420")
+    {
+        format = Media::I420;
+    }
+    else if (text == "YUV422")
+    {
+        format = Media::I422;
+    }
+    else if (text == "YUV444")
+    {
+        format = Media::I444;
+    }
+    else if (text == "YUY2")
+    {
+        format = Media::YUY2;
+    }
+    else if (text == "UYVY")
+    {
+        format = Media::UYVY;
+    }
+    else if (text == "YV12")
+    {
+        format = Media::YV12;
+    }
+}
+
+void Yuv_dlg::fps_changed(const QString& text)
+{
+    fps = text.toFloat();
+    validate_parameters();
+}
+
+void Yuv_dlg::width_changed(const QString& text)
+{
+    width = text.toInt();
+    validate_parameters();
+}
+
+void Yuv_dlg::height_changed(const QString& text)
+{
+    height = text.toInt();
+    validate_parameters();
+}
+
+void Yuv_dlg::validate_parameters()
+{
+    bool ok = (width >= 176) && (width <= 1920);
+    ok = ok && ((height >= 144) && (height <= 1080));
+    ok = ok && (fps > 0.0f && fps <= 60.0f);
+    ok = ok && QFile::exists(path);
+    start_btn->setEnabled(ok);
 }
 

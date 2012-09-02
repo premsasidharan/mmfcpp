@@ -18,6 +18,7 @@ void print_usage();
 int find_args_index(char** argv, int size, const char* str);
 int parse_args(char** argv, int size, const char* str, int& result);
 int parse_args(char** argv, int size, const char* str, char*& result);
+int parse_args(char** argv, int size, const char* str, float& result);
 int parse_args(char** argv, int size, const char* str, Media::type& result);
 
 int main(int argc, char** argv)
@@ -25,7 +26,10 @@ int main(int argc, char** argv)
     MEDIA_TRACE();
     QApplication app(argc, argv);
 
-    int ret = 0;
+    float fps = 0.0;
+    QString file_path = "";
+    Media::type format = Media::I420;
+    int ret = 0, width = 0, height = 0;
 
     if (argc < 11)
     {
@@ -34,19 +38,22 @@ int main(int argc, char** argv)
         ret = 1;
     }
 
-    Video_player player;
-
     if (ret)
     {
-        Yuv_dlg yuv_dlg(&player);
-        ret = yuv_dlg.exec();
+        Yuv_dlg dlg;
+        ret = dlg.exec();
+        if (ret)
+        {
+            fps = dlg.frame_rate();
+            width = dlg.video_width();
+            height = dlg.video_height();
+            format = dlg.video_format();
+            file_path = dlg.video_file_path();
+        }
     }
     else
-    {
+    {   
         char* path = 0;
-        Media::type format;
-        int width = 0, height = 0, fps = 0;
-        
         ret = parse_args(argv, argc-1, "-p", path);
         ret = ret && parse_args(argv, argc-1, "-w", width);
         ret = ret && parse_args(argv, argc-1, "-h", height);
@@ -57,23 +64,29 @@ int main(int argc, char** argv)
         {
             printf("\nFailed to parse parameters !!!");
             print_usage();
-            return 0;
         }
-
-        if (1 != player.set_parameters(width, height, format, (float)fps, path))
+        else
         {
-            printf("\n\tInvalid Yuv File Path\n");
-            return 0;
+            file_path = path;
         }
     }
   
     if (ret)
     {
-        int time = 0;  
-        player.show();
-        player.start(0, player.duration());
-        ret = app.exec();
-        player.stop(time);
+        Video_player player;
+        ret = player.set_parameters(width, height, format, fps, file_path.toAscii().data());
+        if (0 == ret)
+        {
+            printf("\n\tInvalid Yuv File Path\n");
+        }
+        else
+        {
+            int time = 0;  
+            player.show();
+            player.start(0, player.duration());
+            ret = app.exec();
+            player.stop(time);
+        }
     }
 
     return ret;
@@ -101,6 +114,16 @@ int parse_args(char** argv, int size, const char* str, int& result)
     return (ret >= 0);
 }
 
+int parse_args(char** argv, int size, const char* str, float& result)
+{
+    int ret = find_args_index(argv, size, str);
+    if (ret >= 0)
+    {
+        result = atof(argv[ret+1]);
+    }
+    return (ret >= 0);
+}
+
 int parse_args(char** argv, int size, const char* str, Media::type& result)
 {
     char fmt_str[10];
@@ -111,7 +134,7 @@ int parse_args(char** argv, int size, const char* str, Media::type& result)
     }
 
     strncpy(fmt_str, argv[ret+1], 10);
-    for (int i = 0; i < strlen(fmt_str); i++)
+    for (int i = 0; i < (int)strlen(fmt_str); i++)
     {
         fmt_str[i] = toupper(fmt_str[i]);
     }
