@@ -27,6 +27,7 @@ public:
 
 public:
     int duration() const;
+    float fps() const { return frame_rate; };
     int set_parameters(const char* path, Media::type _fmt, float _fps, int _width, int _height);
 
 protected:

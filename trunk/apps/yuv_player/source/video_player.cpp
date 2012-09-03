@@ -5,7 +5,7 @@
  * modify it under the terms of the GNU Lesser General Public License
  * published by the Free Software Foundation.
 */
-
+#include <math.h>
 #include <QString>
 #include <video_player.h>
 
@@ -13,6 +13,8 @@ Video_player::Video_player()
     :QWidget(0)
     , trick_mode(0)
     , timer(this)
+    , text_mode(Video_player::frame_count)
+    , text_helper(this)
     , state(Media::stop)
     , master("master")
     , window(this)
@@ -37,6 +39,8 @@ void Video_player::initialize()
     
     timer.setInterval(400);
     sink.attach(Media::last_pkt_rendered, this);
+
+    sink.register_text_helper(&text_helper);
 }
 
 void Video_player::connect_signals_slots()
@@ -59,7 +63,12 @@ void Video_player::connect_signals_slots()
     connect(nyuv_radio, SIGNAL(toggled(bool)), this, SLOT(mode_change(bool)));
     connect(nrgb_radio, SIGNAL(toggled(bool)), this, SLOT(mode_change(bool)));
 
-    norm_radio->setChecked(true);
+    connect(no_text_radio, SIGNAL(toggled(bool)), this, SLOT(text_mode_change(bool)));
+    connect(time_code_radio, SIGNAL(toggled(bool)), this, SLOT(text_mode_change(bool)));
+    connect(frame_count_radio, SIGNAL(toggled(bool)), this, SLOT(text_mode_change(bool)));
+
+    norm_radio->setChecked(true); 
+    time_code_radio->setChecked(true); 
     show_extra_controls(false);
 }
 
@@ -93,6 +102,11 @@ int Video_player::stop(int& time)
     state = Media::stop;
     button->setText("Play");
     return ret;
+}
+
+float Video_player::fps() const
+{
+    return source.fps();
 }
 
 int Video_player::duration() const
@@ -211,6 +225,28 @@ void Video_player::mode_change(bool status)
     }
 }
 
+void Video_player::text_mode_change(bool status)
+{
+    if (false == status)
+    {
+        return;
+    }
+
+    if (no_text_radio->isChecked())
+    {
+        text_mode = Video_player::no_text;
+    }
+    else if (time_code_radio->isChecked())
+    {
+        text_mode = Video_player::time_code;
+    }
+    else if (frame_count_radio->isChecked())
+    {
+        text_mode = Video_player::frame_count;
+    }
+    qDebug() << "text_mode_change " << text_mode;
+}
+
 void Video_player::more_controls(int state)
 {
     show_extra_controls((state == Qt::Checked));
@@ -257,5 +293,45 @@ int Video_player::event_handler(Media::events event, Abstract_media_object* obj,
     }
     qDebug() << "event_handler: " << event;
     return 0;
+}
+
+void Video_player::set_text_mode(Video_player::Text_mode mode)
+{
+    text_mode = mode;
+}
+
+Text_helper::Text_helper(Video_player* p)
+    :player(p)
+{
+}
+
+Text_helper::~Text_helper()
+{
+}
+
+void Text_helper::read_text(char* text, int length, uint64_t time)
+{
+    switch (player->text_mode)
+    {
+        case Video_player::time_code:
+            {
+                int sec = time/1000000;
+                int min = (sec/60);
+                int hr = (min/60);
+                min %= 60; sec %= 60;
+                snprintf(text, length, "%02d:%02d:%02d:%06d", hr, min, sec, time%1000000);
+            }
+            break;
+        case Video_player::frame_count:
+            {
+                int curr_frame = 1+(int)ceil(((float)time*player->fps())/1000000.0);
+                int frame_count = (int)ceil(((float)player->duration()*player->fps())/1000000.0);
+                snprintf(text, length, "%d/%d", curr_frame, frame_count);
+            }
+            break;
+        default:
+            snprintf(text, length, "");
+            break;
+    }    
 }
 

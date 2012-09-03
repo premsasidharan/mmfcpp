@@ -26,19 +26,42 @@
 
 #include <ui_player.h>
 
+class Video_player;
+
+class Text_helper: public Abstract_text_helper
+{
+public:
+    Text_helper(Video_player* p);
+    ~Text_helper();
+
+public:
+    void read_text(char* text, int length, uint64_t time);
+
+private:
+    Video_player* player;
+};
+
 class Video_player:public QWidget, public Ui_player, public Observer
 {
     Q_OBJECT
 public:
+    friend class Text_helper;
+
+    enum Text_mode {no_text, time_code, frame_count};
+
     Video_player();
     ~Video_player();
     
 public:
     void show();
     
-    int start(int start, int end);
     int stop(int& time);
+    int start(int start, int end);
+
+    float fps() const;
     int duration() const;
+
+    void set_text_mode(Text_mode mode);
     int set_parameters(int width, int height, Media::type fmt, float fps, const char* path);
     
 protected:
@@ -57,12 +80,16 @@ protected slots:
     void slider_released();
     void more_controls(int state);
     void mode_change(bool status);
+    void text_mode_change(bool status);
 
 private:
     int trick_mode;
 
     QTimer timer;
     
+    Text_mode text_mode;
+    Text_helper text_helper;
+
     Media::state state;
     Master_clock master;
     

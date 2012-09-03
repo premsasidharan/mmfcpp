@@ -18,6 +18,12 @@
 #include <child_clock.h>
 #include <video_widget.h>
 
+class Abstract_text_helper
+{
+public:
+    virtual void read_text(char*, int, uint64_t) = 0;
+};
+
 class Video_renderer:public Abstract_media_object
 {
 public:
@@ -28,6 +34,8 @@ public:
 
 public:
     int current_position() const;
+    void register_text_helper(Abstract_text_helper* helper);
+    void unregister_text_helper();
 
 protected:
     int run();
@@ -54,6 +62,8 @@ private:
     Thread<Video_renderer> thread;
     Priority_queue<unsigned long long, Buffer*> queue;
     
+    Abstract_text_helper* text_helper;
+
     enum { MAX_DISP_TEXT_LENGTH = 100 };
     char disp_text[MAX_DISP_TEXT_LENGTH];
 
