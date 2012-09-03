@@ -33,6 +33,7 @@ Video_renderer::Video_renderer(const char* _name, Child_clock* clk, Video_widget
     , window(_window)
     , child_clk(clk)
     , queue(5)
+    , text_helper(0)
 {
     MEDIA_TRACE_OBJ_PARAM("%s", _name);
     create_input_ports(input_port, 1);
@@ -58,13 +59,11 @@ void Video_renderer::play_video()
         Yuv_param* parameter = (Yuv_param*) buffer->parameter();
         //MEDIA_ERROR(": %s, Buffer: %llx, pts: %llu (%dx%d) State: %s", object_name(),
         //	(unsigned long long)buffer, buffer->pts(), parameter->width, parameter->height, "PLAY");
-        int sec = buffer->pts()/1000000;
-        int min = sec/60;
-        int hr = min/60;
-        min %= 60;
-        sec %= 60;
-        snprintf(disp_text, MAX_DISP_TEXT_LENGTH, "%02d:%02d:%02d:%06d", hr, min, sec, buffer->pts()%1000000);
-        window->show_frame((unsigned char*)buffer->data(), buffer->type(), parameter->width, parameter->height, disp_text);
+        if (0 != text_helper)
+        {
+            text_helper->read_text(disp_text, 100, buffer->pts());
+        }
+        window->show_frame((unsigned char*)buffer->data(), buffer->type(), parameter->width, parameter->height, (0==text_helper)?0:disp_text);
         mutex.lock();
         curr_pos = buffer->pts();
         mutex.unlock();
@@ -185,3 +184,18 @@ int Video_renderer::current_position() const
 	mutex.unlock();
 	return time;
 }
+
+void Video_renderer::register_text_helper(Abstract_text_helper* helper)
+{
+    mutex.lock();
+    text_helper = helper;
+    mutex.unlock();
+}
+
+void Video_renderer::unregister_text_helper()
+{
+    mutex.lock();
+    text_helper = 0;
+    mutex.unlock();
+}
+
