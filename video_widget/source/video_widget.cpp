@@ -112,6 +112,12 @@ void Video_widget::set_mode(int _mode)
     repaint();
 }
 
+void Video_widget::set_slider_range(uint64_t _start, uint64_t _end)
+{
+	start = _start;
+	end = _end;
+}
+
 void Video_widget::show_frame(unsigned char* _yuv, int fmt, int width, int height, const char* text)
 {
     mutex.lock();
@@ -247,6 +253,36 @@ void Video_widget::render_text()
     }
 }
 
+void Video_widget::render_progress_bar()
+{
+	glColor4f(1.0, 0.0, 1.0, 0.3);
+    glBegin(GL_QUADS);
+	glVertex2f(-0.9, -0.88);
+	glVertex2f(0.9, -0.88); 
+	glVertex2f(0.9, -0.96); 
+	glVertex2f(-0.9, -0.96); 
+	glEnd();
+	glColor4f(1.0, 1.0, 1.0, 0.3);
+	glBegin(GL_TRIANGLES);
+	glVertex2f(-0.88, -0.89);
+	glVertex2f(-0.77, -0.92); 
+	glVertex2f(-0.88, -0.95); 
+	glEnd();
+	glBegin(GL_QUADS);
+	glVertex2f(-0.7, -0.91);
+	glVertex2f(0.8, -0.91); 
+	glVertex2f(0.8, -0.93); 
+	glVertex2f(-0.7, -0.93); 
+	glEnd();
+	glBegin(GL_POLYGON);
+	glVertex2f(-0.5, -0.91);
+	glVertex2f(-0.48, -0.88);
+	glVertex2f(-0.46, -0.91); 
+	glVertex2f(-0.46, -0.95); 
+	glVertex2f(-0.5, -0.95); 
+	glEnd();
+}
+
 void Video_widget::paintGL()
 {
     if (false == program.isLinked())
@@ -276,6 +312,12 @@ void Video_widget::paintGL()
         render_frame(3, 5);
     }
     render_text();
+#if 0
+    glEnable(GL_BLEND);	
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	render_progress_bar();
+    glDisable(GL_BLEND);	
+#endif
     mutex.unlock();
     glFlush();
 }

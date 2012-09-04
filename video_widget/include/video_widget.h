@@ -22,6 +22,7 @@ public:
 
 public:
     void set_mode(int _mode);
+	void set_slider_range(uint64_t _start, uint64_t _end);
     void show_frame(unsigned char* _yuv, int fmt, int width, int height, const char* text = 0);
 
 signals:
@@ -36,6 +37,7 @@ protected:
     void create_font_disp_lists();
 
     void render_text();
+	void render_progress_bar();
     void render_frame(int disp_mode, int mode);
 
     void moveEvent(QMoveEvent* event);
@@ -61,6 +63,8 @@ private:
     int video_height;
 
     int mode;
+	uint64_t end;
+	uint64_t start;
     bool is_changed;
 
     float scale;
