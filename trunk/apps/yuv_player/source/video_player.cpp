@@ -9,17 +9,18 @@
 #include <QString>
 #include <video_player.h>
 
+#include <QMessageBox>
+
 Video_player::Video_player()
-    :QWidget(0)
+    :QMainWindow()
     , trick_mode(0)
     , timer(this)
-    , text_mode(Video_player::frame_count)
-    , text_helper(this)
     , state(Media::stop)
-    , master("master")
-    , window(this)
-    , source("yuv")
-    , sink("opengl", master.create_child("child"), &window)
+    , master(0)
+    , source(0)
+    , sink(0)
+    , text_mode(Video_player::time_code)
+    , text_helper(this)
 {
     setupUi(this);
     initialize();
@@ -28,19 +29,22 @@ Video_player::Video_player()
 Video_player::~Video_player()
 {
     ::disconnect(source, sink);
+	delete sink; sink = 0;
+	delete source; source = 0;
+	delete master; master = 0;
 }
 
 void Video_player::initialize()
 {
-    resize(100, 65);
-    window.resize(640, 480);
-
+    master = new Master_clock("master");
+    source = new Yuv_file_src("yuv");
+    sink = new Video_renderer("opengl", master->create_child("child"), centralwidget);
     connect_signals_slots();
     
     timer.setInterval(400);
-    sink.attach(Media::last_pkt_rendered, this);
+    sink->attach(Media::last_pkt_rendered, this);
 
-    sink.register_text_helper(&text_helper);
+    sink->register_text_helper(&text_helper);
 }
 
 void Video_player::connect_signals_slots()
@@ -48,33 +52,123 @@ void Video_player::connect_signals_slots()
     ::connect(source, sink);
     
     connect(&timer, SIGNAL(timeout()), this, SLOT(time_out()));
-    connect(button, SIGNAL(pressed()), this, SLOT(play_pause()));
-    connect(slider, SIGNAL(sliderPressed()), this, SLOT(slider_pressed()));
-    connect(slider, SIGNAL(sliderReleased()), this, SLOT(slider_released()));
-    connect(more_chk_box, SIGNAL(stateChanged(int)), this, SLOT(more_controls(int)));
 
-    connect(luma_radio, SIGNAL(toggled(bool)), this, SLOT(mode_change(bool)));
-    connect(chru_radio, SIGNAL(toggled(bool)), this, SLOT(mode_change(bool)));
-    connect(chrv_radio, SIGNAL(toggled(bool)), this, SLOT(mode_change(bool)));
-    connect(red_radio, SIGNAL(toggled(bool)), this, SLOT(mode_change(bool)));
-    connect(green_radio, SIGNAL(toggled(bool)), this, SLOT(mode_change(bool)));
-    connect(blue_radio, SIGNAL(toggled(bool)), this, SLOT(mode_change(bool)));
-    connect(norm_radio, SIGNAL(toggled(bool)), this, SLOT(mode_change(bool)));
-    connect(nyuv_radio, SIGNAL(toggled(bool)), this, SLOT(mode_change(bool)));
-    connect(nrgb_radio, SIGNAL(toggled(bool)), this, SLOT(mode_change(bool)));
+	connect(screen, SIGNAL(triggered()), this, SLOT(change_screen_size()));
+	connect(view_progress, SIGNAL(triggered()), this, SLOT(show_hide_progress_bar()));
 
-    connect(no_text_radio, SIGNAL(toggled(bool)), this, SLOT(text_mode_change(bool)));
-    connect(time_code_radio, SIGNAL(toggled(bool)), this, SLOT(text_mode_change(bool)));
-    connect(frame_count_radio, SIGNAL(toggled(bool)), this, SLOT(text_mode_change(bool)));
+	connect(luma_y, SIGNAL(triggered()), this, SLOT(mode_luma()));
+	connect(chroma_u, SIGNAL(triggered()), this, SLOT(mode_chromau()));
+	connect(chroma_v, SIGNAL(triggered()), this, SLOT(mode_chromav()));
 
-    norm_radio->setChecked(true); 
-    time_code_radio->setChecked(true); 
-    show_extra_controls(false);
+	connect(red, SIGNAL(triggered()), this, SLOT(mode_red()));
+	connect(green, SIGNAL(triggered()), this, SLOT(mode_green()));
+	connect(blue, SIGNAL(triggered()), this, SLOT(mode_blue()));
+
+	connect(norm, SIGNAL(triggered()), this, SLOT(mode_normal()));
+	connect(nyuv_combo, SIGNAL(triggered()), this, SLOT(mode_nyuv()));
+	connect(nrgb_combo, SIGNAL(triggered()), this, SLOT(mode_nrgb()));
+
+	connect(text_none, SIGNAL(triggered()), this, SLOT(text_mode_none()));
+	connect(text_fc, SIGNAL(triggered()), this, SLOT(text_mode_frame_count()));
+	connect(text_tc, SIGNAL(triggered()), this, SLOT(text_mode_time_code()));
+
+	connect(about, SIGNAL(triggered()), this, SLOT(help_about()));
+
+	connect(centralwidget, SIGNAL(window_size_change()), this, SLOT(change_screen_size()));
+	connect(centralwidget, SIGNAL(pb_control(int)), this, SLOT(playback_control(int)));
+	connect(centralwidget, SIGNAL(seek(uint64_t, uint64_t)), this, SLOT(slider_seek(uint64_t, uint64_t)));
 }
 
-void Video_player::show()
+void Video_player::change_screen_size()
 {
-    window.show();
+	if (isFullScreen())
+	{
+		menuBar()->show();
+		statusBar()->show();
+		showNormal();
+	}
+	else
+	{
+		menuBar()->hide();
+		statusBar()->hide();
+		showFullScreen();
+	}
+}
+
+void Video_player::show_hide_progress_bar()
+{
+	centralwidget->enable_progress_bar(!centralwidget->is_progress_bar_enabled());
+}
+
+void Video_player::mode_luma()
+{
+	centralwidget->set_mode(0);
+}
+
+void Video_player::mode_chromau()
+{
+	centralwidget->set_mode(1);
+}
+
+void Video_player::mode_chromav()
+{
+	centralwidget->set_mode(2);
+}
+
+void Video_player::mode_red()
+{
+	centralwidget->set_mode(3);
+}
+
+void Video_player::mode_green()
+{
+	centralwidget->set_mode(4);
+}
+
+void Video_player::mode_blue()
+{
+	centralwidget->set_mode(5);
+}
+
+void Video_player::mode_normal()
+{
+	centralwidget->set_mode(6);
+}
+
+void Video_player::mode_nyuv()
+{
+	centralwidget->set_mode(7);
+}
+
+void Video_player::mode_nrgb()
+{
+	centralwidget->set_mode(8);
+}
+
+void Video_player::text_mode_none()
+{
+	text_mode = Video_player::no_text;
+}
+
+void Video_player::text_mode_time_code()
+{
+	text_mode = Video_player::time_code;
+}
+
+void Video_player::text_mode_frame_count()
+{
+	text_mode = Video_player::frame_count;
+}
+
+void Video_player::help_about()
+{
+	QMessageBox::information(this, tr("About"), tr("Yuv Player"));
+}
+
+void Video_player::slider_seek(uint64_t _start, uint64_t _end)
+{
+	qDebug() << "slider_seek " << _start << ", " << _end;
+	start(_start, _end);
 }
 
 int Video_player::start(int start, int end)
@@ -82,11 +176,10 @@ int Video_player::start(int start, int end)
     int ret = 0;
     timer.start();
     ret = ::start(source, start, end);
-    master.start(start);
+    master->start(start);
     if (0 == trick_mode)
     {
         state = Media::play;
-        button->setText("Pause");
     }
     MEDIA_LOG("\nStart: %d", start);
     return ret;
@@ -98,186 +191,51 @@ int Video_player::stop(int& time)
     timer.stop();
     ret = ::stop(source, time);
     uint64_t tmp = 0;
-    master.stop(tmp);
+    master->stop(tmp);
     state = Media::stop;
-    button->setText("Play");
     return ret;
 }
 
 float Video_player::fps() const
 {
-    return source.fps();
+    return source->fps();
 }
 
 int Video_player::duration() const
 {
-    return source.duration();
+    return source->duration();
 }
 
 int Video_player::set_parameters(int width, int height, Media::type fmt, float fps, const char* path)
 {
-    int ret = source.set_parameters(path, fmt, fps, width, height);
+    int ret = source->set_parameters(path, fmt, fps, width, height);
     if (ret == 1)
     {
-        slider->setRange(0, source.duration());
-        window.setWindowTitle(path);
+        setWindowTitle(path);
+		centralwidget->set_slider_range(0, source->duration());
     }
     return ret;
 }
 
 void Video_player::time_out()
 {
-    if (trick_mode)
-    {
-        int time = slider->value();
-        int end = (state == Media::play)?source.duration():time;
-        start(time, end);
-    }
-    else
-    {
-        slider->setValue(sink.current_position());
-    }
+	centralwidget->set_value(sink->current_position());
 }
 
-void Video_player::slider_pressed()
+void Video_player::playback_control(int status)
 {
-    trick_mode = 1;
-    if (state == Media::stop)
-    {
-        timer.start();
-    }
-}
-
-void Video_player::slider_released()
-{
-    int time = slider->value();
-    int end = (state == Media::play)?source.duration():time;
-    start(time, end);
-    if (state == Media::stop)
-    {
-        timer.stop();
-    }
-    trick_mode = 0;
-}
-
-void Video_player::play_pause()
-{
-    if (state == Media::play)
-    {
+	if (status == 0)
+	{
         int time = 0;
         stop(time);
+		centralwidget->set_pb_control_status(1);
     }
-    else
+	else
     {
-        start(slider->value(), source.duration());
+		qDebug() << "start " << centralwidget->current_pos() << ", " << source->duration();
+        start(centralwidget->current_pos(), source->duration());
+		centralwidget->set_pb_control_status(0);
     }
-}
-
-void Video_player::mode_change(bool status)
-{
-    int mode = -1;
-
-    if (false == status)
-    {
-        return;
-    }
-
-    if (luma_radio->isChecked())
-    {
-        mode = 0;
-    }
-    else if (chru_radio->isChecked())
-    {
-        mode = 1;
-    }
-    else if (chrv_radio->isChecked())
-    {
-        mode = 2;
-    }
-    else if (red_radio->isChecked())
-    {
-        mode = 3;
-    }
-    else if (green_radio->isChecked())
-    {
-        mode = 4;
-    }
-    else if (blue_radio->isChecked())
-    {
-        mode = 5;
-    }
-    else if (norm_radio->isChecked())
-    {
-        mode = 6;
-    }
-    else if (nyuv_radio->isChecked())
-    {
-        mode = 7;
-    }
-    else if (nrgb_radio->isChecked())
-    {
-        mode = 8;
-    }
-
-    if (mode >= 0)
-    {
-        window.set_mode(mode);
-    }
-}
-
-void Video_player::text_mode_change(bool status)
-{
-    if (false == status)
-    {
-        return;
-    }
-
-    if (no_text_radio->isChecked())
-    {
-        text_mode = Video_player::no_text;
-    }
-    else if (time_code_radio->isChecked())
-    {
-        text_mode = Video_player::time_code;
-    }
-    else if (frame_count_radio->isChecked())
-    {
-        text_mode = Video_player::frame_count;
-    }
-    qDebug() << "text_mode_change " << text_mode;
-}
-
-void Video_player::more_controls(int state)
-{
-    show_extra_controls((state == Qt::Checked));
-    if (state == Qt::Checked)
-    {
-        resize(width(), 160);
-        move(x(), window.height()-175);
-    }
-    else
-    {
-        resize(width(), 65);
-        move(x(), window.height()-80);
-    }    
-}
-
-void Video_player::show_extra_controls(bool ok)
-{
-    if (ok)
-    {
-        text_frame->show();
-        video_mode_frame->show();
-    }
-    else
-    {
-        text_frame->hide();
-        video_mode_frame->hide();
-    }
-}
-
-void Video_player::resizeEvent(QResizeEvent* event)
-{
 }
 
 int Video_player::event_handler(Media::events event, Abstract_media_object* obj, Media_params& params)

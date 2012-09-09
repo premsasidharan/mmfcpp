@@ -12,6 +12,8 @@
 #include <yuv_dlg.h>
 #include <video_player.h>
 
+#include <main_window.h>
+
 #include <QtGui/QApplication>
 
 void print_usage();
