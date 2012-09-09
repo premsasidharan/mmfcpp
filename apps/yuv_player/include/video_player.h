@@ -17,6 +17,7 @@
 #include <QGridLayout>
 #include <QPushButton>
 #include <QRadioButton>
+#include <QMainWindow>
 
 #include <master_clock.h>
 
@@ -24,7 +25,7 @@
 #include <yuv_file_src.h>
 #include <video_renderer.h>
 
-#include <ui_player.h>
+#include <ui_main_window.h>
 
 class Video_player;
 
@@ -41,7 +42,7 @@ private:
     Video_player* player;
 };
 
-class Video_player:public QWidget, public Ui_player, public Observer
+class Video_player:public QMainWindow, public Ui_MainWindow, public Observer
 {
     Q_OBJECT
 public:
@@ -53,8 +54,6 @@ public:
     ~Video_player();
     
 public:
-    void show();
-    
     int stop(int& time);
     int start(int start, int end);
 
@@ -67,35 +66,48 @@ public:
 protected:
     void initialize();
     void connect_signals_slots();
-
-    void show_extra_controls(bool ok);
-    void resizeEvent(QResizeEvent* event);
-
     int event_handler(Media::events event, Abstract_media_object* obj, Media_params& params);
 
 protected slots:
     void time_out();
-    void play_pause();
-    void slider_pressed();
-    void slider_released();
-    void more_controls(int state);
-    void mode_change(bool status);
-    void text_mode_change(bool status);
+
+	void change_screen_size();
+	void show_hide_progress_bar();
+
+	void mode_luma();
+	void mode_chromau();
+	void mode_chromav();
+
+	void mode_red();
+	void mode_green();
+	void mode_blue();
+
+	void mode_nyuv();
+	void mode_nrgb();
+	void mode_normal();
+
+	void text_mode_none();
+	void text_mode_time_code();
+	void text_mode_frame_count();
+
+	void help_about();
+
+	void playback_control(int status);
+	void slider_seek(uint64_t _start, uint64_t _end);
 
 private:
     int trick_mode;
 
     QTimer timer;
+
+    Media::state state;
+    Master_clock* master;
+    
+    Yuv_file_src* source;
+    Video_renderer* sink;
     
     Text_mode text_mode;
     Text_helper text_helper;
-
-    Media::state state;
-    Master_clock master;
-    
-    Video_widget window;
-    Yuv_file_src source;
-    Video_renderer sink;
 };
 
 #endif

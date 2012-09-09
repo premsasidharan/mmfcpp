@@ -17,17 +17,25 @@ class Video_widget:public QGLWidget
 {
     Q_OBJECT
 public:
-    Video_widget(QWidget* _control, QWidget* parent = 0);
+    Video_widget(/*QWidget* _control,*/ QWidget* parent = 0);
     ~Video_widget();
 
 public:
+	uint64_t current_pos();
     void set_mode(int _mode);
+	void set_value(uint64_t pos);
+	bool is_progress_bar_enabled();
+	void enable_progress_bar(bool en);
+	void set_pb_control_status(int status);
 	void set_slider_range(uint64_t _start, uint64_t _end);
     void show_frame(unsigned char* _yuv, int fmt, int width, int height, const char* text = 0);
 
 signals:
     void update_frame();
     void renderer_close();
+	void window_size_change();
+	void pb_control(int status);
+	void seek(uint64_t start, uint64_t end);
 
 protected:
     void paintGL();
@@ -37,13 +45,20 @@ protected:
     void create_font_disp_lists();
 
     void render_text();
-	void render_progress_bar();
+	void render_slider();
+	void render_pb_controls();
     void render_frame(int disp_mode, int mode);
+	void render_notch(float x, float y, float width, float height);
+	void render_triangle(float x, float y, float width, float height);
+	void render_rectangle(float x, float y, float width, float height);
 
     void moveEvent(QMoveEvent* event);
     void closeEvent(QCloseEvent* event);
-    void mousePressEvent(QMouseEvent* event); 
     void keyPressEvent(QKeyEvent* event);
+	void mouseMoveEvent(QMouseEvent* event);
+    void mousePressEvent(QMouseEvent* event); 
+	void mouseReleaseEvent(QMouseEvent* event);
+	void mouseDoubleClickEvent(QMouseEvent* event);
 
     void delete_textures();
     void create_textures();
@@ -56,7 +71,6 @@ protected:
 
 private:
     QMutex mutex;
-    QWidget* controls;
 
     int format;
     int video_width;
@@ -65,7 +79,10 @@ private:
     int mode;
 	uint64_t end;
 	uint64_t start;
+	int pb_status;
     bool is_changed;
+
+	bool show_pb;
 
     float scale;
     int texture_count;
@@ -79,6 +96,8 @@ private:
     GLfloat font_color[3];
 
     GLuint font_offset;
+
+	bool slide_flag;
 
     GLuint texture[MAX_TEXTURE_COUNT];
     GLenum texture_format[MAX_TEXTURE_COUNT];

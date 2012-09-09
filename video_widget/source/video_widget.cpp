@@ -70,28 +70,25 @@ const char Video_widget::shader_program[] =
     "    display(y, u, v);\n"
     "}\n";
 
-Video_widget::Video_widget(QWidget* _control, QWidget* parent)
+Video_widget::Video_widget(QWidget* parent)
     :QGLWidget(parent)
-    , controls(_control)
     , format(Media::I420)
     , video_width(0)
     , video_height(0)
     , mode(6)
     , is_changed(false)
-    , scale(1.0)
+	, show_pb(true)
+	, pb_status(0)
+    , scale(-0.75)
     , texture_count(0)
     , program(this)
     , char_width(0)
     , char_height(0)
     , disp_text(0)
     , font_offset(0)
+	, slide_flag(false)
 {
     font_color[0] = font_color[1] = font_color[2] = 1.0;
-    if (0 != controls)
-    {
-        controls->setParent(this);
-        //controls->hide();
-    }
     setFocusPolicy(Qt::StrongFocus);
     connect(this, SIGNAL(update_frame()), this, SLOT(repaint()));
 }
@@ -100,10 +97,6 @@ Video_widget::~Video_widget()
 {
     glDeleteLists(font_offset, 256);
     delete_textures();
-    if (0 != controls)
-    {
-        controls->setParent(0);
-    }
 }
 
 void Video_widget::set_mode(int _mode)
@@ -112,10 +105,42 @@ void Video_widget::set_mode(int _mode)
     repaint();
 }
 
+void Video_widget::set_value(uint64_t pos)
+{
+	if (false == slide_flag)
+	{
+		scale = -0.75+((float)(pos-start)/(float)(end-start))*1.6;
+		repaint();
+	}
+}
+
+uint64_t Video_widget::current_pos()
+{
+	uint64_t pos = start+(uint64_t)((scale+0.75)*((float)(end-start))/1.6);
+	return pos;
+}
+
 void Video_widget::set_slider_range(uint64_t _start, uint64_t _end)
 {
 	start = _start;
 	end = _end;
+}
+
+void Video_widget::set_pb_control_status(int status)
+{
+	pb_status = status;
+	repaint();
+}
+
+bool Video_widget::is_progress_bar_enabled()
+{
+	return show_pb;
+}
+
+void Video_widget::enable_progress_bar(bool en)
+{
+	show_pb = en;
+	repaint();
 }
 
 void Video_widget::show_frame(unsigned char* _yuv, int fmt, int width, int height, const char* text)
@@ -253,34 +278,64 @@ void Video_widget::render_text()
     }
 }
 
-void Video_widget::render_progress_bar()
+void Video_widget::render_notch(float x, float y, float width, float height)
 {
-	glColor4f(1.0, 0.0, 1.0, 0.3);
-    glBegin(GL_QUADS);
-	glVertex2f(-0.9, -0.88);
-	glVertex2f(0.9, -0.88); 
-	glVertex2f(0.9, -0.96); 
-	glVertex2f(-0.9, -0.96); 
-	glEnd();
-	glColor4f(1.0, 1.0, 1.0, 0.3);
-	glBegin(GL_TRIANGLES);
-	glVertex2f(-0.88, -0.89);
-	glVertex2f(-0.77, -0.92); 
-	glVertex2f(-0.88, -0.95); 
-	glEnd();
-	glBegin(GL_QUADS);
-	glVertex2f(-0.7, -0.91);
-	glVertex2f(0.8, -0.91); 
-	glVertex2f(0.8, -0.93); 
-	glVertex2f(-0.7, -0.93); 
-	glEnd();
 	glBegin(GL_POLYGON);
-	glVertex2f(-0.5, -0.91);
-	glVertex2f(-0.48, -0.88);
-	glVertex2f(-0.46, -0.91); 
-	glVertex2f(-0.46, -0.95); 
-	glVertex2f(-0.5, -0.95); 
+	glVertex2f(x-width, y);
+	glVertex2f(x, y+(height/2.0));
+	glVertex2f(x+width, y); 
+	glVertex2f(x+width, y-height); 
+	glVertex2f(x-width, y-height); 
 	glEnd();
+}
+
+void Video_widget::render_rectangle(float x, float y, float width, float height)
+{
+    glBegin(GL_QUADS);
+	glVertex2f(x, y);
+	glVertex2f(x+width, y); 
+	glVertex2f(x+width, y-height); 
+	glVertex2f(x, y-height); 
+	glEnd();
+}
+
+void Video_widget::render_triangle(float x, float y, float width, float height)
+{
+	glBegin(GL_TRIANGLES);
+	glVertex2f(x, y);
+	glVertex2f(x+width, y-(height/2)); 
+	glVertex2f(x, y-height); 
+	glEnd();
+}
+
+void Video_widget::render_slider()
+{
+    glEnable(GL_BLEND);	
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	glColor4f(1.0, 1.0, 1.0, 0.3);
+	render_rectangle(-0.9, -0.88, 1.8, 0.08);
+    glDisable(GL_BLEND);	
+
+	glColor4f(0.0, 0.0, 0.0, 0.6);
+	render_rectangle(-0.75, -0.91, 1.6, 0.02);
+	render_notch(scale, -0.91, 0.02, 0.04);
+}
+
+void Video_widget::render_pb_controls()
+{
+	if (show_pb)
+	{
+		render_slider();
+		if (0 == pb_status)
+		{
+			render_rectangle(-0.88, -0.89, 0.02, 0.06);
+			render_rectangle(-0.85, -0.89, 0.02, 0.06);
+		}
+		else
+		{
+			render_triangle(-0.88, -0.89, 0.09, 0.06);
+		}
+	}
 }
 
 void Video_widget::paintGL()
@@ -312,12 +367,9 @@ void Video_widget::paintGL()
         render_frame(3, 5);
     }
     render_text();
-#if 0
-    glEnable(GL_BLEND);	
-    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-	render_progress_bar();
-    glDisable(GL_BLEND);	
-#endif
+
+	render_pb_controls();
+
     mutex.unlock();
     glFlush();
 }
@@ -325,17 +377,12 @@ void Video_widget::paintGL()
 void Video_widget::resizeGL(int _width, int _height)
 {
     glViewport(0, 0, _width, _height);
-    if (0 != controls)
-    {
-        controls->resize(_width-50, controls->height());
-        controls->move(25, _height-controls->height()-10);
-    }
 }
 
 void Video_widget::moveEvent(QMoveEvent* event)
 {
     (void)event;
-    repaint();
+    //repaint();
 }
 
 void Video_widget::closeEvent(QCloseEvent* event)
@@ -346,19 +393,57 @@ void Video_widget::closeEvent(QCloseEvent* event)
     
 void Video_widget::mousePressEvent(QMouseEvent* event)
 {
-    if (0 != controls)
+    if (show_pb && (event->button() & Qt::LeftButton))
     {
-        if (event->button() & Qt::LeftButton)
-        {
-            if (controls->isVisible())
-            {
-                controls->hide();
-            }
-            else
-            {
-                controls->show();
-            }
-        }
+		float fx = (2.0*(float)event->x()/(float)width())-1.0;
+		float fy = 1.0-(2.0*(float)event->y()/(float)height());
+
+		if (fx >= -0.88 && fx <= -0.77 && fy <= -0.90 && fy >= -0.95)
+		{
+			emit pb_control(pb_status);
+		}
+
+		if (fx >= (scale-0.01) && fx <= (scale+0.01) && fy <= -0.90 && fy >= -0.95)
+		{
+			slide_flag = true;
+		}
+    }
+}
+ 
+void Video_widget::mouseReleaseEvent(QMouseEvent* event)
+{
+    if (event->button() & Qt::LeftButton)
+    {
+		slide_flag = false;
+    }
+}
+   
+void Video_widget::mouseMoveEvent(QMouseEvent* event)
+{
+	if (false == show_pb && false == slide_flag)
+	{
+		return;
+	}
+    if (event->buttons() & Qt::LeftButton)
+    {
+		float fx = (2.0*(float)event->x()/(float)width())-1.0;
+		float fy = 1.0-(2.0*(float)event->y()/(float)height());
+
+		if (fx >= -0.75 && fx <= 0.85)
+		{
+			scale = fx;
+			uint64_t time = start+(uint64_t)(((scale+0.75)/1.6)*((float)(end-start)));
+
+			if (0 == pb_status)
+			{
+				emit seek(time, end);
+			}
+			else
+			{
+				emit seek(time, time);
+			}
+			//repaint();
+		}
     }
 }
 
@@ -374,7 +459,7 @@ void Video_widget::keyPressEvent(QKeyEvent* event)
             showFullScreen();
             break;
 
-        case Qt::Key_Up:
+        /*case Qt::Key_Up:
             if ((scale+0.1f) <= 1.0f)
             {
                 scale += 0.1f;
@@ -386,8 +471,14 @@ void Video_widget::keyPressEvent(QKeyEvent* event)
             {
                 scale -= 0.1f;
             }
-            break;
+            break;*/
     }
+}
+
+void Video_widget::mouseDoubleClickEvent(QMouseEvent* event)
+{
+	(void)event;
+	emit window_size_change();
 }
 
 void Video_widget::create_textures()
