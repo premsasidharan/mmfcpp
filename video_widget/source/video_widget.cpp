@@ -475,12 +475,6 @@ void Video_widget::keyPressEvent(QKeyEvent* event)
     }
 }
 
-void Video_widget::mouseDoubleClickEvent(QMouseEvent* event)
-{
-	(void)event;
-	emit window_size_change();
-}
-
 void Video_widget::create_textures()
 {
     if (false == is_changed)

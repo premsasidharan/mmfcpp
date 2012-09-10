@@ -50,7 +50,22 @@ void Video_player::initialize()
 void Video_player::connect_signals_slots()
 {
     ::connect(source, sink);
+
+	addAction(screen);
+	addAction(view_progress);
+
+	addAction(luma_y);
+	addAction(chroma_u);
+	addAction(chroma_v);
     
+	addAction(red);
+	addAction(green);
+	addAction(blue);
+
+	addAction(norm);
+	addAction(nyuv_combo);
+	addAction(nrgb_combo);
+
     connect(&timer, SIGNAL(timeout()), this, SLOT(time_out()));
 
 	connect(screen, SIGNAL(triggered()), this, SLOT(change_screen_size()));
@@ -74,7 +89,6 @@ void Video_player::connect_signals_slots()
 
 	connect(about, SIGNAL(triggered()), this, SLOT(help_about()));
 
-	connect(centralwidget, SIGNAL(window_size_change()), this, SLOT(change_screen_size()));
 	connect(centralwidget, SIGNAL(pb_control(int)), this, SLOT(playback_control(int)));
 	connect(centralwidget, SIGNAL(seek(uint64_t, uint64_t)), this, SLOT(slider_seek(uint64_t, uint64_t)));
 }
