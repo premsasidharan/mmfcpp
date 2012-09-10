@@ -17,7 +17,7 @@ class Video_widget:public QGLWidget
 {
     Q_OBJECT
 public:
-    Video_widget(/*QWidget* _control,*/ QWidget* parent = 0);
+    Video_widget(QWidget* parent = 0);
     ~Video_widget();
 
 public:
@@ -33,7 +33,6 @@ public:
 signals:
     void update_frame();
     void renderer_close();
-	void window_size_change();
 	void pb_control(int status);
 	void seek(uint64_t start, uint64_t end);
 
@@ -58,7 +57,6 @@ protected:
 	void mouseMoveEvent(QMouseEvent* event);
     void mousePressEvent(QMouseEvent* event); 
 	void mouseReleaseEvent(QMouseEvent* event);
-	void mouseDoubleClickEvent(QMouseEvent* event);
 
     void delete_textures();
     void create_textures();
