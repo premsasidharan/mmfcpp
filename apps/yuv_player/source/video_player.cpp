@@ -54,10 +54,26 @@ void Video_player::connect_signals_slots()
 	addAction(screen);
 	addAction(view_progress);
 
-	addAction(luma_y);
-	addAction(chroma_u);
-	addAction(chroma_v);
+	//TODO:Need to cleanup the whole thing
+	QActionGroup* yuv_act_grp = new QActionGroup(this);
+	yuv_act_grp->addAction(luma_y);
+	yuv_act_grp->addAction(chroma_u);
+	yuv_act_grp->addAction(chroma_v);
+	yuv_act_grp->addAction(red);
+	yuv_act_grp->addAction(green);
+	yuv_act_grp->addAction(blue);
+	yuv_act_grp->addAction(norm);
+	yuv_act_grp->addAction(nyuv_combo);
+	yuv_act_grp->addAction(nrgb_combo);
+
+	norm->setChecked(true);
     
+	QActionGroup* text_act_grp = new QActionGroup(this);
+	text_act_grp->addAction(text_none);
+	text_act_grp->addAction(text_fc);
+	text_act_grp->addAction(text_tc);
+	text_tc->setChecked(true);
+
 	addAction(red);
 	addAction(green);
 	addAction(blue);

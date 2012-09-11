@@ -32,35 +32,25 @@
    </widget>
    <widget class="QMenu" name="menuView">
     <property name="title">
-     <string>View</string>
+     <string>&amp;View</string>
     </property>
-    <widget class="QMenu" name="menuRGB">
-     <property name="title">
-      <string>RGB</string>
-     </property>
-     <addaction name="red"/>
-     <addaction name="green"/>
-     <addaction name="blue"/>
-    </widget>
-    <widget class="QMenu" name="menuCombo">
-     <property name="title">
-      <string>Combo</string>
-     </property>
-     <addaction name="norm"/>
-     <addaction name="nyuv_combo"/>
-     <addaction name="nrgb_combo"/>
-    </widget>
     <widget class="QMenu" name="menuYUV">
      <property name="title">
-      <string>YUV</string>
+      <string>Mode</string>
      </property>
      <addaction name="luma_y"/>
      <addaction name="chroma_u"/>
      <addaction name="chroma_v"/>
+     <addaction name="separator"/>
+     <addaction name="red"/>
+     <addaction name="green"/>
+     <addaction name="blue"/>
+     <addaction name="separator"/>
+     <addaction name="norm"/>
+     <addaction name="nyuv_combo"/>
+     <addaction name="nrgb_combo"/>
     </widget>
     <addaction name="menuYUV"/>
-    <addaction name="menuRGB"/>
-    <addaction name="menuCombo"/>
     <addaction name="screen"/>
     <addaction name="view_progress"/>
    </widget>
@@ -95,6 +85,9 @@
    </property>
   </action>
   <action name="luma_y">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
    <property name="text">
     <string>Luma.Y</string>
    </property>
@@ -103,6 +96,9 @@
    </property>
   </action>
   <action name="chroma_u">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
    <property name="text">
     <string>Chroma.U</string>
    </property>
@@ -111,6 +107,9 @@
    </property>
   </action>
   <action name="chroma_v">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
    <property name="text">
     <string>Chroma.V</string>
    </property>
@@ -119,6 +118,9 @@
    </property>
   </action>
   <action name="red">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
    <property name="text">
     <string>Red</string>
    </property>
@@ -127,6 +129,9 @@
    </property>
   </action>
   <action name="green">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
    <property name="text">
     <string>Green</string>
    </property>
@@ -135,6 +140,9 @@
    </property>
   </action>
   <action name="blue">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
    <property name="text">
     <string>Blue</string>
    </property>
@@ -148,6 +156,9 @@
    </property>
   </action>
   <action name="norm">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
    <property name="text">
     <string>Normal</string>
    </property>
@@ -156,6 +167,9 @@
    </property>
   </action>
   <action name="nyuv_combo">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
    <property name="text">
     <string>Normal.Y.U.V</string>
    </property>
@@ -177,6 +191,9 @@
    </property>
   </action>
   <action name="nrgb_combo">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
    <property name="text">
     <string>Normal.R.G.B</string>
    </property>
@@ -185,16 +202,25 @@
    </property>
   </action>
   <action name="text_none">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
    <property name="text">
     <string>None</string>
    </property>
   </action>
   <action name="text_fc">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
    <property name="text">
     <string>Frame Count</string>
    </property>
   </action>
   <action name="text_tc">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
    <property name="text">
     <string>Timecode</string>
    </property>
