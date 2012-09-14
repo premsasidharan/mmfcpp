@@ -9,7 +9,6 @@
 #include <stdlib.h>
 #include <unistd.h>
 
-#include <yuv_dlg.h>
 #include <video_player.h>
 
 #include <QtGui/QApplication>
@@ -27,6 +26,7 @@ int main(int argc, char** argv)
     QApplication app(argc, argv);
 
     float fps = 0.0;
+    Video_player player;
     QString file_path = "";
     Media::type format = Media::I420;
     int ret = 0, width = 0, height = 0;
@@ -36,20 +36,6 @@ int main(int argc, char** argv)
         printf("\nInsufficient arguments");
         print_usage();
         ret = 1;
-    }
-
-    if (ret)
-    {
-        Yuv_dlg dlg;
-        ret = dlg.exec();
-        if (ret)
-        {
-            fps = dlg.frame_rate();
-            width = dlg.video_width();
-            height = dlg.video_height();
-            format = dlg.video_format();
-            file_path = dlg.video_file_path();
-        }
     }
     else
     {   
@@ -69,25 +55,15 @@ int main(int argc, char** argv)
         {
             file_path = path;
         }
+		ret = player.set_parameters(width, height, format, fps, file_path.toAscii().data());
+		if (ret == 1)
+		{
+			player.start(0, 0);//player.duration());
+		}
     }
-  
-    if (ret)
-    {
-        Video_player player;
-        ret = player.set_parameters(width, height, format, fps, file_path.toAscii().data());
-        if (0 == ret)
-        {
-            printf("\n\tInvalid Yuv File Path\n");
-        }
-        else
-        {
-            int time = 0;  
-            player.show();
-            player.start(0, player.duration());
-            ret = app.exec();
-            player.stop(time);
-        }
-    }
+
+    player.show();
+    ret = app.exec();
 
     return ret;
 }
