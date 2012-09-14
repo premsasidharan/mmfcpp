@@ -11,14 +11,16 @@
 
 #include <QMessageBox>
 
+#include <yuv_dlg.h>
+
 Video_player::Video_player()
     :QMainWindow()
     , trick_mode(0)
     , timer(this)
     , state(Media::stop)
-    , master(0)
-    , source(0)
-    , sink(0)
+    , master("master")
+    , source("yuv")
+    , sink("opengl", master.create_child("child"))
     , text_mode(Video_player::time_code)
     , text_helper(this)
 {
@@ -29,22 +31,17 @@ Video_player::Video_player()
 Video_player::~Video_player()
 {
     ::disconnect(source, sink);
-	delete sink; sink = 0;
-	delete source; source = 0;
-	delete master; master = 0;
 }
 
 void Video_player::initialize()
 {
-    master = new Master_clock("master");
-    source = new Yuv_file_src("yuv");
-    sink = new Video_renderer("opengl", master->create_child("child"), centralwidget);
+	sink.set_render_widget(centralwidget);
     connect_signals_slots();
     
     timer.setInterval(400);
-    sink->attach(Media::last_pkt_rendered, this);
+    sink.attach(Media::last_pkt_rendered, this);
 
-    sink->register_text_helper(&text_helper);
+    sink.register_text_helper(&text_helper);
 }
 
 void Video_player::connect_signals_slots()
@@ -83,6 +80,8 @@ void Video_player::connect_signals_slots()
 	addAction(nrgb_combo);
 
     connect(&timer, SIGNAL(timeout()), this, SLOT(time_out()));
+	
+	connect(open, SIGNAL(triggered()), this, SLOT(file_open()));
 
 	connect(screen, SIGNAL(triggered()), this, SLOT(change_screen_size()));
 	connect(view_progress, SIGNAL(triggered()), this, SLOT(show_hide_progress_bar()));
@@ -128,6 +127,29 @@ void Video_player::change_screen_size()
 void Video_player::show_hide_progress_bar()
 {
 	centralwidget->enable_progress_bar(!centralwidget->is_progress_bar_enabled());
+}
+
+void Video_player::closeEvent(QCloseEvent* event)
+{
+	qDebug() << "Here";
+	::disconnect(source, sink);
+}
+
+void Video_player::file_open()
+{
+	Yuv_dlg dlg;
+    int ret = dlg.exec();
+    if (ret)
+    {
+		ret = set_parameters(dlg.video_width(), dlg.video_height(), 
+				dlg.video_format(), dlg.frame_rate(), 
+				dlg.video_file_path().toAscii().data());
+		if (ret)
+		{
+			centralwidget->enable_progress_bar(true);
+			start(0, duration());
+		}
+    }
 }
 
 void Video_player::mode_luma()
@@ -206,12 +228,12 @@ int Video_player::start(int start, int end)
     int ret = 0;
     timer.start();
     ret = ::start(source, start, end);
-    master->start(start);
+    master.start(start);
     if (0 == trick_mode)
     {
         state = Media::play;
     }
-    MEDIA_LOG("\nStart: %d", start);
+    MEDIA_ERROR("\nStart: %d, %d", ret, start);
     return ret;
 }
 
@@ -221,35 +243,35 @@ int Video_player::stop(int& time)
     timer.stop();
     ret = ::stop(source, time);
     uint64_t tmp = 0;
-    master->stop(tmp);
+    master.stop(tmp);
     state = Media::stop;
     return ret;
 }
 
 float Video_player::fps() const
 {
-    return source->fps();
+    return source.fps();
 }
 
 int Video_player::duration() const
 {
-    return source->duration();
+    return source.duration();
 }
 
 int Video_player::set_parameters(int width, int height, Media::type fmt, float fps, const char* path)
 {
-    int ret = source->set_parameters(path, fmt, fps, width, height);
+    int ret = source.set_parameters(path, fmt, fps, width, height);
     if (ret == 1)
     {
         setWindowTitle(path);
-		centralwidget->set_slider_range(0, source->duration());
+		centralwidget->set_slider_range(0, source.duration());
     }
     return ret;
 }
 
 void Video_player::time_out()
 {
-	centralwidget->set_value(sink->current_position());
+	centralwidget->set_value(sink.current_position());
 }
 
 void Video_player::playback_control(int status)
@@ -262,8 +284,8 @@ void Video_player::playback_control(int status)
     }
 	else
     {
-		qDebug() << "start " << centralwidget->current_pos() << ", " << source->duration();
-        start(centralwidget->current_pos(), source->duration());
+		qDebug() << "start " << centralwidget->current_pos() << ", " << source.duration();
+        start(centralwidget->current_pos(), source.duration());
 		centralwidget->set_pb_control_status(0);
     }
 }

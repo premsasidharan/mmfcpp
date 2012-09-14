@@ -68,11 +68,15 @@ protected:
     void connect_signals_slots();
     int event_handler(Media::events event, Abstract_media_object* obj, Media_params& params);
 
+    void closeEvent(QCloseEvent* event);
+
 protected slots:
     void time_out();
 
 	void change_screen_size();
 	void show_hide_progress_bar();
+
+	void file_open();
 
 	void mode_luma();
 	void mode_chromau();
@@ -101,10 +105,10 @@ private:
     QTimer timer;
 
     Media::state state;
-    Master_clock* master;
+    Master_clock master;
     
-    Yuv_file_src* source;
-    Video_renderer* sink;
+    Yuv_file_src source;
+    Video_renderer sink;
     
     Text_mode text_mode;
     Text_helper text_helper;
