@@ -25,12 +25,12 @@ const Port Video_renderer::input_port[] =
         "yuv"
     }};
 
-Video_renderer::Video_renderer(const char* _name, Child_clock* clk, Video_widget* _window)
+Video_renderer::Video_renderer(const char* _name, Child_clock* clk)
     :Abstract_media_object(_name)
     , prev(0)
     , curr_pos(0)
     , is_running(0)
-    , window(_window)
+    , window(0)
     , child_clk(clk)
     , queue(5)
     , text_helper(0)
@@ -52,7 +52,6 @@ Video_renderer::~Video_renderer()
 void Video_renderer::play_video()
 {
     MEDIA_TRACE_OBJ_PARAM("%s", object_name());
-    int64_t delay = 0;
     Buffer* buffer = queue.pop(2000);
     if (0 != buffer)
     {
@@ -183,6 +182,13 @@ int Video_renderer::current_position() const
 	time = curr_pos;
 	mutex.unlock();
 	return time;
+}
+
+void Video_renderer::set_render_widget(Video_widget* _window)
+{
+	mutex.lock();
+	window = _window;
+	mutex.unlock();
 }
 
 void Video_renderer::register_text_helper(Abstract_text_helper* helper)
