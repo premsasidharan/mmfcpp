@@ -35,6 +35,7 @@ Video_player::~Video_player()
 
 void Video_player::initialize()
 {
+    setWindowTitle("Yuv player");
 	sink.set_render_widget(centralwidget);
     connect_signals_slots();
     
@@ -264,7 +265,7 @@ int Video_player::set_parameters(int width, int height, Media::type fmt, float f
     int ret = source.set_parameters(path, fmt, fps, width, height);
     if (ret == 1)
     {
-        setWindowTitle(path);
+        setWindowTitle(QString("Yuv player - ")+path);
 		centralwidget->set_slider_range(0, source.duration());
     }
     return ret;
