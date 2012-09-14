@@ -29,11 +29,14 @@ class Video_renderer:public Abstract_media_object
 public:
     friend class Thread<Video_renderer>;
 
-    Video_renderer(const char* _name, Child_clock* clk, Video_widget* _window);
+    Video_renderer(const char* _name, Child_clock* clk);
     ~Video_renderer();
 
 public:
     int current_position() const;
+
+	void set_render_widget(Video_widget* _window);
+
     void register_text_helper(Abstract_text_helper* helper);
     void unregister_text_helper();
 

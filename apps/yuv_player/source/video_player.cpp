@@ -146,8 +146,8 @@ void Video_player::file_open()
 				dlg.video_file_path().toAscii().data());
 		if (ret)
 		{
-			centralwidget->enable_progress_bar(true);
-			start(0, duration());
+			start(0, 0);
+			centralwidget->set_pb_control_status(1);
 		}
     }
 }
@@ -233,6 +233,7 @@ int Video_player::start(int start, int end)
     {
         state = Media::play;
     }
+	centralwidget->enable_progress_bar(true);
     MEDIA_ERROR("\nStart: %d, %d", ret, start);
     return ret;
 }
@@ -299,6 +300,8 @@ int Video_player::event_handler(Media::events event, Abstract_media_object* obj,
     {
         timer.stop();
         time_out();
+		centralwidget->update();
+		qDebug() << "Pos " << sink.current_position();
         state == Media::stop;
     }
     qDebug() << "event_handler: " << event;

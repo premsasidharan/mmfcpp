@@ -77,8 +77,8 @@ Video_widget::Video_widget(QWidget* parent)
     , video_height(0)
     , mode(6)
     , is_changed(false)
-	, show_pb(true)
-	, pb_status(0)
+	, show_pb(false)
+	, pb_status(1)
     , scale(-0.75)
     , texture_count(0)
     , program(this)
@@ -89,6 +89,7 @@ Video_widget::Video_widget(QWidget* parent)
 	, slide_flag(false)
 {
     font_color[0] = font_color[1] = font_color[2] = 1.0;
+	texture_data[0] = texture_data[1] = texture_data[2] = 0;
     setFocusPolicy(Qt::StrongFocus);
     connect(this, SIGNAL(update_frame()), this, SLOT(repaint()));
 }
@@ -110,7 +111,6 @@ void Video_widget::set_value(uint64_t pos)
 	if (false == slide_flag)
 	{
 		scale = -0.75+((float)(pos-start)/(float)(end-start))*1.6;
-		repaint();
 	}
 }
 
@@ -240,6 +240,7 @@ void Video_widget::render_frame(int disp_mode, int mode)
                                      {{-1.0, 0.0}, {0.0, 0.0}, {0.0, -1.0}, {-1.0, -1.0}},
                                      {{0.0, 0.0}, {1.0, 0.0}, {1.0, -1.0}, {0.0, -1.0}},
                                      {{-1.0, 1.0}, {1.0, 1.0}, {1.0, -1.0}, {-1.0, -1.0}}};
+
     program.bind();
 
     program.setUniformValue("texture_0", 0);
@@ -344,32 +345,36 @@ void Video_widget::paintGL()
     {
         return;
     }
-
     mutex.lock();
-    create_textures();
-
-    if (mode <= 6)
-    {
-        render_frame(4, mode);
-    }
-    else if (mode == 7)
-    {
-        render_frame(0, 6);
-        render_frame(1, 0);
-        render_frame(2, 1);
-        render_frame(3, 2);
-    }
-    else if (mode == 8)
-    {
-        render_frame(0, 6);
-        render_frame(1, 3);
-        render_frame(2, 4);
-        render_frame(3, 5);
-    }
-    render_text();
-
-	render_pb_controls();
-
+	if (video_width == 0 || video_height == 0)
+	{
+		glColor3f(0.3, 0.3, 0.3);
+		render_rectangle(-1.0, 1.0, 2.0, 2.0);
+	}
+	else
+	{
+		create_textures();
+		if (mode <= 6)
+		{
+		    render_frame(4, mode);
+		}
+		else if (mode == 7)
+		{
+		    render_frame(0, 6);
+		    render_frame(1, 0);
+		    render_frame(2, 1);
+		    render_frame(3, 2);
+		}
+		else if (mode == 8)
+		{
+		    render_frame(0, 6);
+		    render_frame(1, 3);
+		    render_frame(2, 4);
+		    render_frame(3, 5);
+		}
+		render_text();
+		render_pb_controls();
+	}
     mutex.unlock();
     glFlush();
 }
@@ -578,8 +583,6 @@ void Video_widget::delete_textures()
 {
     if (texture_count > 0)
     {
-        program.removeAllShaders();
-        program.release();
         glDeleteTextures(texture_count, texture);
         texture_count = 0;
     }
