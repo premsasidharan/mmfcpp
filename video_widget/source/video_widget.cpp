@@ -97,7 +97,7 @@ Video_widget::Video_widget(QWidget* parent)
 Video_widget::~Video_widget()
 {
     glDeleteLists(font_offset, 256);
-    delete_textures();
+    glDeleteTextures(3, texture);
 }
 
 void Video_widget::set_mode(int _mode)
@@ -148,7 +148,6 @@ void Video_widget::show_frame(unsigned char* _yuv, int fmt, int width, int heigh
     mutex.lock();
     if ((fmt != format) || (width != video_width) || (height != video_height))
     {
-        delete_textures();
         format = fmt;
         video_width = width;
         video_height = height;
@@ -191,6 +190,7 @@ void Video_widget::show_frame(unsigned char* _yuv, int fmt, int width, int heigh
 
 void Video_widget::initializeGL()
 {
+    glGenTextures(3, texture);
     glClearColor(0.0, 0.0, 0.0, 0.0);
     glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
     create_font_disp_lists();
@@ -507,7 +507,6 @@ void Video_widget::create_textures()
 
 void Video_widget::create_yuy2_textures()
 {
-    glGenTextures(2, texture);
     texture_count = 2;
 
     texture_width[0] = video_width;
@@ -536,7 +535,6 @@ void Video_widget::create_yuy2_textures()
 
 void Video_widget::create_i420_textures()
 {
-    glGenTextures(3, texture);
     texture_count = 3;
 
     texture_width[0] = video_width;
@@ -576,15 +574,6 @@ void Video_widget::create_i420_textures()
         glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_DECAL);
         glTexImage2D(GL_TEXTURE_2D, 0, texture_int_format[i], texture_width[i], 
             texture_height[i], 0, texture_format[i], GL_UNSIGNED_BYTE, 0);
-    }
-}
-
-void Video_widget::delete_textures()
-{
-    if (texture_count > 0)
-    {
-        glDeleteTextures(texture_count, texture);
-        texture_count = 0;
     }
 }
 
