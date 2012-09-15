@@ -17,7 +17,7 @@ INCLUDEPATH += ../../media_core/include \
 
 LIBS += -L/usr/lib -lpthread -lm -lsupc++ -L../../media_core/lib -lmedia_core
 
-HEADERS = include/video_player.h \
+HEADERS = include/yuv_player.h \
           include/yuv_dlg.h \
 #          include/main_window.h \
           ../../video_widget/include/video_widget.h
@@ -34,7 +34,7 @@ SOURCES = ../../video_widget/source/video_widget.cpp \
 		  ../../clock/source/abstract_clock.cpp \
 		  ../../clock/source/child_clock.cpp \
 		  ../../clock/source/master_clock.cpp \
-          source/video_player.cpp \
+          source/yuv_player.cpp \
           source/yuv_dlg.cpp \
 #          source/main_window.cpp \
           source/main.cpp

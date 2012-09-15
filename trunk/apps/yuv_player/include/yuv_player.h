@@ -6,8 +6,8 @@
  * published by the Free Software Foundation.
 */
 
-#ifndef _VIDEO_PLAYER_H_
-#define _VIDEO_PLAYER_H_
+#ifndef _YUV_PLAYER_H_
+#define _YUV_PLAYER_H_
 
 #include <QTimer>
 #include <QSlider>
@@ -19,6 +19,8 @@
 #include <QRadioButton>
 #include <QMainWindow>
 
+#include <yuv_dlg.h>
+
 #include <master_clock.h>
 
 #include <video_widget.h>
@@ -27,22 +29,22 @@
 
 #include <ui_main_window.h>
 
-class Video_player;
+class Yuv_player;
 
 class Text_helper: public Abstract_text_helper
 {
 public:
-    Text_helper(Video_player* p);
+    Text_helper(Yuv_player* p);
     ~Text_helper();
 
 public:
     void read_text(char* text, int length, uint64_t time);
 
 private:
-    Video_player* player;
+    Yuv_player* player;
 };
 
-class Video_player:public QMainWindow, public Ui_MainWindow, public Observer
+class Yuv_player:public QMainWindow, public Ui_MainWindow, public Observer
 {
     Q_OBJECT
 public:
@@ -50,8 +52,8 @@ public:
 
     enum Text_mode {no_text, time_code, frame_count};
 
-    Video_player();
-    ~Video_player();
+    Yuv_player();
+    ~Yuv_player();
     
 public:
     int stop(int& time);
@@ -103,6 +105,8 @@ private:
     int trick_mode;
 
     QTimer timer;
+
+	Yuv_dlg dlg;
 
     Media::state state;
     Master_clock master;
