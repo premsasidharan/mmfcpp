@@ -35,7 +35,7 @@ Video_player::~Video_player()
 
 void Video_player::initialize()
 {
-    setWindowTitle("Yuv player");
+    setWindowTitle("yuv player");
 	sink.set_render_widget(centralwidget);
     connect_signals_slots();
     
@@ -155,47 +155,47 @@ void Video_player::file_open()
 
 void Video_player::mode_luma()
 {
-	centralwidget->set_mode(0);
+	centralwidget->set_mode(Video_widget::luma);
 }
 
 void Video_player::mode_chromau()
 {
-	centralwidget->set_mode(1);
+	centralwidget->set_mode(Video_widget::chroma_u);
 }
 
 void Video_player::mode_chromav()
 {
-	centralwidget->set_mode(2);
+	centralwidget->set_mode(Video_widget::chroma_v);
 }
 
 void Video_player::mode_red()
 {
-	centralwidget->set_mode(3);
+	centralwidget->set_mode(Video_widget::red);
 }
 
 void Video_player::mode_green()
 {
-	centralwidget->set_mode(4);
+	centralwidget->set_mode(Video_widget::green);
 }
 
 void Video_player::mode_blue()
 {
-	centralwidget->set_mode(5);
+	centralwidget->set_mode(Video_widget::blue);
 }
 
 void Video_player::mode_normal()
 {
-	centralwidget->set_mode(6);
+	centralwidget->set_mode(Video_widget::normal);
 }
 
 void Video_player::mode_nyuv()
 {
-	centralwidget->set_mode(7);
+	centralwidget->set_mode(Video_widget::grid_nyuv);
 }
 
 void Video_player::mode_nrgb()
 {
-	centralwidget->set_mode(8);
+	centralwidget->set_mode(Video_widget::grid_nrgb);
 }
 
 void Video_player::text_mode_none()
@@ -262,10 +262,12 @@ int Video_player::duration() const
 
 int Video_player::set_parameters(int width, int height, Media::type fmt, float fps, const char* path)
 {
+	QString fpath = path;
     int ret = source.set_parameters(path, fmt, fps, width, height);
     if (ret == 1)
     {
-        setWindowTitle(QString("Yuv player - ")+path);
+		int i = fpath.length()-fpath.lastIndexOf('/')-1;
+        setWindowTitle(QString("yuv player - ")+fpath.right(i));
 		centralwidget->set_slider_range(0, source.duration());
     }
     return ret;

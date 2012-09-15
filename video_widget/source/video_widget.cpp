@@ -75,7 +75,7 @@ Video_widget::Video_widget(QWidget* parent)
     , format(Media::I420)
     , video_width(0)
     , video_height(0)
-    , mode(6)
+    , mode(Video_widget::normal)
     , is_changed(false)
 	, show_pb(false)
 	, pb_status(1)
@@ -100,10 +100,10 @@ Video_widget::~Video_widget()
     glDeleteTextures(3, texture);
 }
 
-void Video_widget::set_mode(int _mode)
+void Video_widget::set_mode(Video_widget::Mode _mode)
 {
     mode = _mode;
-    repaint();
+    update();
 }
 
 void Video_widget::set_value(uint64_t pos)
@@ -129,7 +129,7 @@ void Video_widget::set_slider_range(uint64_t _start, uint64_t _end)
 void Video_widget::set_pb_control_status(int status)
 {
 	pb_status = status;
-	repaint();
+	update();
 }
 
 bool Video_widget::is_progress_bar_enabled()
@@ -140,7 +140,7 @@ bool Video_widget::is_progress_bar_enabled()
 void Video_widget::enable_progress_bar(bool en)
 {
 	show_pb = en;
-	repaint();
+	update();
 }
 
 void Video_widget::show_frame(unsigned char* _yuv, int fmt, int width, int height, const char* text)
@@ -232,7 +232,7 @@ void Video_widget::draw_text(GLfloat x, GLfloat y, const char* text)
 	glCallLists(strlen(text), GL_UNSIGNED_BYTE, (GLubyte *) text);
 }
 
-void Video_widget::render_frame(int disp_mode, int mode)
+void Video_widget::render_frame(Video_widget::Position pos, Video_widget::Mode mode)
 {
 
     static GLfloat vertex[][4][2] = {{{-1.0, 1.0}, {0.0, 1.0}, {0.0, 0.0}, {-1.0, 0.0}},
@@ -258,10 +258,10 @@ void Video_widget::render_frame(int disp_mode, int mode)
 
     glEnable(GL_TEXTURE_2D);
     glBegin(GL_QUADS);
-        glTexCoord2f(0.0f, 0.0f); glVertex2fv(vertex[disp_mode][0]);
-        glTexCoord2f(1.0f, 0.0f); glVertex2fv(vertex[disp_mode][1]);
-        glTexCoord2f(1.0f, 1.0f); glVertex2fv(vertex[disp_mode][2]);
-        glTexCoord2f(0.0f, 1.0f); glVertex2fv(vertex[disp_mode][3]);
+        glTexCoord2f(0.0f, 0.0f); glVertex2fv(vertex[pos][0]);
+        glTexCoord2f(1.0f, 0.0f); glVertex2fv(vertex[pos][1]);
+        glTexCoord2f(1.0f, 1.0f); glVertex2fv(vertex[pos][2]);
+        glTexCoord2f(0.0f, 1.0f); glVertex2fv(vertex[pos][3]);
     glEnd(); 
     glDisable(GL_TEXTURE_2D);
 
@@ -354,23 +354,31 @@ void Video_widget::paintGL()
 	else
 	{
 		create_textures();
-		if (mode <= 6)
+		switch (mode)
 		{
-		    render_frame(4, mode);
-		}
-		else if (mode == 7)
-		{
-		    render_frame(0, 6);
-		    render_frame(1, 0);
-		    render_frame(2, 1);
-		    render_frame(3, 2);
-		}
-		else if (mode == 8)
-		{
-		    render_frame(0, 6);
-		    render_frame(1, 3);
-		    render_frame(2, 4);
-		    render_frame(3, 5);
+			case Video_widget::luma:
+			case Video_widget::chroma_u:
+			case Video_widget::chroma_v:
+			case Video_widget::red:
+			case Video_widget::green:
+			case Video_widget::blue:
+			case Video_widget::normal:
+				render_frame(Video_widget::full_screen, mode);
+				break;
+
+			case Video_widget::grid_nyuv:
+		    	render_frame(Video_widget::top_left, Video_widget::normal);
+		    	render_frame(Video_widget::top_right, Video_widget::luma);
+		    	render_frame(Video_widget::bottom_left, Video_widget::chroma_u);
+		    	render_frame(Video_widget::bottom_right, Video_widget::chroma_v);
+				break;
+
+			case Video_widget::grid_nrgb:
+		    	render_frame(Video_widget::top_left, Video_widget::normal);
+		    	render_frame(Video_widget::top_right, Video_widget::red);
+		    	render_frame(Video_widget::bottom_left, Video_widget::green);
+		    	render_frame(Video_widget::bottom_right, Video_widget::blue);
+				break;
 		}
 		render_text();
 		render_pb_controls();
