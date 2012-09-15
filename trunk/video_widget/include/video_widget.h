@@ -58,7 +58,6 @@ protected:
     void mousePressEvent(QMouseEvent* event); 
 	void mouseReleaseEvent(QMouseEvent* event);
 
-    void delete_textures();
     void create_textures();
     void create_yuy2_textures();
     void create_i420_textures();
