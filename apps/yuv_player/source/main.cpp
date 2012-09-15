@@ -9,7 +9,7 @@
 #include <stdlib.h>
 #include <unistd.h>
 
-#include <video_player.h>
+#include <yuv_player.h>
 
 #include <QtGui/QApplication>
 
@@ -26,7 +26,7 @@ int main(int argc, char** argv)
     QApplication app(argc, argv);
 
     float fps = 0.0;
-    Video_player player;
+    Yuv_player player;
     QString file_path = "";
     Media::type format = Media::I420;
     int ret = 0, width = 0, height = 0;

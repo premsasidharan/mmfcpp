@@ -7,33 +7,32 @@
 */
 #include <math.h>
 #include <QString>
-#include <video_player.h>
+#include <yuv_player.h>
 
 #include <QMessageBox>
 
-#include <yuv_dlg.h>
-
-Video_player::Video_player()
+Yuv_player::Yuv_player()
     :QMainWindow()
     , trick_mode(0)
     , timer(this)
+	, dlg(this)
     , state(Media::stop)
     , master("master")
     , source("yuv")
     , sink("opengl", master.create_child("child"))
-    , text_mode(Video_player::time_code)
+    , text_mode(Yuv_player::time_code)
     , text_helper(this)
 {
     setupUi(this);
     initialize();
 }
 
-Video_player::~Video_player()
+Yuv_player::~Yuv_player()
 {
     ::disconnect(source, sink);
 }
 
-void Video_player::initialize()
+void Yuv_player::initialize()
 {
     setWindowTitle("yuv player");
 	sink.set_render_widget(centralwidget);
@@ -45,7 +44,7 @@ void Video_player::initialize()
     sink.register_text_helper(&text_helper);
 }
 
-void Video_player::connect_signals_slots()
+void Yuv_player::connect_signals_slots()
 {
     ::connect(source, sink);
 
@@ -109,7 +108,7 @@ void Video_player::connect_signals_slots()
 	connect(centralwidget, SIGNAL(seek(uint64_t, uint64_t)), this, SLOT(slider_seek(uint64_t, uint64_t)));
 }
 
-void Video_player::change_screen_size()
+void Yuv_player::change_screen_size()
 {
 	if (isFullScreen())
 	{
@@ -125,20 +124,19 @@ void Video_player::change_screen_size()
 	}
 }
 
-void Video_player::show_hide_progress_bar()
+void Yuv_player::show_hide_progress_bar()
 {
 	centralwidget->enable_progress_bar(!centralwidget->is_progress_bar_enabled());
 }
 
-void Video_player::closeEvent(QCloseEvent* event)
+void Yuv_player::closeEvent(QCloseEvent* event)
 {
 	qDebug() << "Here";
 	::disconnect(source, sink);
 }
 
-void Video_player::file_open()
+void Yuv_player::file_open()
 {
-	Yuv_dlg dlg;
     int ret = dlg.exec();
     if (ret)
     {
@@ -153,78 +151,78 @@ void Video_player::file_open()
     }
 }
 
-void Video_player::mode_luma()
+void Yuv_player::mode_luma()
 {
 	centralwidget->set_mode(Video_widget::luma);
 }
 
-void Video_player::mode_chromau()
+void Yuv_player::mode_chromau()
 {
 	centralwidget->set_mode(Video_widget::chroma_u);
 }
 
-void Video_player::mode_chromav()
+void Yuv_player::mode_chromav()
 {
 	centralwidget->set_mode(Video_widget::chroma_v);
 }
 
-void Video_player::mode_red()
+void Yuv_player::mode_red()
 {
 	centralwidget->set_mode(Video_widget::red);
 }
 
-void Video_player::mode_green()
+void Yuv_player::mode_green()
 {
 	centralwidget->set_mode(Video_widget::green);
 }
 
-void Video_player::mode_blue()
+void Yuv_player::mode_blue()
 {
 	centralwidget->set_mode(Video_widget::blue);
 }
 
-void Video_player::mode_normal()
+void Yuv_player::mode_normal()
 {
 	centralwidget->set_mode(Video_widget::normal);
 }
 
-void Video_player::mode_nyuv()
+void Yuv_player::mode_nyuv()
 {
 	centralwidget->set_mode(Video_widget::grid_nyuv);
 }
 
-void Video_player::mode_nrgb()
+void Yuv_player::mode_nrgb()
 {
 	centralwidget->set_mode(Video_widget::grid_nrgb);
 }
 
-void Video_player::text_mode_none()
+void Yuv_player::text_mode_none()
 {
-	text_mode = Video_player::no_text;
+	text_mode = Yuv_player::no_text;
 }
 
-void Video_player::text_mode_time_code()
+void Yuv_player::text_mode_time_code()
 {
-	text_mode = Video_player::time_code;
+	text_mode = Yuv_player::time_code;
 }
 
-void Video_player::text_mode_frame_count()
+void Yuv_player::text_mode_frame_count()
 {
-	text_mode = Video_player::frame_count;
+	text_mode = Yuv_player::frame_count;
 }
 
-void Video_player::help_about()
+void Yuv_player::help_about()
 {
 	QMessageBox::information(this, tr("About"), tr("Yuv Player"));
 }
 
-void Video_player::slider_seek(uint64_t _start, uint64_t _end)
+void Yuv_player::slider_seek(uint64_t _start, uint64_t _end)
 {
 	qDebug() << "slider_seek " << _start << ", " << _end;
 	start(_start, _end);
 }
 
-int Video_player::start(int start, int end)
+int Yuv_player::start(int start, int end)
 {
     int ret = 0;
     timer.start();
@@ -239,7 +237,7 @@ int Video_player::start(int start, int end)
     return ret;
 }
 
-int Video_player::stop(int& time)
+int Yuv_player::stop(int& time)
 {
     int ret = 0;
     timer.stop();
@@ -250,17 +248,17 @@ int Video_player::stop(int& time)
     return ret;
 }
 
-float Video_player::fps() const
+float Yuv_player::fps() const
 {
     return source.fps();
 }
 
-int Video_player::duration() const
+int Yuv_player::duration() const
 {
     return source.duration();
 }
 
-int Video_player::set_parameters(int width, int height, Media::type fmt, float fps, const char* path)
+int Yuv_player::set_parameters(int width, int height, Media::type fmt, float fps, const char* path)
 {
 	QString fpath = path;
     int ret = source.set_parameters(path, fmt, fps, width, height);
@@ -273,12 +271,12 @@ int Video_player::set_parameters(int width, int height, Media::type fmt, float f
     return ret;
 }
 
-void Video_player::time_out()
+void Yuv_player::time_out()
 {
 	centralwidget->set_value(sink.current_position());
 }
 
-void Video_player::playback_control(int status)
+void Yuv_player::playback_control(int status)
 {
 	if (status == 0)
 	{
@@ -294,7 +292,7 @@ void Video_player::playback_control(int status)
     }
 }
 
-int Video_player::event_handler(Media::events event, Abstract_media_object* obj, Media_params& params)
+int Yuv_player::event_handler(Media::events event, Abstract_media_object* obj, Media_params& params)
 {
     (void)event;
     (void)obj;
@@ -311,12 +309,12 @@ int Video_player::event_handler(Media::events event, Abstract_media_object* obj,
     return 0;
 }
 
-void Video_player::set_text_mode(Video_player::Text_mode mode)
+void Yuv_player::set_text_mode(Yuv_player::Text_mode mode)
 {
     text_mode = mode;
 }
 
-Text_helper::Text_helper(Video_player* p)
+Text_helper::Text_helper(Yuv_player* p)
     :player(p)
 {
 }
@@ -329,7 +327,7 @@ void Text_helper::read_text(char* text, int length, uint64_t time)
 {
     switch (player->text_mode)
     {
-        case Video_player::time_code:
+        case Yuv_player::time_code:
             {
                 int sec = time/1000000;
                 int min = (sec/60);
@@ -338,7 +336,7 @@ void Text_helper::read_text(char* text, int length, uint64_t time)
                 snprintf(text, length, "%02d:%02d:%02d:%06d", hr, min, sec, time%1000000);
             }
             break;
-        case Video_player::frame_count:
+        case Yuv_player::frame_count:
             {
                 int curr_frame = 1+(int)ceil(((float)time*player->fps())/1000000.0);
                 int frame_count = (int)ceil(((float)player->duration()*player->fps())/1000000.0);
