@@ -22,9 +22,10 @@ Yuv_player::Yuv_player()
     , sink("opengl", master.create_child("child"))
     , text_mode(Yuv_player::time_code)
     , text_helper(this)
+	, mode_grp(0)
+	, text_grp(0)
 {
-    setupUi(this);
-    initialize();
+    init();
 }
 
 Yuv_player::~Yuv_player()
@@ -32,79 +33,82 @@ Yuv_player::~Yuv_player()
     ::disconnect(source, sink);
 }
 
-void Yuv_player::initialize()
+void Yuv_player::init()
 {
-    setWindowTitle("yuv player");
-	sink.set_render_widget(centralwidget);
-    connect_signals_slots();
-    
-    timer.setInterval(400);
-    sink.attach(Media::last_pkt_rendered, this);
+    setupUi(this);
+	init_actions();
 
+	init_player();
+    connect_signals_slots();
+}
+
+void Yuv_player::init_player()
+{
+	sink.set_render_widget(centralwidget);
     sink.register_text_helper(&text_helper);
+    sink.attach(Media::last_pkt_rendered, this);
+    ::connect(source, sink);
+
+    timer.setInterval(400);
+}
+
+void Yuv_player::init_actions()
+{
+	addAction(r_action);
+	addAction(g_action);
+	addAction(b_action);
+
+	addAction(pbc_action);
+	addAction(screen_action);
+
+	addAction(rgb_action);
+	addAction(grid_nyuv_action);
+	addAction(grid_nrgb_action);
+
+	mode_grp = new QActionGroup(this);
+	text_grp = new QActionGroup(this);
+
+	mode_grp->addAction(y_action);
+	mode_grp->addAction(u_action);
+	mode_grp->addAction(v_action);
+	mode_grp->addAction(r_action);
+	mode_grp->addAction(g_action);
+	mode_grp->addAction(b_action);
+	mode_grp->addAction(rgb_action);
+	mode_grp->addAction(grid_nyuv_action);
+	mode_grp->addAction(grid_nrgb_action);
+	rgb_action->setChecked(true);
+
+	text_grp->addAction(none_action);
+	text_grp->addAction(fc_action);
+	text_grp->addAction(tc_action);
+	tc_action->setChecked(true);
+
+	y_action->setData(QVariant(Video_widget::luma));
+	u_action->setData(QVariant(Video_widget::chroma_u));
+	v_action->setData(QVariant(Video_widget::chroma_v));
+	r_action->setData(QVariant(Video_widget::red));
+	g_action->setData(QVariant(Video_widget::green));
+	b_action->setData(QVariant(Video_widget::blue));
+	rgb_action->setData(QVariant(Video_widget::normal));
+	grid_nyuv_action->setData(QVariant(Video_widget::grid_nyuv));
+	grid_nrgb_action->setData(QVariant(Video_widget::grid_nrgb));
+
+	none_action->setData(QVariant(Yuv_player::no_text));
+	tc_action->setData(QVariant(Yuv_player::time_code));
+	fc_action->setData(QVariant(Yuv_player::frame_count));
 }
 
 void Yuv_player::connect_signals_slots()
 {
-    ::connect(source, sink);
-
-	addAction(screen);
-	addAction(view_progress);
-
-	//TODO:Need to cleanup the whole thing
-	QActionGroup* yuv_act_grp = new QActionGroup(this);
-	yuv_act_grp->addAction(luma_y);
-	yuv_act_grp->addAction(chroma_u);
-	yuv_act_grp->addAction(chroma_v);
-	yuv_act_grp->addAction(red);
-	yuv_act_grp->addAction(green);
-	yuv_act_grp->addAction(blue);
-	yuv_act_grp->addAction(norm);
-	yuv_act_grp->addAction(nyuv_combo);
-	yuv_act_grp->addAction(nrgb_combo);
-
-	norm->setChecked(true);
-    
-	QActionGroup* text_act_grp = new QActionGroup(this);
-	text_act_grp->addAction(text_none);
-	text_act_grp->addAction(text_fc);
-	text_act_grp->addAction(text_tc);
-	text_tc->setChecked(true);
-
-	addAction(red);
-	addAction(green);
-	addAction(blue);
-
-	addAction(norm);
-	addAction(nyuv_combo);
-	addAction(nrgb_combo);
-
     connect(&timer, SIGNAL(timeout()), this, SLOT(time_out()));
-	
-	connect(open, SIGNAL(triggered()), this, SLOT(file_open()));
-
-	connect(screen, SIGNAL(triggered()), this, SLOT(change_screen_size()));
-	connect(view_progress, SIGNAL(triggered()), this, SLOT(show_hide_progress_bar()));
-
-	connect(luma_y, SIGNAL(triggered()), this, SLOT(mode_luma()));
-	connect(chroma_u, SIGNAL(triggered()), this, SLOT(mode_chromau()));
-	connect(chroma_v, SIGNAL(triggered()), this, SLOT(mode_chromav()));
-
-	connect(red, SIGNAL(triggered()), this, SLOT(mode_red()));
-	connect(green, SIGNAL(triggered()), this, SLOT(mode_green()));
-	connect(blue, SIGNAL(triggered()), this, SLOT(mode_blue()));
-
-	connect(norm, SIGNAL(triggered()), this, SLOT(mode_normal()));
-	connect(nyuv_combo, SIGNAL(triggered()), this, SLOT(mode_nyuv()));
-	connect(nrgb_combo, SIGNAL(triggered()), this, SLOT(mode_nrgb()));
-
-	connect(text_none, SIGNAL(triggered()), this, SLOT(text_mode_none()));
-	connect(text_fc, SIGNAL(triggered()), this, SLOT(text_mode_frame_count()));
-	connect(text_tc, SIGNAL(triggered()), this, SLOT(text_mode_time_code()));
-
-	connect(about, SIGNAL(triggered()), this, SLOT(help_about()));
-
+	connect(abt_action, SIGNAL(triggered()), this, SLOT(help_about()));
+	connect(open_action, SIGNAL(triggered()), this, SLOT(file_open()));
+	connect(screen_action, SIGNAL(triggered()), this, SLOT(change_screen_size()));
+	connect(pbc_action, SIGNAL(triggered()), this, SLOT(show_hide_progress_bar()));
 	connect(centralwidget, SIGNAL(pb_control(int)), this, SLOT(playback_control(int)));
+	connect(mode_grp, SIGNAL(triggered(QAction*)), this, SLOT(change_disp_mode(QAction*)));
+	connect(text_grp, SIGNAL(triggered(QAction*)), this, SLOT(change_text_mode(QAction*)));
 	connect(centralwidget, SIGNAL(seek(uint64_t, uint64_t)), this, SLOT(slider_seek(uint64_t, uint64_t)));
 }
 
@@ -122,6 +126,18 @@ void Yuv_player::change_screen_size()
 		statusBar()->hide();
 		showFullScreen();
 	}
+}
+
+void Yuv_player::change_disp_mode(QAction* action)
+{
+	Video_widget::Mode mode = (Video_widget::Mode) action->data().toInt();
+	centralwidget->set_mode(mode);
+}
+
+void Yuv_player::change_text_mode(QAction* action)
+{
+	qDebug() << action->text();
+	text_mode = (Yuv_player::Text_mode) action->data().toInt();
 }
 
 void Yuv_player::show_hide_progress_bar()
@@ -150,70 +166,9 @@ void Yuv_player::file_open()
 		}
     }
 }
-
-void Yuv_player::mode_luma()
-{
-	centralwidget->set_mode(Video_widget::luma);
-}
-
-void Yuv_player::mode_chromau()
-{
-	centralwidget->set_mode(Video_widget::chroma_u);
-}
-
-void Yuv_player::mode_chromav()
-{
-	centralwidget->set_mode(Video_widget::chroma_v);
-}
-
-void Yuv_player::mode_red()
-{
-	centralwidget->set_mode(Video_widget::red);
-}
-
-void Yuv_player::mode_green()
-{
-	centralwidget->set_mode(Video_widget::green);
-}
-
-void Yuv_player::mode_blue()
-{
-	centralwidget->set_mode(Video_widget::blue);
-}
-
-void Yuv_player::mode_normal()
-{
-	centralwidget->set_mode(Video_widget::normal);
-}
-
-void Yuv_player::mode_nyuv()
-{
-	centralwidget->set_mode(Video_widget::grid_nyuv);
-}
-
-void Yuv_player::mode_nrgb()
-{
-	centralwidget->set_mode(Video_widget::grid_nrgb);
-}
-
-void Yuv_player::text_mode_none()
-{
-	text_mode = Yuv_player::no_text;
-}
-
-void Yuv_player::text_mode_time_code()
-{
-	text_mode = Yuv_player::time_code;
-}
-
-void Yuv_player::text_mode_frame_count()
-{
-	text_mode = Yuv_player::frame_count;
-}
-
 void Yuv_player::help_about()
 {
-	QMessageBox::information(this, tr("About"), tr("Yuv Player"));
+	QMessageBox::about(this, tr("About"), tr("yuv Player"));
 }
 
 void Yuv_player::slider_seek(uint64_t _start, uint64_t _end)
@@ -302,7 +257,6 @@ int Yuv_player::event_handler(Media::events event, Abstract_media_object* obj, M
         timer.stop();
         time_out();
 		centralwidget->update();
-		qDebug() << "Pos " << sink.current_position();
         state == Media::stop;
     }
     qDebug() << "event_handler: " << event;
