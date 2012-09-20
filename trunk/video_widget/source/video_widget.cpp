@@ -76,9 +76,9 @@ Video_widget::Video_widget(QWidget* parent)
     , video_width(0)
     , video_height(0)
     , mode(Video_widget::RGB)
+	, pb_state(Video_widget::Play)
     , is_changed(false)
-	, show_pb(false)
-	, pb_status(1)
+	, is_visible(false)
     , scale(-0.75)
     , texture_count(0)
     , program(this)
@@ -88,8 +88,14 @@ Video_widget::Video_widget(QWidget* parent)
     , font_offset(0)
 	, slide_flag(false)
 {
+	init();
+}
+
+void Video_widget::init()
+{
     font_color[0] = font_color[1] = font_color[2] = 1.0;
 	texture_data[0] = texture_data[1] = texture_data[2] = 0;
+
     setFocusPolicy(Qt::StrongFocus);
     connect(this, SIGNAL(update_frame()), this, SLOT(repaint()));
 }
@@ -102,11 +108,13 @@ Video_widget::~Video_widget()
 
 void Video_widget::set_display_mode(Video_widget::Mode _mode)
 {
+    mutex.lock();
     mode = _mode;
+	mutex.unlock();
     update();
 }
 
-void Video_widget::set_value(uint64_t pos)
+void Video_widget::set_slider_value(uint64_t pos)
 {
 	if (false == slide_flag)
 	{
@@ -114,7 +122,7 @@ void Video_widget::set_value(uint64_t pos)
 	}
 }
 
-uint64_t Video_widget::current_pos()
+uint64_t Video_widget::slider_value()
 {
 	uint64_t pos = start+(uint64_t)((scale+0.75)*((float)(end-start))/1.6);
 	return pos;
@@ -126,20 +134,22 @@ void Video_widget::set_slider_range(uint64_t _start, uint64_t _end)
 	end = _end;
 }
 
-void Video_widget::set_pb_control_status(int status)
+void Video_widget::set_playback_control_state(Video_widget::State state)
 {
-	pb_status = status;
+	pb_state = state;
 	update();
 }
 
-bool Video_widget::is_progress_bar_enabled()
+bool Video_widget::is_controls_visible()
 {
-	return show_pb;
+	return is_visible;
 }
 
-void Video_widget::enable_progress_bar(bool en)
+void Video_widget::show_playback_controls(bool en)
 {
-	show_pb = en;
+    mutex.lock();
+	is_visible = en;
+	mutex.unlock();
 	update();
 }
 
@@ -328,12 +338,12 @@ void Video_widget::render_slider()
 	render_notch(scale, -0.91, 0.02, 0.04);
 }
 
-void Video_widget::render_pb_controls()
+void Video_widget::render_playback_controls()
 {
-	if (show_pb)
+	if (is_visible)
 	{
 		render_slider();
-		if (0 == pb_status)
+		if (Video_widget::Pause == pb_state)
 		{
 			render_rectangle(-0.88, -0.89, 0.02, 0.06);
 			render_rectangle(-0.85, -0.89, 0.02, 0.06);
@@ -387,7 +397,7 @@ void Video_widget::paintGL()
 				break;
 		}
 		render_text();
-		render_pb_controls();
+		render_playback_controls();
 	}
     mutex.unlock();
     glFlush();
@@ -398,12 +408,6 @@ void Video_widget::resizeGL(int _width, int _height)
     glViewport(0, 0, _width, _height);
 }
 
-void Video_widget::moveEvent(QMoveEvent* event)
-{
-    (void)event;
-    //repaint();
-}
-
 void Video_widget::closeEvent(QCloseEvent* event)
 {
     (void)event;
@@ -412,14 +416,14 @@ void Video_widget::closeEvent(QCloseEvent* event)
     
 void Video_widget::mousePressEvent(QMouseEvent* event)
 {
-    if (show_pb && (event->button() & Qt::LeftButton))
+    if (is_visible && (event->button() & Qt::LeftButton))
     {
 		float fx = (2.0*(float)event->x()/(float)width())-1.0;
 		float fy = 1.0-(2.0*(float)event->y()/(float)height());
 
 		if (fx >= -0.88 && fx <= -0.77 && fy <= -0.90 && fy >= -0.95)
 		{
-			emit pb_control(pb_status);
+			emit pb_control(pb_state);
 		}
 
 		if (fx >= (scale-0.01) && fx <= (scale+0.01) && fy <= -0.90 && fy >= -0.95)
@@ -439,21 +443,20 @@ void Video_widget::mouseReleaseEvent(QMouseEvent* event)
    
 void Video_widget::mouseMoveEvent(QMouseEvent* event)
 {
-	if (false == show_pb && false == slide_flag)
+	if (false == is_visible && false == slide_flag)
 	{
 		return;
 	}
     if (event->buttons() & Qt::LeftButton)
     {
 		float fx = (2.0*(float)event->x()/(float)width())-1.0;
-		float fy = 1.0-(2.0*(float)event->y()/(float)height());
 
 		if (fx >= -0.75 && fx <= 0.85)
 		{
 			scale = fx;
 			uint64_t time = start+(uint64_t)(((scale+0.75)/1.6)*((float)(end-start)));
 
-			if (0 == pb_status)
+			if (Video_widget::Pause == pb_state)
 			{
 				emit seek(time, end);
 			}
@@ -461,36 +464,7 @@ void Video_widget::mouseMoveEvent(QMouseEvent* event)
 			{
 				emit seek(time, time);
 			}
-			//repaint();
 		}
-    }
-}
-
-void Video_widget::keyPressEvent(QKeyEvent* event)
-{
-    switch (event->key())
-    {
-        case Qt::Key_N:
-            showNormal();
-            break;
-
-        case Qt::Key_F:
-            showFullScreen();
-            break;
-
-        /*case Qt::Key_Up:
-            if ((scale+0.1f) <= 1.0f)
-            {
-                scale += 0.1f;
-            }
-            break;
-
-        case Qt::Key_Down:
-            if (scale > 0.5f)
-            {
-                scale -= 0.1f;
-            }
-            break;*/
     }
 }
 

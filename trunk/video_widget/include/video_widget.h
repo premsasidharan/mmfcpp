@@ -17,6 +17,7 @@ class Video_widget:public QGLWidget
 {
     Q_OBJECT
 public:
+	enum State {Pause, Play};
 	enum Pos {TL, TR, BL, BR, FS};
 	enum Mode {Y, U, V, R, G, B, RGB, GRID_NYUV, GRID_NRGB};
 
@@ -24,13 +25,16 @@ public:
     ~Video_widget();
 
 public:
-	uint64_t current_pos();
-	void set_value(uint64_t pos);
-	bool is_progress_bar_enabled();
-	void enable_progress_bar(bool en);
-    void set_display_mode(Mode _mode);
-	void set_pb_control_status(int status);
+	uint64_t slider_value();
+	void set_slider_value(uint64_t pos);
 	void set_slider_range(uint64_t _start, uint64_t _end);
+
+	bool is_controls_visible();
+	void show_playback_controls(bool en);
+
+    void set_display_mode(Mode m);
+
+	void set_playback_control_state(State state);
 
 	void show_text(const char* text = 0);
     void show_frame(unsigned char* _yuv, int fmt, int width, int height);
@@ -42,6 +46,7 @@ signals:
 	void seek(uint64_t start, uint64_t end);
 
 protected:
+	void init();
     void paintGL();
     void initializeGL();
     void resizeGL(int width, int height);
@@ -50,15 +55,13 @@ protected:
 
     void render_text();
 	void render_slider();
-	void render_pb_controls();
+	void render_playback_controls();
     void render_frame(Pos pos, Mode mode);
 	void render_notch(float x, float y, float width, float height);
 	void render_triangle(float x, float y, float width, float height);
 	void render_rectangle(float x, float y, float width, float height);
 
-    void moveEvent(QMoveEvent* event);
     void closeEvent(QCloseEvent* event);
-    void keyPressEvent(QKeyEvent* event);
 	void mouseMoveEvent(QMouseEvent* event);
     void mousePressEvent(QMouseEvent* event); 
 	void mouseReleaseEvent(QMouseEvent* event);
@@ -81,10 +84,9 @@ private:
     Mode mode;
 	uint64_t end;
 	uint64_t start;
-	int pb_status;
+	State pb_state;
     bool is_changed;
-
-	bool show_pb;
+	bool is_visible;
 
     float scale;
     int texture_count;
