@@ -17,21 +17,23 @@ class Video_widget:public QGLWidget
 {
     Q_OBJECT
 public:
-	enum Position {top_left, top_right, bottom_left, bottom_right, full_screen};
-	enum Mode {luma, chroma_u, chroma_v, red, green, blue, normal, grid_nyuv, grid_nrgb};
+	enum Pos {TL, TR, BL, BR, FS};
+	enum Mode {Y, U, V, R, G, B, RGB, GRID_NYUV, GRID_NRGB};
 
     Video_widget(QWidget* parent = 0);
     ~Video_widget();
 
 public:
 	uint64_t current_pos();
-    void set_mode(Mode _mode);
 	void set_value(uint64_t pos);
 	bool is_progress_bar_enabled();
 	void enable_progress_bar(bool en);
+    void set_display_mode(Mode _mode);
 	void set_pb_control_status(int status);
 	void set_slider_range(uint64_t _start, uint64_t _end);
-    void show_frame(unsigned char* _yuv, int fmt, int width, int height, const char* text = 0);
+
+	void show_text(const char* text = 0);
+    void show_frame(unsigned char* _yuv, int fmt, int width, int height);
 
 signals:
     void update_frame();
@@ -49,7 +51,7 @@ protected:
     void render_text();
 	void render_slider();
 	void render_pb_controls();
-    void render_frame(Position pos, Mode mode);
+    void render_frame(Pos pos, Mode mode);
 	void render_notch(float x, float y, float width, float height);
 	void render_triangle(float x, float y, float width, float height);
 	void render_rectangle(float x, float y, float width, float height);

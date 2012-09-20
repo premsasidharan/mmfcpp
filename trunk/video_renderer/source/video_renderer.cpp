@@ -49,6 +49,21 @@ Video_renderer::~Video_renderer()
     }
 }
 
+void Video_renderer::update_pts_text()
+{
+	Guard g(mutex);
+    if (0 != text_helper)
+    {
+        text_helper->read_text(disp_text, Video_renderer::MAX_DISP_TEXT_LENGTH, curr_pos);
+		window->show_text(disp_text);
+    }
+	else
+	{
+		window->show_text(0);
+	}
+	window->update();
+}
+
 void Video_renderer::play_video()
 {
     MEDIA_TRACE_OBJ_PARAM("%s", object_name());
@@ -58,14 +73,9 @@ void Video_renderer::play_video()
         Yuv_param* parameter = (Yuv_param*) buffer->parameter();
         //MEDIA_ERROR(": %s, Buffer: %llx, pts: %llu (%dx%d) State: %s", object_name(),
         //	(unsigned long long)buffer, buffer->pts(), parameter->width, parameter->height, "PLAY");
-        if (0 != text_helper)
-        {
-            text_helper->read_text(disp_text, 100, buffer->pts());
-        }
-        window->show_frame((unsigned char*)buffer->data(), buffer->type(), parameter->width, parameter->height, (0==text_helper)?0:disp_text);
-        mutex.lock();
         curr_pos = buffer->pts();
-        mutex.unlock();
+		update_pts_text();
+        window->show_frame((unsigned char*)buffer->data(), buffer->type(), parameter->width, parameter->height);
         if (0 !=  prev)
         {
             Buffer::release(prev);
