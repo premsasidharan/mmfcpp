@@ -139,11 +139,12 @@ void Yuv_player::change_text_mode(QAction* action)
 
 void Yuv_player::show_playback_controls()
 {
-	centralwidget->enable_progress_bar(!centralwidget->is_progress_bar_enabled());
+	centralwidget->show_playback_controls(!centralwidget->is_controls_visible());
 }
 
 void Yuv_player::closeEvent(QCloseEvent* event)
 {
+	(void)event;
 	::disconnect(source, sink);
 }
 
@@ -158,7 +159,7 @@ void Yuv_player::file_open()
 		if (ret)
 		{
 			start(0, 0);
-			centralwidget->set_pb_control_status(1);
+			centralwidget->set_playback_control_state(Video_widget::Play);
 		}
     }
 }
@@ -179,8 +180,8 @@ int Yuv_player::start(int start, int end)
     timer.start();
     ret = ::start(source, start, end);
     master.start(start);
-	centralwidget->enable_progress_bar(true);
-    MEDIA_ERROR("\nStart: %d, %d", ret, start);
+	centralwidget->show_playback_controls(true);
+    MEDIA_LOG("\nStart: %d", start);
     return ret;
 }
 
@@ -209,22 +210,22 @@ int Yuv_player::set_parameters(int width, int height, Media::type fmt, float fps
 
 void Yuv_player::time_out()
 {
-	centralwidget->set_value(sink.current_position());
+	centralwidget->set_slider_value(sink.current_position());
 }
 
 void Yuv_player::playback_control(int status)
 {
-	if (status == 0)
+	if (status == Video_widget::Pause)
 	{
         int time = 0;
         stop(time);
-		centralwidget->set_pb_control_status(1);
+		centralwidget->set_playback_control_state(Video_widget::Play);
     }
 	else
     {
-		qDebug() << "start " << centralwidget->current_pos() << ", " << source.duration();
-        start(centralwidget->current_pos(), source.duration());
-		centralwidget->set_pb_control_status(0);
+		qDebug() << "start " << centralwidget->slider_value() << ", " << source.duration();
+        start(centralwidget->slider_value(), source.duration());
+		centralwidget->set_playback_control_state(Video_widget::Pause);
     }
 }
 
@@ -261,7 +262,7 @@ void Text_helper::read_text(char* text, int length, uint64_t time)
                 int min = (sec/60);
                 int hr = (min/60);
                 min %= 60; sec %= 60;
-                snprintf(text, length, "%02d:%02d:%02d:%06d", hr, min, sec, time%1000000);
+                snprintf(text, length, "%02d:%02d:%02d:%06d", hr, min, sec, (int)time%1000000);
             }
             break;
         case Yuv_player::frames:
@@ -272,7 +273,7 @@ void Text_helper::read_text(char* text, int length, uint64_t time)
             }
             break;
         default:
-            snprintf(text, length, "");
+            strcpy(text, "");
             break;
     }    
 }
