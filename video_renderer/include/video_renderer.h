@@ -35,6 +35,7 @@ public:
 public:
     int current_position() const;
 
+	void update_pts_text();
 	void set_render_widget(Video_widget* _window);
 
     void register_text_helper(Abstract_text_helper* helper);

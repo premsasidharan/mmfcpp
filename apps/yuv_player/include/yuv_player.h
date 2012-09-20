@@ -50,7 +50,7 @@ class Yuv_player:public QMainWindow, public Ui_yuv_player, public Observer
 public:
     friend class Text_helper;
 
-    enum Text_mode {no_text, time_code, frame_count};
+    enum Text_mode {none, time, frames};
 
     Yuv_player();
     ~Yuv_player();
@@ -59,10 +59,6 @@ public:
     int stop(int& time);
     int start(int start, int end);
 
-    float fps() const;
-    int duration() const;
-
-    void set_text_mode(Text_mode mode);
     int set_parameters(int width, int height, Media::type fmt, float fps, const char* path);
     
 protected:
@@ -70,29 +66,27 @@ protected:
 	void init_player();
 	void init_actions();
     void connect_signals_slots();
-    int event_handler(Media::events event, Abstract_media_object* obj, Media_params& params);
 
     void closeEvent(QCloseEvent* event);
+
+    int event_handler(Media::events event, Abstract_media_object* obj, Media_params& params);
 
 protected slots:
     void time_out();
 	void file_open();
 	void help_about();
 	void change_screen_size();
-	void show_hide_progress_bar();
+	void show_playback_controls();
 	void playback_control(int status);
 	void change_disp_mode(QAction* action);
 	void change_text_mode(QAction* action);
 	void slider_seek(uint64_t _start, uint64_t _end);
 
 private:
-    int trick_mode;
+	Yuv_dlg dlg;
 
     QTimer timer;
 
-	Yuv_dlg dlg;
-
-    Media::state state;
     Master_clock master;
     
     Yuv_file_src source;

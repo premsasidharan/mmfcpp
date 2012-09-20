@@ -58,7 +58,7 @@ int main(int argc, char** argv)
 		ret = player.set_parameters(width, height, format, fps, file_path.toAscii().data());
 		if (ret == 1)
 		{
-			player.start(0, 0);//player.duration());
+			player.start(0, 0);
 		}
     }
 

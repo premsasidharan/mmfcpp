@@ -75,7 +75,7 @@ Video_widget::Video_widget(QWidget* parent)
     , format(Media::I420)
     , video_width(0)
     , video_height(0)
-    , mode(Video_widget::normal)
+    , mode(Video_widget::RGB)
     , is_changed(false)
 	, show_pb(false)
 	, pb_status(1)
@@ -100,7 +100,7 @@ Video_widget::~Video_widget()
     glDeleteTextures(3, texture);
 }
 
-void Video_widget::set_mode(Video_widget::Mode _mode)
+void Video_widget::set_display_mode(Video_widget::Mode _mode)
 {
     mode = _mode;
     update();
@@ -143,7 +143,14 @@ void Video_widget::enable_progress_bar(bool en)
 	update();
 }
 
-void Video_widget::show_frame(unsigned char* _yuv, int fmt, int width, int height, const char* text)
+void Video_widget::show_text(const char* text)
+{
+    mutex.lock();
+    disp_text = (char *)text;
+	mutex.unlock();
+}
+
+void Video_widget::show_frame(unsigned char* _yuv, int fmt, int width, int height)
 {
     mutex.lock();
     if ((fmt != format) || (width != video_width) || (height != video_height))
@@ -151,7 +158,6 @@ void Video_widget::show_frame(unsigned char* _yuv, int fmt, int width, int heigh
         format = fmt;
         video_width = width;
         video_height = height;
-        disp_text = (char *)text;
 
         is_changed = true;
     }
@@ -232,7 +238,7 @@ void Video_widget::draw_text(GLfloat x, GLfloat y, const char* text)
 	glCallLists(strlen(text), GL_UNSIGNED_BYTE, (GLubyte *) text);
 }
 
-void Video_widget::render_frame(Video_widget::Position pos, Video_widget::Mode mode)
+void Video_widget::render_frame(Video_widget::Pos pos, Video_widget::Mode mode)
 {
 
     static GLfloat vertex[][4][2] = {{{-1.0, 1.0}, {0.0, 1.0}, {0.0, 0.0}, {-1.0, 0.0}},
@@ -356,28 +362,28 @@ void Video_widget::paintGL()
 		create_textures();
 		switch (mode)
 		{
-			case Video_widget::luma:
-			case Video_widget::chroma_u:
-			case Video_widget::chroma_v:
-			case Video_widget::red:
-			case Video_widget::green:
-			case Video_widget::blue:
-			case Video_widget::normal:
-				render_frame(Video_widget::full_screen, mode);
+			case Video_widget::GRID_NYUV:
+		    	render_frame(Video_widget::TL, Video_widget::RGB);
+		    	render_frame(Video_widget::TR, Video_widget::Y);
+		    	render_frame(Video_widget::BL, Video_widget::U);
+		    	render_frame(Video_widget::BR, Video_widget::V);
 				break;
 
-			case Video_widget::grid_nyuv:
-		    	render_frame(Video_widget::top_left, Video_widget::normal);
-		    	render_frame(Video_widget::top_right, Video_widget::luma);
-		    	render_frame(Video_widget::bottom_left, Video_widget::chroma_u);
-		    	render_frame(Video_widget::bottom_right, Video_widget::chroma_v);
+			case Video_widget::GRID_NRGB:
+		    	render_frame(Video_widget::TL, Video_widget::RGB);
+		    	render_frame(Video_widget::TR, Video_widget::R);
+		    	render_frame(Video_widget::BL, Video_widget::G);
+		    	render_frame(Video_widget::BR, Video_widget::B);
 				break;
 
-			case Video_widget::grid_nrgb:
-		    	render_frame(Video_widget::top_left, Video_widget::normal);
-		    	render_frame(Video_widget::top_right, Video_widget::red);
-		    	render_frame(Video_widget::bottom_left, Video_widget::green);
-		    	render_frame(Video_widget::bottom_right, Video_widget::blue);
+			case Video_widget::Y:
+			case Video_widget::U:
+			case Video_widget::V:
+			case Video_widget::R:
+			case Video_widget::G:
+			case Video_widget::B:
+			case Video_widget::RGB:
+				render_frame(Video_widget::FS, mode);
 				break;
 		}
 		render_text();
