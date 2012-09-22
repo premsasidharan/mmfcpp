@@ -15,6 +15,7 @@ Yuv_player::Yuv_player()
     :QMainWindow()
 	, dlg(this)
     , timer(this)
+	, one_shot(this)
     , master("master")
     , source("yuv")
     , sink("opengl", master.create_child("child"))
@@ -43,6 +44,8 @@ void Yuv_player::init()
 void Yuv_player::init_player()
 {
     timer.setInterval(400);
+	one_shot.setInterval(300);
+	one_shot.setSingleShot(true);
 	sink.set_render_widget(centralwidget);
     sink.register_text_helper(&text_helper);
     sink.attach(Media::last_pkt_rendered, this);
@@ -101,6 +104,7 @@ void Yuv_player::connect_signals_slots()
     connect(&timer, SIGNAL(timeout()), this, SLOT(time_out()));
 	connect(abt_action, SIGNAL(triggered()), this, SLOT(help_about()));
 	connect(open_action, SIGNAL(triggered()), this, SLOT(file_open()));
+    connect(&one_shot, SIGNAL(timeout()), this, SLOT(one_shot_timeout()));
 	connect(screen_action, SIGNAL(triggered()), this, SLOT(change_screen_size()));
 	connect(pbc_action, SIGNAL(triggered()), this, SLOT(show_playback_controls()));
 	connect(centralwidget, SIGNAL(pb_control(int)), this, SLOT(playback_control(int)));
@@ -170,8 +174,13 @@ void Yuv_player::help_about()
 
 void Yuv_player::slider_seek(uint64_t _start, uint64_t _end)
 {
-	qDebug() << "slider_seek " << _start << ", " << _end;
-	start(_start, _end);
+	mutex.lock();
+	pb_stack.push(QPair<uint64_t, uint64_t>(_start, _end));
+	if (!one_shot.isActive())
+	{
+		one_shot.start();
+	}
+	mutex.unlock();
 }
 
 int Yuv_player::start(int start, int end)
@@ -213,6 +222,18 @@ void Yuv_player::time_out()
 	centralwidget->set_slider_value(sink.current_position());
 }
 
+void Yuv_player::one_shot_timeout()
+{
+	if (!pb_stack.isEmpty())
+	{
+		mutex.lock();
+		QPair<uint64_t, uint64_t> time = pb_stack.pop();
+		pb_stack.clear();
+		mutex.unlock();
+		start(time.first, time.second);
+	}
+}
+
 void Yuv_player::playback_control(int status)
 {
 	if (status == Video_widget::Pause)
@@ -223,7 +244,7 @@ void Yuv_player::playback_control(int status)
     }
 	else
     {
-		qDebug() << "start " << centralwidget->slider_value() << ", " << source.duration();
+		//qDebug() << "start " << centralwidget->slider_value() << ", " << source.duration();
         start(centralwidget->slider_value(), source.duration());
 		centralwidget->set_playback_control_state(Video_widget::Pause);
     }
@@ -239,7 +260,7 @@ int Yuv_player::event_handler(Media::events event, Abstract_media_object* obj, M
         time_out();
 		centralwidget->update();
     }
-    qDebug() << "event_handler: " << event;
+    //qDebug() << "event_handler: " << event;
     return 0;
 }
 

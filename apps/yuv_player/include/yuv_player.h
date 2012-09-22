@@ -10,6 +10,7 @@
 #define _YUV_PLAYER_H_
 
 #include <QTimer>
+#include <QStack>
 #include <QSlider>
 #include <QCheckBox>
 #include <QHBoxLayout>
@@ -75,6 +76,7 @@ protected slots:
     void time_out();
 	void file_open();
 	void help_about();
+    void one_shot_timeout();
 	void change_screen_size();
 	void show_playback_controls();
 	void playback_control(int status);
@@ -86,6 +88,7 @@ private:
 	Yuv_dlg dlg;
 
     QTimer timer;
+	QTimer one_shot;
 
     Master_clock master;
     
@@ -97,6 +100,9 @@ private:
 
 	QActionGroup* mode_grp;
 	QActionGroup* text_grp;
+
+	QMutex mutex;
+	QStack<QPair<uint64_t, uint64_t> > pb_stack;
 };
 
 #endif

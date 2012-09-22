@@ -443,7 +443,7 @@ void Video_widget::mouseReleaseEvent(QMouseEvent* event)
    
 void Video_widget::mouseMoveEvent(QMouseEvent* event)
 {
-	if (false == is_visible && false == slide_flag)
+	if (false == is_visible || false == slide_flag)
 	{
 		return;
 	}
@@ -464,6 +464,7 @@ void Video_widget::mouseMoveEvent(QMouseEvent* event)
 			{
 				emit seek(time, time);
 			}
+			update();
 		}
     }
 }
