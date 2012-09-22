@@ -41,7 +41,7 @@ int Master_clock::start(uint64_t start)
     reset_children_start();
     mutex.unlock();
     state = Media::play;
-    printf("\ntime: %llu, %u %u", start, (unsigned int)start_time.tv_sec, (unsigned int)start_time.tv_usec);
+    //printf("\ntime: %llu, %u %u", start, (unsigned int)start_time.tv_sec, (unsigned int)start_time.tv_usec);
     fflush(stdout);
     return 1;
 }

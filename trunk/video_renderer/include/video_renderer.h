@@ -65,7 +65,10 @@ private:
     Condition_variable stop_cv;
     Thread<Video_renderer> thread;
     Priority_queue<unsigned long long, Buffer*> queue;
-    
+
+	int video_end;
+	int video_start;    
+
     Abstract_text_helper* text_helper;
 
     enum { MAX_DISP_TEXT_LENGTH = 100 };

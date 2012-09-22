@@ -33,6 +33,8 @@ Video_renderer::Video_renderer(const char* _name, Child_clock* clk)
     , window(0)
     , child_clk(clk)
     , queue(5)
+	, video_end(0)
+	, video_start(0)
     , text_helper(0)
 {
     MEDIA_TRACE_OBJ_PARAM("%s", _name);
@@ -73,6 +75,12 @@ void Video_renderer::play_video()
         Yuv_param* parameter = (Yuv_param*) buffer->parameter();
         //MEDIA_ERROR(": %s, Buffer: %llx, pts: %llu (%dx%d) State: %s", object_name(),
         //	(unsigned long long)buffer, buffer->pts(), parameter->width, parameter->height, "PLAY");
+		if ((video_start < video_end) && (buffer->pts() < video_start || buffer->pts() > video_end))
+		{
+        	MEDIA_LOG("Video_renderer: %s, shedding buffer (pts:%lu)", object_name(), buffer->pts());
+			Buffer::release(buffer);
+			return;
+		}
         curr_pos = buffer->pts();
 		update_pts_text();
         window->show_frame((unsigned char*)buffer->data(), buffer->type(), parameter->width, parameter->height);
@@ -131,19 +139,22 @@ int Video_renderer::run()
     return 0;
 }
 
-Media::status Video_renderer::on_start(int start_time, int end_time)
+Media::status Video_renderer::on_start(int start, int end)
 {
-    MEDIA_TRACE_OBJ_PARAM("%s, start_time: %d", object_name(), start_time);
+    MEDIA_TRACE_OBJ_PARAM("%s, start: %d end: %d", object_name(), start, end);
+	video_end = end;
+	video_start = start;
     set_state(Media::play);
     cv.signal();
     return Media::ok;
 }
 
-Media::status Video_renderer::on_stop(int end_time)
+Media::status Video_renderer::on_stop(int end)
 {
     MEDIA_TRACE_OBJ_PARAM("%s", object_name());
     set_state(Media::stop);
     stop_cv.wait();
+	end = curr_pos;
     MEDIA_LOG("Stop state: %s", object_name());
     return Media::ok;
 }
