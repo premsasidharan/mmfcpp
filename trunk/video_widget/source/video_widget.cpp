@@ -14,73 +14,15 @@
 
 #include <QMouseEvent>
 
-const char Video_widget::shader_program[] =
-    "uniform int format;\n"
-    "uniform int mode;\n"
-    "uniform sampler2D texture_0;\n"
-    "uniform sampler2D texture_1;\n"
-    "uniform sampler2D texture_2;\n"
-    "void extract_yuv(out float y, out float u, out float v)\n"
-    "{\n"
-    "    y = 0.0; u = 0.0; v = 0.0;\n"
-    "    if (format == 1) {\n"
-    "        y = texture2D(texture_0, gl_TexCoord[0].st).r;\n"
-    "        y = 1.1643 * (y - 0.0625);\n"
-    "        u = texture2D(texture_1, gl_TexCoord[0].st).r - 0.5;\n"
-    "        v = texture2D(texture_2, gl_TexCoord[0].st).r - 0.5;\n"
-    "    } else if (format == 2) {\n"
-    "        y = texture2D(texture_0, gl_TexCoord[0].st).r;\n"
-    "        y = 1.1643*(y-0.0625);\n"
-    "        u = texture2D(texture_1, gl_TexCoord[0].st).g-0.5;\n"
-    "        v = texture2D(texture_1, gl_TexCoord[0].st).a-0.5;\n"
-    "    } else if (format == 3) {\n"
-    "        y = texture2D(texture_0, gl_TexCoord[0].st).g;\n"
-    "        y = 1.1643*(y-0.0625);\n"
-    "        u = texture2D(texture_1, gl_TexCoord[0].st).r-0.5;\n"
-    "        v = texture2D(texture_1, gl_TexCoord[0].st).b-0.5;\n"
-    "    }\n"
-    "}\n"
-    "void display(in float y, in float u, in float v)\n"
-    "{\n"
-    "    float red = 0.0, green = 0.0, blue = 0.0;\n"
-    "    if (mode >= 3) {\n"
-    "        red = y+1.5958*v;\n"
-    "        green = y-0.39173*u-0.81290*v;\n"
-    "        blue = y+2.017*u;\n"
-    "    }\n"
-    "    if (mode == 0)\n"
-    "        gl_FragColor = vec4(y, y, y, 1.0);\n"
-    "    else if (mode == 1)\n"
-    "        gl_FragColor = vec4(u, u, u, 1.0);\n"
-    "    else if (mode == 2)\n"
-    "        gl_FragColor = vec4(v, v, v, 1.0);\n"
-    "    else if (mode == 3)\n"
-    "        gl_FragColor = vec4(red, 0.0, 0.0, 1.0);\n"
-    "    else if (mode == 4)\n"
-    "        gl_FragColor = vec4(0.0, green, 0.0, 1.0);\n"
-    "    else if (mode == 5)\n"
-    "        gl_FragColor = vec4(0.0, 0.0, blue, 1.0);\n"
-    "    else\n"
-    "        gl_FragColor = vec4(red, green, blue, 1.0);\n"
-    "}\n"
-    "void main(void)\n"
-    "{\n"
-    "    float y, u, v;\n"
-    "    extract_yuv(y, u, v);\n"
-    "    display(y, u, v);\n"
-    "}\n";
-
 Video_widget::Video_widget(QWidget* parent)
     :QGLWidget(parent)
-    , format(Media::I420)
-    , video_width(0)
-    , video_height(0)
+	, view_count(1)
+	, stereo_mode(7)
     , mode(Video_widget::RGB)
 	, pb_state(Video_widget::Play)
     , is_changed(false)
 	, is_visible(false)
     , scale(-0.75)
-    , texture_count(0)
     , program(this)
     , char_width(0)
     , char_height(0)
@@ -93,9 +35,15 @@ Video_widget::Video_widget(QWidget* parent)
 
 void Video_widget::init()
 {
+	for (int i = 0; i < 2; i++)
+	{
+    	video_width[i] = 0;
+    	video_height[i] = 0;
+    	texture_count[i] = 0;
+    	format[i] = Media::I420;
+		texture_data[i][0] = texture_data[i][1] = texture_data[i][2] = 0;
+	}
     font_color[0] = font_color[1] = font_color[2] = 1.0;
-	texture_data[0] = texture_data[1] = texture_data[2] = 0;
-
     setFocusPolicy(Qt::StrongFocus);
     connect(this, SIGNAL(update_frame()), this, SLOT(repaint()));
 }
@@ -103,7 +51,8 @@ void Video_widget::init()
 Video_widget::~Video_widget()
 {
     glDeleteLists(font_offset, 256);
-    glDeleteTextures(3, texture);
+    glDeleteTextures(3, texture[0]);
+    glDeleteTextures(3, texture[1]);
 }
 
 void Video_widget::set_display_mode(Video_widget::Mode _mode)
@@ -112,6 +61,15 @@ void Video_widget::set_display_mode(Video_widget::Mode _mode)
     mode = _mode;
 	mutex.unlock();
     update();
+}
+
+void Video_widget::set_stereo_mode(int mode)
+{
+    mutex.lock();
+    stereo_mode = mode;
+	mutex.unlock();
+    update();
+
 }
 
 void Video_widget::set_slider_value(uint64_t pos)
@@ -160,53 +118,94 @@ void Video_widget::show_text(const char* text)
 	mutex.unlock();
 }
 
-void Video_widget::show_frame(unsigned char* _yuv, int fmt, int width, int height)
+void Video_widget::set_video_params(int fmt, int width, int height)
 {
     mutex.lock();
-    if ((fmt != format) || (width != video_width) || (height != video_height))
+	view_count = 1;
+    if ((fmt != format[0]) || (width != video_width[0]) || (height != video_height[0]))
     {
-        format = fmt;
-        video_width = width;
-        video_height = height;
+        format[0] = fmt;
+        video_width[0] = width;
+        video_height[0] = height;
 
         is_changed = true;
     }
+	mutex.unlock();
+}
 
-    switch (fmt)
+void Video_widget::set_video_params(int fmt_1, int width_1, int height_1, int fmt_2, int width_2, int height_2)
+{
+    mutex.lock();
+	view_count = 2;
+    if ((fmt_1 != format[0]) || (width_1 != video_width[0]) || (height_1 != video_height[0]) ||
+		(fmt_2 != format[1]) || (width_2 != video_width[1]) || (height_2 != video_height[1]))
+    {
+        format[0] = fmt_1;
+        video_width[0] = width_1;
+        video_height[0] = height_1;
+
+        format[1] = fmt_2;
+        video_width[1] = width_2;
+        video_height[1] = height_2;
+
+        is_changed = true;
+    }
+	mutex.unlock();
+}
+
+void Video_widget::set_texture_data(int i, uint8_t* yuv)
+{
+    switch (format[i])
     {
         case Media::YUY2:
         case Media::UYVY:
-            texture_data[0] = _yuv;
-            texture_data[1] = _yuv;
+            texture_data[i][0] = yuv;
+            texture_data[i][1] = yuv;
             break;
         case Media::YV12:
-            texture_data[0] = _yuv;
-            texture_data[2] = texture_data[0]+(width*height);
-            texture_data[1] = texture_data[2]+((width*height)>>2);
+            texture_data[i][0] = yuv;
+            texture_data[i][2] = texture_data[i][0]+(video_width[i]*video_height[i]);
+            texture_data[i][1] = texture_data[i][2]+((video_width[i]*video_height[i])>>2);
             break;
         case Media::I420:
-            texture_data[0] = _yuv;
-            texture_data[1] = texture_data[0]+(width*height);
-            texture_data[2] = texture_data[1]+((width*height)>>2);
+            texture_data[i][0] = yuv;
+            texture_data[i][1] = texture_data[i][0]+(video_width[i]*video_height[i]);
+            texture_data[i][2] = texture_data[i][1]+((video_width[i]*video_height[i])>>2);
             break;
         case Media::I422:
-            texture_data[0] = _yuv;
-            texture_data[1] = texture_data[0]+(width*height);
-            texture_data[2] = texture_data[1]+((width*height)>>1);
+            texture_data[i][0] = yuv;
+            texture_data[i][1] = texture_data[i][0]+(video_width[i]*video_height[i]);
+            texture_data[i][2] = texture_data[i][1]+((video_width[i]*video_height[i])>>1);
             break;
         case Media::I444:
-            texture_data[0] = _yuv;
-            texture_data[1] = texture_data[0]+(width*height);
-            texture_data[2] = texture_data[1]+(width*height);
+            texture_data[i][0] = yuv;
+            texture_data[i][1] = texture_data[i][0]+(video_width[i]*video_height[i]);
+            texture_data[i][2] = texture_data[i][1]+(video_width[i]*video_height[i]);
             break;
     }
+}
+
+void Video_widget::show_frame(unsigned char* yuv)
+{
+    mutex.lock();
+	set_texture_data(0, yuv);
+    mutex.unlock();
+    emit update_frame();
+}
+
+void Video_widget::show_frame(uint8_t* yuv_1, uint8_t* yuv_2)
+{
+    mutex.lock();
+	set_texture_data(0, yuv_1);
+	set_texture_data(1, yuv_2);
     mutex.unlock();
     emit update_frame();
 }
 
 void Video_widget::initializeGL()
 {
-    glGenTextures(3, texture);
+    glGenTextures(3, texture[0]);
+    glGenTextures(3, texture[1]);
     glClearColor(0.0, 0.0, 0.0, 0.0);
     glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
     create_font_disp_lists();
@@ -262,15 +261,28 @@ void Video_widget::render_frame(Video_widget::Pos pos, Video_widget::Mode mode)
     program.setUniformValue("texture_0", 0);
     program.setUniformValue("texture_1", 1);
     program.setUniformValue("texture_2", 2);
-    program.setUniformValue("format", format_code());
+    program.setUniformValue("format_1", format_code(0));
     program.setUniformValue("mode", mode);
+    program.setUniformValue("views", view_count);
 
-    for (int i = 0; i < texture_count; i++)
-    {
-        glActiveTexture(GL_TEXTURE0+i);
-        glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, texture_width[i], texture_height[i], 
-            texture_format[i], GL_UNSIGNED_BYTE, texture_data[i]);
-    }
+	if (view_count > 1)
+	{
+    	program.setUniformValue("texture_3", 3);
+    	program.setUniformValue("texture_4", 4);
+    	program.setUniformValue("texture_5", 5);
+    	program.setUniformValue("format_2", format_code(1));
+    	program.setUniformValue("stereo_mode", stereo_mode);
+	}
+
+	for (int view = 0; view < view_count; view++)
+	{
+		for (int i = 0; i < texture_count[view]; i++)
+		{
+		    glActiveTexture(GL_TEXTURE0+i+(3*view));
+		    glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, texture_width[view][i], texture_height[view][i], 
+		        texture_format[view][i], GL_UNSIGNED_BYTE, texture_data[view][i]);
+		}
+	}
 
     glEnable(GL_TEXTURE_2D);
     glBegin(GL_QUADS);
@@ -362,7 +374,7 @@ void Video_widget::paintGL()
         return;
     }
     mutex.lock();
-	if (video_width == 0 || video_height == 0)
+	if (video_width[0] == 0 || video_height[0] == 0)
 	{
 		glColor3f(0.3, 0.3, 0.3);
 		render_rectangle(-1.0, 1.0, 2.0, 2.0);
@@ -476,100 +488,103 @@ void Video_widget::create_textures()
         return;
     }
 
-    switch (format)
-    {
-        case Media::YUY2:
-        case Media::UYVY:
-            create_yuy2_textures();
-            break;
+	for (int view = 0; view < view_count; view++)
+	{
+		switch (format[view])
+		{
+		    case Media::YUY2:
+		    case Media::UYVY:
+		        create_yuy2_textures(view);
+		        break;
 
-        case Media::YV12:
-        case Media::I420:
-        case Media::I422:
-        case Media::I444:
-            create_i420_textures();
-            break;
-    }
+		    case Media::YV12:
+		    case Media::I420:
+		    case Media::I422:
+		    case Media::I444:
+		        create_i420_textures(view);
+		        break;
+		}
+	}
 
     is_changed = false;
 }
 
-void Video_widget::create_yuy2_textures()
+void Video_widget::create_yuy2_textures(int view)
 {
-    texture_count = 2;
+    texture_count[view] = 2;
 
-    texture_width[0] = video_width;
-    texture_height[0] = video_height;
+    texture_width[view][0] = video_width[view];
+    texture_height[view][0] = video_height[view];
 
-    texture_width[1] = video_width>>1;
-    texture_height[1] = video_height;
+    texture_width[view][1] = video_width[view]>>1;
+    texture_height[view][1] = video_height[view];
 
-    texture_format[0] = GL_LUMINANCE_ALPHA;
-    texture_format[1] = GL_RGBA;
+    texture_format[view][0] = GL_LUMINANCE_ALPHA;
+    texture_format[view][1] = GL_RGBA;
 
-    texture_int_format[0] = GL_LUMINANCE_ALPHA;
-    texture_int_format[1] = GL_RGBA;
+    texture_int_format[view][0] = GL_LUMINANCE_ALPHA;
+    texture_int_format[view][1] = GL_RGBA;
 
     for (int i = 0; i < 2; i++)
     {
-        glActiveTexture(GL_TEXTURE0+i);
-        glBindTexture(GL_TEXTURE_2D, texture[i]);
+        glActiveTexture(GL_TEXTURE0+(3*view)+i);
+        glBindTexture(GL_TEXTURE_2D, texture[view][i]);
         glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
         glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
         glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_DECAL);
-        glTexImage2D(GL_TEXTURE_2D, 0, texture_int_format[i], texture_width[i], 
-            texture_height[i], 0, texture_format[i], GL_UNSIGNED_BYTE, 0);
+        glTexImage2D(GL_TEXTURE_2D, 0, texture_int_format[view][i], texture_width[view][i], 
+            texture_height[view][i], 0, texture_format[view][i], GL_UNSIGNED_BYTE, 0);
     }
 }
 
-void Video_widget::create_i420_textures()
+void Video_widget::create_i420_textures(int view)
 {
-    texture_count = 3;
+    texture_count[view] = 3;
 
-    texture_width[0] = video_width;
-    texture_height[0] = video_height;
+    texture_width[view][0] = video_width[view];
+    texture_height[view][0] = video_height[view];
 
-    switch (format)
+    switch (format[view])
     {
         case Media::YV12:
         case Media::I420:
-            texture_width[1] = texture_width[2] = video_width>>1;
-            texture_height[1] = texture_height[2] = video_height>>1;    
+            texture_width[view][1] = texture_width[view][2] = video_width[view]>>1;
+            texture_height[view][1] = texture_height[view][2] = video_height[view]>>1;    
             break;
         case Media::I422:
-            texture_width[1] = texture_width[2] = video_width>>1;
-            texture_height[1] = texture_height[2] = video_height;  
+            texture_width[view][1] = texture_width[view][2] = video_width[view]>>1;
+            texture_height[view][1] = texture_height[view][2] = video_height[view];  
             break;
         case Media::I444:
-            texture_width[1] = texture_width[2] = video_width;
-            texture_height[1] = texture_height[2] = video_height;  
+            texture_width[view][1] = texture_width[view][2] = video_width[view];
+            texture_height[view][1] = texture_height[view][2] = video_height[view];  
             break;
     }
 
-    texture_format[0] = GL_LUMINANCE;
-    texture_format[1] = GL_LUMINANCE;
-    texture_format[2] = GL_LUMINANCE;
+    texture_format[view][0] = GL_LUMINANCE;
+    texture_format[view][1] = GL_LUMINANCE;
+    texture_format[view][2] = GL_LUMINANCE;
 
-    texture_int_format[0] = GL_LUMINANCE;
-    texture_int_format[1] = GL_LUMINANCE;
-    texture_int_format[2] = GL_LUMINANCE;
+    texture_int_format[view][0] = GL_LUMINANCE;
+    texture_int_format[view][1] = GL_LUMINANCE;
+    texture_int_format[view][2] = GL_LUMINANCE;
 
     for (int i = 0; i < 3; i++)
     {
-        glActiveTexture(GL_TEXTURE0+i);
-        glBindTexture(GL_TEXTURE_2D, texture[i]);
+        glActiveTexture(GL_TEXTURE0+(3*view)+i);
+        glBindTexture(GL_TEXTURE_2D, texture[view][i]);
         glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
         glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
         glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_DECAL);
-        glTexImage2D(GL_TEXTURE_2D, 0, texture_int_format[i], texture_width[i], 
-            texture_height[i], 0, texture_format[i], GL_UNSIGNED_BYTE, 0);
+        glTexImage2D(GL_TEXTURE_2D, 0, texture_int_format[view][i], texture_width[view][i], 
+            texture_height[view][i], 0, texture_format[view][i], GL_UNSIGNED_BYTE, 0);
     }
 }
 
-int Video_widget::format_code() const
+int Video_widget::format_code(int view) const
 {
     int code = 1;
-    switch (format)
+    switch (format[view])
     {
         case Media::YV12:
         case Media::I420:

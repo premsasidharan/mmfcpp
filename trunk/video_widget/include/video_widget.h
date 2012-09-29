@@ -34,10 +34,17 @@ public:
 
     void set_display_mode(Mode m);
 
+	void set_stereo_mode(int mode);
+
 	void set_playback_control_state(State state);
 
 	void show_text(const char* text = 0);
-    void show_frame(unsigned char* _yuv, int fmt, int width, int height);
+
+	void set_video_params(int fmt, int width, int height);
+	void set_video_params(int fmt_1, int width_1, int height_1, int fmt_2, int width_2, int height_2);
+
+    void show_frame(uint8_t* yuv_1);
+    void show_frame(uint8_t* yuv_1, uint8_t* yuv_2);
 
 signals:
     void update_frame();
@@ -67,19 +74,24 @@ protected:
 	void mouseReleaseEvent(QMouseEvent* event);
 
     void create_textures();
-    void create_yuy2_textures();
-    void create_i420_textures();
+    void create_yuy2_textures(int view);
+    void create_i420_textures(int view);
 
-    int format_code() const;
+    int format_code(int view) const;
+
+	void set_texture_data(int i, uint8_t* yuv);
 
     void draw_text(GLfloat x, GLfloat y, const char* text);
 
 private:
     QMutex mutex;
 
-    int format;
-    int video_width;
-    int video_height;
+	int view_count;
+	int stereo_mode;
+
+    int format[2];
+    int video_width[2];
+    int video_height[2];
 
     Mode mode;
 	uint64_t end;
@@ -89,7 +101,7 @@ private:
 	bool is_visible;
 
     float scale;
-    int texture_count;
+    int texture_count[2];
     QGLShaderProgram program;
 
     enum {MAX_TEXTURE_COUNT = 3};
@@ -103,13 +115,13 @@ private:
 
 	bool slide_flag;
 
-    GLuint texture[MAX_TEXTURE_COUNT];
-    GLenum texture_format[MAX_TEXTURE_COUNT];
-    GLsizei texture_width[MAX_TEXTURE_COUNT];
-    GLsizei texture_height[MAX_TEXTURE_COUNT];
-    GLint texture_int_format[MAX_TEXTURE_COUNT];
+    GLuint texture[2][MAX_TEXTURE_COUNT];
+    GLenum texture_format[2][MAX_TEXTURE_COUNT];
+    GLsizei texture_width[2][MAX_TEXTURE_COUNT];
+    GLsizei texture_height[2][MAX_TEXTURE_COUNT];
+    GLint texture_int_format[2][MAX_TEXTURE_COUNT];
 
-    unsigned char* texture_data[MAX_TEXTURE_COUNT];
+    unsigned char* texture_data[2][MAX_TEXTURE_COUNT];
 
     static const char shader_program[];
 };

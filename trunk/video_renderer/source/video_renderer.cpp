@@ -83,7 +83,8 @@ void Video_renderer::play_video()
 		}
         curr_pos = buffer->pts();
 		update_pts_text();
-        window->show_frame((unsigned char*)buffer->data(), buffer->type(), parameter->width, parameter->height);
+		window->set_video_params(buffer->type(), parameter->width, parameter->height);
+        window->show_frame((uint8_t*)buffer->data());
         if (0 !=  prev)
         {
             Buffer::release(prev);
