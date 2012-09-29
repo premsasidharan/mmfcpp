@@ -27,6 +27,7 @@ FORMS = forms/player.ui \
         forms/main_window.ui
 
 SOURCES = ../../video_widget/source/video_widget.cpp \
+		  ../../video_widget/source/video_widget_shader.cpp \
 	      ../../yuv_file/source/yuv_file.cpp \
 	      ../../yuv_file/source/read_yuv_file.cpp \
 	      ../../yuv_file_src/source/yuv_file_src.cpp \
