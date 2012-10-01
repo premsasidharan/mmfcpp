@@ -118,41 +118,6 @@ void Video_widget::show_text(const char* text)
 	mutex.unlock();
 }
 
-void Video_widget::set_video_params(int fmt, int width, int height)
-{
-    mutex.lock();
-	view_count = 1;
-    if ((fmt != format[0]) || (width != video_width[0]) || (height != video_height[0]))
-    {
-        format[0] = fmt;
-        video_width[0] = width;
-        video_height[0] = height;
-
-        is_changed = true;
-    }
-	mutex.unlock();
-}
-
-void Video_widget::set_video_params(int fmt_1, int width_1, int height_1, int fmt_2, int width_2, int height_2)
-{
-    mutex.lock();
-	view_count = 2;
-    if ((fmt_1 != format[0]) || (width_1 != video_width[0]) || (height_1 != video_height[0]) ||
-		(fmt_2 != format[1]) || (width_2 != video_width[1]) || (height_2 != video_height[1]))
-    {
-        format[0] = fmt_1;
-        video_width[0] = width_1;
-        video_height[0] = height_1;
-
-        format[1] = fmt_2;
-        video_width[1] = width_2;
-        video_height[1] = height_2;
-
-        is_changed = true;
-    }
-	mutex.unlock();
-}
-
 void Video_widget::set_texture_data(int i, uint8_t* yuv)
 {
     switch (format[i])
@@ -185,21 +150,26 @@ void Video_widget::set_texture_data(int i, uint8_t* yuv)
     }
 }
 
-void Video_widget::show_frame(unsigned char* yuv)
+void Video_widget::show_frame(int view, int fmt, int width, int height, uint8_t* yuv)
 {
-    mutex.lock();
-	set_texture_data(0, yuv);
-    mutex.unlock();
-    emit update_frame();
-}
+	if (view >= 2)
+	{
+		return;
+	}
 
-void Video_widget::show_frame(uint8_t* yuv_1, uint8_t* yuv_2)
-{
     mutex.lock();
-	set_texture_data(0, yuv_1);
-	set_texture_data(1, yuv_2);
+    if ((fmt != format[view]) || (width != video_width[view]) || (height != video_height[view]))
+    {
+		view_count = (view == 0)?1:2;
+        format[view] = fmt;
+        video_width[view] = width;
+        video_height[view] = height;
+
+        is_changed = true;
+    }
+	set_texture_data(view, yuv);
     mutex.unlock();
-    emit update_frame();
+    //emit update_frame();
 }
 
 void Video_widget::initializeGL()
