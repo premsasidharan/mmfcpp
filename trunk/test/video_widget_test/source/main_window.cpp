@@ -10,11 +10,19 @@ Main_window::Main_window(int argc, char**argv)
 	, stereo_mode(7)
 	, disp_mode(Video_widget::RGB)
 {
+	format[0] = Media::I420;
+	format[1] = Media::I420;
+
+	vwidth[0] = atoi(argv[2]);
+	vheight[0] = atoi(argv[3]);
+
+	vwidth[1] = atoi(argv[5]);
+	vheight[1] = atoi(argv[6]);
+
 	file1.open();
 	file2.open();
 	data1 = new uint8_t[file1.frame_size()];
 	data2 = new uint8_t[file2.frame_size()];
-	video.set_video_params(Media::I420, atoi(argv[2]), atoi(argv[3]), Media::I420, atoi(argv[5]), atoi(argv[6]));
 
 	video.set_display_mode(disp_mode);
 	video.set_stereo_mode(stereo_mode);	
@@ -41,7 +49,9 @@ void Main_window::timed_out()
 	file1.read(data1, file1.frame_size());
 	file2.read(data2, file2.frame_size());
 	
-	video.show_frame(data1, data2);
+	video.show_frame(0, format[0], vwidth[0], vheight[0], data1);
+	video.show_frame(1, format[1], vwidth[1], vheight[1], data2);
+	video.update();
 }
 
 void Main_window::keyPressEvent(QKeyEvent* event)

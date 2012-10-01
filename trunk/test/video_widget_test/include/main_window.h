@@ -30,6 +30,10 @@ private:
 	Read_yuv_file file1;
 	Read_yuv_file file2;
 
+	int format[2];
+	int vwidth[2];
+	int vheight[2];
+
 	int stereo_mode;
 	Video_widget::Mode disp_mode;
 };
