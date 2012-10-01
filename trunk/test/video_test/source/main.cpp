@@ -31,22 +31,35 @@ int main(int argc, char** argv)
 	int time = 0;
     int width = atoi(argv[2]);
     int height = atoi(argv[3]);
-    Video_widget window(0);
-    Yuv_file_src src("yuv");
-    Video_renderer sink("opengl", &window);
+    Video_widget window;
+    Yuv_file_src src1("yuv 1");
+    Yuv_file_src src2("yuv 2");
+    Master_clock master("master");
+    Video_renderer sink("opengl", master.create_child("child"));
+	sink.set_render_widget(&window);
 
-    if (1 != src.set_parameters(argv[1], Media::I420, 24.0, width, height))
+    if (1 != src1.set_parameters(argv[1], Media::I420, 24.0, width, height))
     {
         printf("\n\tInvalid Yuv File Path\n");
 		return 0;
     }
     
+    if (1 != src2.set_parameters(argv[4], Media::I420, 24.0, atoi(argv[5]), atoi(argv[6])))
+    {
+        printf("\n\tInvalid Yuv File Path\n");
+		return 0;
+    }
+
 	window.show();
-    connect(&src, &sink);
-    start(&src, 0, src.duration());
+    connect(&src1, "yuv", &sink, "left");
+    connect(&src2, "yuv", &sink, "right");
+    start(&src1, 0, src1.duration());
+    start(&src2, 0, src2.duration());
     int ret = app.exec();
-    stop(&src, time);
-    disconnect(&src, &sink);
+    stop(&src1, time);
+    stop(&src2, time);
+    disconnect(&src1, &sink);
+    disconnect(&src2, &sink);
 
     return ret;
 }

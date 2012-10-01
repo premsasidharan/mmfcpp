@@ -22,33 +22,50 @@ const Port Video_renderer::input_port[] =
         Media::I422 |
         Media::I444 |
         Media::UYVY, 
-        "yuv"
+        "left"
+    },
+	{
+        Media::YUY2 |
+        Media::YV12 |
+        Media::I420 |
+        Media::I422 |
+        Media::I444 |
+        Media::UYVY, 
+        "right"
     }};
 
 Video_renderer::Video_renderer(const char* _name, Child_clock* clk)
     :Abstract_media_object(_name)
-    , prev(0)
     , curr_pos(0)
     , is_running(0)
+	, view_count(0)
     , window(0)
     , child_clk(clk)
-    , queue(5)
+    , queue1(5)
+	, queue2(5)
 	, video_end(0)
 	, video_start(0)
     , text_helper(0)
 {
     MEDIA_TRACE_OBJ_PARAM("%s", _name);
-    create_input_ports(input_port, 1);
+	
+    prev[0] = prev[1] = 0;
+	queue[0] = &queue1;
+	queue[1] = &queue2;
+	create_input_ports(input_port, 2);
 }
 
 Video_renderer::~Video_renderer()
 {
     MEDIA_TRACE_OBJ_PARAM("%s", object_name());
-    if (0 != prev)
-    {
-        Buffer::release(prev);
-        prev = 0;
-    }
+	for (int i = 0; i < 2; i++)
+	{
+		if (0 != prev[i])
+		{
+		    Buffer::release(prev[i]);
+		    prev[i] = 0;
+		}
+	}
 }
 
 void Video_renderer::update_pts_text()
@@ -69,35 +86,53 @@ void Video_renderer::update_pts_text()
 void Video_renderer::play_video()
 {
     MEDIA_TRACE_OBJ_PARAM("%s", object_name());
-    Buffer* buffer = queue.pop(2000);
-    if (0 != buffer)
-    {
-        Yuv_param* parameter = (Yuv_param*) buffer->parameter();
-        //MEDIA_ERROR(": %s, Buffer: %llx, pts: %llu (%dx%d) State: %s", object_name(),
-        //	(unsigned long long)buffer, buffer->pts(), parameter->width, parameter->height, "PLAY");
-		if ((video_start < video_end) && (buffer->pts() < video_start || buffer->pts() > video_end))
+	bool flag = true;
+    Buffer* buffer[2] = {0, 0};
+	for (int i = 0; i < view_count; i++)
+	{
+		buffer[i] = queue[i]->pop(2000);
+		flag = flag & (0 != buffer[i]);
+		if (false == flag)
 		{
-        	MEDIA_LOG("Video_renderer: %s, shedding buffer (pts:%lu)", object_name(), buffer->pts());
-			Buffer::release(buffer);
-			return;
+			MEDIA_ERROR("%s: Null, view_count: %d", object_name(), view_count);
 		}
-        curr_pos = buffer->pts();
-		update_pts_text();
-		window->set_video_params(buffer->type(), parameter->width, parameter->height);
-        window->show_frame((uint8_t*)buffer->data());
-        if (0 !=  prev)
-        {
-            Buffer::release(prev);
-        }
-        prev = buffer;
-        child_clk->wait_for_sync(curr_pos);
-        if (buffer->flags() & LAST_PKT)
-        {
-            set_state(Media::stop);
-            Media_params params;
-            memset(&params, 0, sizeof(Media_params));
-            notify(Media::last_pkt_rendered, params);
-        }
+	}
+
+    if (flag)
+    {
+        Yuv_param* parameter[2] = {0, 0};
+		for (int i = 0; i < view_count; i++)
+		{
+			parameter[i] = (Yuv_param*) buffer[i]->parameter();
+		    //MEDIA_ERROR(": %s, Buffer: %llx, pts: %llu (%dx%d) State: %s", object_name(),
+		    //	(unsigned long long)buffer, buffer->pts(), parameter->width, parameter->height, "PLAY");
+			if ((video_start < video_end) && (buffer[i]->pts() < video_start || buffer[i]->pts() > video_end))
+			{
+		    	MEDIA_LOG("Video_renderer: %s, shedding buffer (pts:%lu)", object_name(), buffer[i]->pts());
+				Buffer::release(buffer[i]);
+				return;
+			}	
+			if (0 == i)
+			{
+		    	curr_pos = buffer[i]->pts();
+				update_pts_text();
+			}
+			window->show_frame(i, buffer[i]->type(), parameter[i]->width, parameter[i]->height, (uint8_t*)buffer[i]->data());
+			if (0 !=  prev[i])
+			{
+			    Buffer::release(prev[i]);
+			}
+			prev[i] = buffer[i];
+		    if (buffer[i]->flags() & LAST_PKT)
+		    {
+		        set_state(Media::stop);
+		        Media_params params;
+		        memset(&params, 0, sizeof(Media_params));
+		        notify(Media::last_pkt_rendered, params);
+		    }
+		}
+		window->update();
+		child_clk->wait_for_sync(curr_pos);
         //TODO:Free Last packet
     }
     else
@@ -163,18 +198,32 @@ Media::status Video_renderer::on_stop(int end)
 Media::status Video_renderer::on_connect(int port, Abstract_media_object* pobj)
 {
     MEDIA_TRACE_OBJ_PARAM("%s, port: %d", object_name(), port);
-    is_running = 1;
-    thread.start(this);
+	if (0 == is_running)
+	{
+    	is_running = 1;
+    	thread.start(this);
+	}
+	if (view_count < 2)
+	{
+		++view_count;
+	}
     return Media::ok;
 }
 
 Media::status Video_renderer::on_disconnect(int port, Abstract_media_object* pobj)
 {
     MEDIA_TRACE_OBJ_PARAM("%s, port: %d", object_name(), port);
-    is_running = 0;
-    cv.signal();
-    thread.join();
-    MEDIA_LOG("Thread stopped: %s", object_name());
+	if (is_running)
+	{
+    	is_running = 0;
+    	cv.signal();
+    	thread.join();
+    	MEDIA_LOG("Thread stopped: %s", object_name());
+	}
+	if (view_count > 0)
+	{
+		--view_count;
+	}
     return Media::ok;
 }
 
@@ -184,14 +233,16 @@ Media::status Video_renderer::input_data(int port, Buffer* buffer)
     int status = 0;
     if (Media::play == get_state())
     {
-        status = queue.push(buffer->pts(), buffer, 500);
-        MEDIA_LOG("Video_renderer: %s, Buffer: 0x%llx, pts: %llu, Status: %d", object_name(), (unsigned long long)buffer, buffer->pts(), status);
+        status = queue[port]->push(buffer->pts(), buffer, 500);
+        MEDIA_LOG("Video_renderer: %s, port: %d, Buffer: 0x%llx, pts: %llu, Status: %d", object_name(), port, 
+			(unsigned long long)buffer, buffer->pts(), status);
     }
     else
     {
+        MEDIA_ERROR("Packet received under non-play state: %s, Buffer: 0x%llx, port: %d, pts: %llu", object_name(), 
+			(unsigned long long)buffer, port, buffer->pts());
         Buffer::release(buffer);
         //sleep(1);
-        MEDIA_ERROR("Packet received under non-play state: %s, Buffer: 0x%llx, pts: %llu", object_name(), (unsigned long long)buffer, buffer->pts());
         return Media::non_play_state;
     }
     return Media::ok;

@@ -40,11 +40,7 @@ public:
 
 	void show_text(const char* text = 0);
 
-	void set_video_params(int fmt, int width, int height);
-	void set_video_params(int fmt_1, int width_1, int height_1, int fmt_2, int width_2, int height_2);
-
-    void show_frame(uint8_t* yuv_1);
-    void show_frame(uint8_t* yuv_1, uint8_t* yuv_2);
+    void show_frame(int view, int fmt, int width, int height, uint8_t* yuv);
 
 signals:
     void update_frame();

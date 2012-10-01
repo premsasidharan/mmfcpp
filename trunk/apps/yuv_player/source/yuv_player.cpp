@@ -49,7 +49,7 @@ void Yuv_player::init_player()
 	sink.set_render_widget(centralwidget);
     sink.register_text_helper(&text_helper);
     sink.attach(Media::last_pkt_rendered, this);
-    ::connect(source, sink);
+    ::connect(source, "yuv", sink, "left");
 }
 
 void Yuv_player::init_actions()

@@ -55,17 +55,19 @@ protected:
     void play_video();
 
 private:
-    Buffer* prev;
     int curr_pos;
     int is_running;
+	int view_count;
+    Buffer* prev[2];
     mutable Mutex mutex;
     Video_widget* window;
     Condition_variable cv;
     Child_clock* child_clk;
     Condition_variable stop_cv;
     Thread<Video_renderer> thread;
-    Priority_queue<unsigned long long, Buffer*> queue;
-
+    Priority_queue<unsigned long long, Buffer*> queue1;
+    Priority_queue<unsigned long long, Buffer*> queue2;
+	Priority_queue<unsigned long long, Buffer*>* queue[2];
 	int video_end;
 	int video_start;    
 
