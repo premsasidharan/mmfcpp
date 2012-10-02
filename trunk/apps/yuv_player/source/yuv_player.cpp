@@ -16,8 +16,10 @@ Yuv_player::Yuv_player()
 	, dlg(this)
     , timer(this)
 	, one_shot(this)
+	, view_count(1)
     , master("master")
-    , source("yuv")
+    , source("left_yuv")
+	, right_src("right_yuv")
     , sink("opengl", master.create_child("child"))
     , text_mode(Yuv_player::time)
     , text_helper(this)
@@ -67,6 +69,7 @@ void Yuv_player::init_actions()
 
 	mode_grp = new QActionGroup(this);
 	text_grp = new QActionGroup(this);
+	stereo_grp = new QActionGroup(this);
 
 	mode_grp->addAction(y_action);
 	mode_grp->addAction(u_action);
@@ -84,6 +87,14 @@ void Yuv_player::init_actions()
 	text_grp->addAction(tc_action);
 	tc_action->setChecked(true);
 
+	stereo_grp->addAction(hsplit_action);
+	stereo_grp->addAction(vsplit_action);
+	stereo_grp->addAction(dsplit_action);
+	stereo_grp->addAction(add_action);
+	stereo_grp->addAction(sub_action);
+	stereo_grp->addAction(left_action);
+	stereo_grp->addAction(right_action);
+
 	y_action->setData(QVariant(Video_widget::Y));
 	u_action->setData(QVariant(Video_widget::U));
 	v_action->setData(QVariant(Video_widget::V));
@@ -97,6 +108,14 @@ void Yuv_player::init_actions()
 	none_action->setData(QVariant(Yuv_player::none));
 	tc_action->setData(QVariant(Yuv_player::time));
 	fc_action->setData(QVariant(Yuv_player::frames));
+
+	left_action->setData(QVariant(0));
+	right_action->setData(QVariant(1));
+	add_action->setData(QVariant(2));
+	sub_action->setData(QVariant(3));
+	hsplit_action->setData(QVariant(4));
+	vsplit_action->setData(QVariant(5));
+	dsplit_action->setData(QVariant(6));
 }
 
 void Yuv_player::connect_signals_slots()
@@ -104,12 +123,14 @@ void Yuv_player::connect_signals_slots()
     connect(&timer, SIGNAL(timeout()), this, SLOT(time_out()));
 	connect(abt_action, SIGNAL(triggered()), this, SLOT(help_about()));
 	connect(open_action, SIGNAL(triggered()), this, SLOT(file_open()));
+	connect(stereo_action, SIGNAL(triggered()), this, SLOT(file_stereo_open()));
     connect(&one_shot, SIGNAL(timeout()), this, SLOT(one_shot_timeout()));
 	connect(screen_action, SIGNAL(triggered()), this, SLOT(change_screen_size()));
 	connect(pbc_action, SIGNAL(triggered()), this, SLOT(show_playback_controls()));
 	connect(centralwidget, SIGNAL(pb_control(int)), this, SLOT(playback_control(int)));
 	connect(mode_grp, SIGNAL(triggered(QAction*)), this, SLOT(change_disp_mode(QAction*)));
 	connect(text_grp, SIGNAL(triggered(QAction*)), this, SLOT(change_text_mode(QAction*)));
+	connect(stereo_grp, SIGNAL(triggered(QAction*)), this, SLOT(change_stereo_mode(QAction*)));
 	connect(centralwidget, SIGNAL(seek(uint64_t, uint64_t)), this, SLOT(slider_seek(uint64_t, uint64_t)));
 }
 
@@ -141,6 +162,12 @@ void Yuv_player::change_text_mode(QAction* action)
 	sink.update_pts_text();
 }
 
+void Yuv_player::change_stereo_mode(QAction* action)
+{
+	int mode = action->data().toInt();
+	centralwidget->set_stereo_mode(mode);
+}
+
 void Yuv_player::show_playback_controls()
 {
 	centralwidget->show_playback_controls(!centralwidget->is_controls_visible());
@@ -150,16 +177,18 @@ void Yuv_player::closeEvent(QCloseEvent* event)
 {
 	(void)event;
 	::disconnect(source, sink);
+	::disconnect(right_src, sink);
 }
 
 void Yuv_player::file_open()
 {
+	dlg.set_stereo_mode(false);
     int ret = dlg.exec();
     if (ret)
     {
-		ret = set_parameters(dlg.video_width(), dlg.video_height(), 
-				dlg.video_format(), dlg.frame_rate(), 
-				dlg.video_file_path().toAscii().data());
+		::disconnect(right_src, sink);
+		view_count = 1;
+		ret = set_source_parameters();
 		if (ret)
 		{
 			start(0, 0);
@@ -167,6 +196,26 @@ void Yuv_player::file_open()
 		}
     }
 }
+
+void Yuv_player::file_stereo_open()
+{
+	dlg.set_stereo_mode(true);
+    int ret = dlg.exec();
+    if (ret)
+    {
+		//::disconnect(right_src, sink);
+		::connect(right_src, "yuv", sink, "right");
+		
+		view_count = 2;
+		ret = set_source_parameters();
+    	if (ret == 1)
+    	{	
+			start(0, 0);
+			centralwidget->set_playback_control_state(Video_widget::Play);
+    	}
+    }
+}
+
 void Yuv_player::help_about()
 {
 	QMessageBox::about(this, tr("About"), tr("yuv Player"));
@@ -188,6 +237,10 @@ int Yuv_player::start(int start, int end)
     int ret = 0;
     timer.start();
     ret = ::start(source, start, end);
+	if (view_count == 2)
+	{
+    	ret = ::start(right_src, start, end);
+	}
     master.start(start);
 	centralwidget->show_playback_controls(true);
     MEDIA_LOG("\nStart: %d", start);
@@ -199,22 +252,56 @@ int Yuv_player::stop(int& time)
     int ret = 0;
     timer.stop();
     ret = ::stop(source, time);
+	if (view_count == 2)
+	{
+    	ret = ::stop(right_src, time);
+	}
     uint64_t tmp = 0;
     master.stop(tmp);
     return ret;
 }
 
-int Yuv_player::set_parameters(int width, int height, Media::type fmt, float fps, const char* path)
+int Yuv_player::video_duration()
 {
-	QString fpath = path;
-    int ret = source.set_parameters(path, fmt, fps, width, height);
+	int ret = source.duration(); 
+	if (view_count == 2)
+	{
+		int tmp = right_src.duration();
+		ret = (ret > tmp)?tmp:ret;
+	}
+	return ret;
+}
+
+int Yuv_player::set_source_parameters()
+{
+    int ret = source.set_parameters(dlg.video_file_path(0).toAscii().data(), dlg.video_format(0), 
+				dlg.frame_rate(), dlg.video_width(0), dlg.video_height(0));
+	if (view_count == 2 && ret == 1)
+	{
+    	ret = right_src.set_parameters(dlg.video_file_path(1).toAscii().data(), dlg.video_format(1), 
+				dlg.frame_rate(), dlg.video_width(1), dlg.video_height(1));
+	}
     if (ret == 1)
     {
+		QString fpath = dlg.video_file_path(0);
 		int i = fpath.length()-fpath.lastIndexOf('/')-1;
-        setWindowTitle(QString("yuv player - ")+fpath.right(i));
-		centralwidget->set_slider_range(0, source.duration());
+		QString title = QString("yuv player - ")+fpath.right(i);
+		if (view_count == 2)
+		{
+			fpath = dlg.video_file_path(1);
+			i = fpath.length()-fpath.lastIndexOf('/')-1;
+			title = title + QString(" + ")+fpath.right(i);
+		}		
+        setWindowTitle(title);
+		centralwidget->set_slider_range(0, video_duration());
     }
     return ret;
+}
+
+int Yuv_player::set_parameters(int width, int height, Media::type fmt, float fps, const char* path)
+{
+	dlg.set_parameters(0, fmt, fps, width, height, path);
+	return set_source_parameters();
 }
 
 void Yuv_player::time_out()
@@ -245,7 +332,7 @@ void Yuv_player::playback_control(int status)
 	else
     {
 		//qDebug() << "start " << centralwidget->slider_value() << ", " << source.duration();
-        start(centralwidget->slider_value(), source.duration());
+        start(centralwidget->slider_value(), video_duration());
 		centralwidget->set_playback_control_state(Video_widget::Pause);
     }
 }

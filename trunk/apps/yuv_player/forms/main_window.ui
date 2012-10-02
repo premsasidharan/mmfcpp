@@ -28,7 +28,8 @@
      <string>&amp;File</string>
     </property>
     <addaction name="open_action"/>
-    <addaction name="exit_action"/>
+    <addaction name="stereo_action"/>
+    <addaction name="_exit_action"/>
    </widget>
    <widget class="QMenu" name="text_menu">
     <property name="title">
@@ -64,9 +65,23 @@
      <addaction name="grid_nyuv_action"/>
      <addaction name="grid_nrgb_action"/>
     </widget>
+    <widget class="QMenu" name="stereo_menu">
+     <property name="title">
+      <string>Stereo</string>
+     </property>
+     <addaction name="hsplit_action"/>
+     <addaction name="vsplit_action"/>
+     <addaction name="dsplit_action"/>
+     <addaction name="add_action"/>
+     <addaction name="sub_action"/>
+     <addaction name="left_action"/>
+     <addaction name="right_action"/>
+    </widget>
     <addaction name="mode_menu"/>
+    <addaction name="separator"/>
     <addaction name="screen_action"/>
     <addaction name="pbc_action"/>
+    <addaction name="stereo_menu"/>
    </widget>
    <addaction name="file_menu"/>
    <addaction name="view_menu"/>
@@ -245,6 +260,61 @@
    </property>
    <property name="shortcut">
     <string>Ctrl+P</string>
+   </property>
+  </action>
+  <action name="stereo_action">
+   <property name="text">
+    <string>Open Stereo</string>
+   </property>
+  </action>
+  <action name="_exit_action">
+   <property name="text">
+    <string>E&amp;xit</string>
+   </property>
+  </action>
+  <action name="actionStereo">
+   <property name="text">
+    <string>Stereo</string>
+   </property>
+  </action>
+  <action name="actionStereo_2">
+   <property name="text">
+    <string>Stereo</string>
+   </property>
+  </action>
+  <action name="hsplit_action">
+   <property name="text">
+    <string>Horz. split</string>
+   </property>
+  </action>
+  <action name="vsplit_action">
+   <property name="text">
+    <string>Vert. split</string>
+   </property>
+  </action>
+  <action name="dsplit_action">
+   <property name="text">
+    <string>Diag. split</string>
+   </property>
+  </action>
+  <action name="add_action">
+   <property name="text">
+    <string>Add</string>
+   </property>
+  </action>
+  <action name="sub_action">
+   <property name="text">
+    <string>Sub</string>
+   </property>
+  </action>
+  <action name="left_action">
+   <property name="text">
+    <string>Left</string>
+   </property>
+  </action>
+  <action name="right_action">
+   <property name="text">
+    <string>Right</string>
    </property>
   </action>
  </widget>
