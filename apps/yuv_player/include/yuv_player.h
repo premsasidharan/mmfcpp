@@ -66,22 +66,25 @@ protected:
     void init();
 	void init_player();
 	void init_actions();
+	int set_source_parameters();
     void connect_signals_slots();
-
     void closeEvent(QCloseEvent* event);
-
     int event_handler(Media::events event, Abstract_media_object* obj, Media_params& params);
+
+	int video_duration();
 
 protected slots:
     void time_out();
 	void file_open();
 	void help_about();
+	void file_stereo_open();
     void one_shot_timeout();
 	void change_screen_size();
 	void show_playback_controls();
 	void playback_control(int status);
 	void change_disp_mode(QAction* action);
 	void change_text_mode(QAction* action);
+	void change_stereo_mode(QAction* action);
 	void slider_seek(uint64_t _start, uint64_t _end);
 
 private:
@@ -90,9 +93,13 @@ private:
     QTimer timer;
 	QTimer one_shot;
 
+	int view_count;
+
     Master_clock master;
     
     Yuv_file_src source;
+    Yuv_file_src right_src;
+
     Video_renderer sink;
     
     Text_mode text_mode;
@@ -100,6 +107,7 @@ private:
 
 	QActionGroup* mode_grp;
 	QActionGroup* text_grp;
+	QActionGroup* stereo_grp;
 
 	QMutex mutex;
 	QStack<QPair<uint64_t, uint64_t> > pb_stack;
