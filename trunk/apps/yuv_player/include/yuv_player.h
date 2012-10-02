@@ -80,6 +80,7 @@ protected slots:
 	void file_stereo_open();
     void one_shot_timeout();
 	void change_screen_size();
+	void update_stereo_menu();
 	void show_playback_controls();
 	void playback_control(int status);
 	void change_disp_mode(QAction* action);

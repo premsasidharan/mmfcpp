@@ -132,6 +132,13 @@ void Yuv_player::connect_signals_slots()
 	connect(text_grp, SIGNAL(triggered(QAction*)), this, SLOT(change_text_mode(QAction*)));
 	connect(stereo_grp, SIGNAL(triggered(QAction*)), this, SLOT(change_stereo_mode(QAction*)));
 	connect(centralwidget, SIGNAL(seek(uint64_t, uint64_t)), this, SLOT(slider_seek(uint64_t, uint64_t)));
+
+	connect(stereo_menu, SIGNAL(aboutToShow()), this, SLOT(update_stereo_menu()));
+}
+
+void Yuv_player::update_stereo_menu()
+{
+	stereo_grp->setEnabled(view_count == 2);
 }
 
 void Yuv_player::change_screen_size()
