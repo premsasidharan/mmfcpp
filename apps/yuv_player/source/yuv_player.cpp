@@ -89,11 +89,14 @@ void Yuv_player::init_actions()
 
 	stereo_grp->addAction(hsplit_action);
 	stereo_grp->addAction(vsplit_action);
-	stereo_grp->addAction(dsplit_action);
+	stereo_grp->addAction(bhsplit_action);
+	stereo_grp->addAction(bvsplit_action);
 	stereo_grp->addAction(add_action);
 	stereo_grp->addAction(sub_action);
 	stereo_grp->addAction(left_action);
 	stereo_grp->addAction(right_action);
+	stereo_grp->addAction(intleave_action);
+	intleave_action->setChecked(true);
 
 	y_action->setData(QVariant(Video_widget::Y));
 	u_action->setData(QVariant(Video_widget::U));
@@ -109,13 +112,15 @@ void Yuv_player::init_actions()
 	tc_action->setData(QVariant(Yuv_player::time));
 	fc_action->setData(QVariant(Yuv_player::frames));
 
-	left_action->setData(QVariant(0));
-	right_action->setData(QVariant(1));
-	add_action->setData(QVariant(2));
-	sub_action->setData(QVariant(3));
+	left_action->setData(QVariant(1));
+	right_action->setData(QVariant(2));
+	vsplit_action->setData(QVariant(3));
 	hsplit_action->setData(QVariant(4));
-	vsplit_action->setData(QVariant(5));
-	dsplit_action->setData(QVariant(6));
+	intleave_action->setData(QVariant(5));
+	sub_action->setData(QVariant(6));
+	add_action->setData(QVariant(7));
+	bvsplit_action->setData(QVariant(8));
+	bhsplit_action->setData(QVariant(9));
 }
 
 void Yuv_player::connect_signals_slots()
