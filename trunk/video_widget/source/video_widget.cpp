@@ -17,7 +17,7 @@
 Video_widget::Video_widget(QWidget* parent)
     :QGLWidget(parent)
 	, view_count(1)
-	, stereo_mode(7)
+	, stereo_mode(5)
     , mode(Video_widget::RGB)
 	, pb_state(Video_widget::Play)
     , is_changed(false)
@@ -231,6 +231,7 @@ void Video_widget::render_frame(Video_widget::Pos pos, Video_widget::Mode mode)
     program.setUniformValue("texture_0", 0);
     program.setUniformValue("texture_1", 1);
     program.setUniformValue("texture_2", 2);
+    program.setUniformValue("flip_1", 0);
     program.setUniformValue("format_1", format_code(0));
     program.setUniformValue("mode", mode);
     program.setUniformValue("views", view_count);
@@ -240,8 +241,22 @@ void Video_widget::render_frame(Video_widget::Pos pos, Video_widget::Mode mode)
     	program.setUniformValue("texture_3", 3);
     	program.setUniformValue("texture_4", 4);
     	program.setUniformValue("texture_5", 5);
+		if (stereo_mode == 8)
+		{
+    		program.setUniformValue("flip_2", 2);
+    		program.setUniformValue("stereo_mode", 3);
+		}
+		else if (stereo_mode == 9)
+		{
+    		program.setUniformValue("flip_2", 1);
+    		program.setUniformValue("stereo_mode", 4);
+		}
+		else
+		{
+    		program.setUniformValue("flip_2", 0);
+    		program.setUniformValue("stereo_mode", stereo_mode);
+		}
     	program.setUniformValue("format_2", format_code(1));
-    	program.setUniformValue("stereo_mode", stereo_mode);
 	}
 
 	for (int view = 0; view < view_count; view++)
