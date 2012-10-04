@@ -72,6 +72,7 @@ protected:
     int event_handler(Media::events event, Abstract_media_object* obj, Media_params& params);
 
 	int video_duration();
+	void disable_file_controls(bool status);
 
 protected slots:
     void time_out();

@@ -44,6 +44,8 @@ public:
 protected:
     int run();
 
+	void flush();
+
     Media::status on_start(int start_time, int end_time);
     Media::status on_stop(int end_time);
 
