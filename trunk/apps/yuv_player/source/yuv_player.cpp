@@ -18,7 +18,7 @@ Yuv_player::Yuv_player()
 	, one_shot(this)
 	, view_count(1)
     , master("master")
-    , source("left_yuv")
+    , left_src("left_yuv")
 	, right_src("right_yuv")
     , sink("opengl", master.create_child("child"))
     , text_mode(Yuv_player::time)
@@ -31,7 +31,7 @@ Yuv_player::Yuv_player()
 
 Yuv_player::~Yuv_player()
 {
-    ::disconnect(source, sink);
+    ::disconnect(left_src, sink);
 }
 
 void Yuv_player::init()
@@ -51,7 +51,7 @@ void Yuv_player::init_player()
 	sink.set_render_widget(centralwidget);
     sink.register_text_helper(&text_helper);
     sink.attach(Media::last_pkt_rendered, this);
-    ::connect(source, "yuv", sink, "left");
+    ::connect(left_src, "yuv", sink, "left");
 }
 
 void Yuv_player::init_actions()
@@ -188,7 +188,7 @@ void Yuv_player::show_playback_controls()
 void Yuv_player::closeEvent(QCloseEvent* event)
 {
 	(void)event;
-	::disconnect(source, sink);
+	::disconnect(left_src, sink);
 	::disconnect(right_src, sink);
 }
 
@@ -198,10 +198,10 @@ void Yuv_player::file_open()
     int ret = dlg.exec();
     if (ret)
     {
-		::disconnect(source, sink);
+		::disconnect(left_src, sink);
 		::disconnect(right_src, sink);
 
-		::connect(source, "yuv", sink, "left");
+		::connect(left_src, "yuv", sink, "left");
 
 		view_count = 1;
 		ret = set_source_parameters();
@@ -219,10 +219,10 @@ void Yuv_player::file_stereo_open()
     int ret = dlg.exec();
     if (ret)
     {
-		::disconnect(source, sink);
+		::disconnect(left_src, sink);
 		::disconnect(right_src, sink);
 
-		::connect(source, "yuv", sink, "left");
+		::connect(left_src, "yuv", sink, "left");
 		::connect(right_src, "yuv", sink, "right");
 		
 		view_count = 2;
@@ -255,7 +255,7 @@ int Yuv_player::start(int start, int end)
 {
     int ret = 0;
     timer.start();
-    ret = ::start(source, start, end);
+    ret = ::start(left_src, start, end);
 	if (view_count == 2)
 	{
     	ret = ::start(right_src, start, end);
@@ -271,7 +271,7 @@ int Yuv_player::stop(int& time)
 {
     int ret = 0;
     timer.stop();
-    ret = ::stop(source, time);
+    ret = ::stop(left_src, time);
 	if (view_count == 2)
 	{
     	ret = ::stop(right_src, time);
@@ -284,7 +284,7 @@ int Yuv_player::stop(int& time)
 
 int Yuv_player::video_duration()
 {
-	int ret = source.duration(); 
+	int ret = left_src.duration(); 
 	if (view_count == 2)
 	{
 		int tmp = right_src.duration();
@@ -295,7 +295,7 @@ int Yuv_player::video_duration()
 
 int Yuv_player::set_source_parameters()
 {
-    int ret = source.set_parameters(dlg.video_file_path(0).toAscii().data(), dlg.video_format(0), 
+    int ret = left_src.set_parameters(dlg.video_file_path(0).toAscii().data(), dlg.video_format(0), 
 				dlg.frame_rate(), dlg.video_width(0), dlg.video_height(0));
 	if (view_count == 2 && ret == 1)
 	{
@@ -352,7 +352,7 @@ void Yuv_player::playback_control(int status)
     }
 	else
     {
-		//qDebug() << "start " << centralwidget->slider_value() << ", " << source.duration();
+		//qDebug() << "start " << centralwidget->slider_value() << ", " << left_src.duration();
         start(centralwidget->slider_value(), video_duration());
 		centralwidget->set_playback_control_state(Video_widget::Pause);
     }
@@ -403,8 +403,8 @@ void Text_helper::read_text(char* text, int length, uint64_t time)
             break;
         case Yuv_player::frames:
             {
-                int curr_frame = 1+(int)ceil(((float)time*player->source.fps())/1000000.0);
-                int frame_count = (int)ceil(((float)player->source.duration()*player->source.fps())/1000000.0);
+                int curr_frame = 1+(int)ceil(((float)time*player->left_src.fps())/1000000.0);
+                int frame_count = (int)ceil(((float)player->left_src.duration()*player->left_src.fps())/1000000.0);
                 snprintf(text, length, "%d/%d", curr_frame, frame_count);
             }
             break;
