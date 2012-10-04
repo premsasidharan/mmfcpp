@@ -99,7 +99,7 @@ private:
 
     Master_clock master;
     
-    Yuv_file_src source;
+    Yuv_file_src left_src;
     Yuv_file_src right_src;
 
     Video_renderer sink;
