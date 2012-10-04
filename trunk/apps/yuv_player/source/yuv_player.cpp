@@ -198,7 +198,11 @@ void Yuv_player::file_open()
     int ret = dlg.exec();
     if (ret)
     {
+		::disconnect(source, sink);
 		::disconnect(right_src, sink);
+
+		::connect(source, "yuv", sink, "left");
+
 		view_count = 1;
 		ret = set_source_parameters();
 		if (ret)
@@ -215,7 +219,10 @@ void Yuv_player::file_stereo_open()
     int ret = dlg.exec();
     if (ret)
     {
-		//::disconnect(right_src, sink);
+		::disconnect(source, sink);
+		::disconnect(right_src, sink);
+
+		::connect(source, "yuv", sink, "left");
 		::connect(right_src, "yuv", sink, "right");
 		
 		view_count = 2;
@@ -255,6 +262,7 @@ int Yuv_player::start(int start, int end)
 	}
     master.start(start);
 	centralwidget->show_playback_controls(true);
+	disable_file_controls(true);
     MEDIA_LOG("\nStart: %d", start);
     return ret;
 }
@@ -270,6 +278,7 @@ int Yuv_player::stop(int& time)
 	}
     uint64_t tmp = 0;
     master.stop(tmp);
+	disable_file_controls(false);
     return ret;
 }
 
@@ -358,9 +367,16 @@ int Yuv_player::event_handler(Media::events event, Abstract_media_object* obj, M
         timer.stop();
         time_out();
 		centralwidget->update();
+		disable_file_controls(false);
     }
-    //qDebug() << "event_handler: " << event;
+    qDebug() << "event_handler: " << event;
     return 0;
+}
+
+void Yuv_player::disable_file_controls(bool status)
+{
+	open_action->setEnabled(!status);
+	stereo_action->setEnabled(!status);
 }
 
 Text_helper::Text_helper(Yuv_player* p)

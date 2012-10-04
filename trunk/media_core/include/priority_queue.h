@@ -30,6 +30,8 @@ public:
     ~Priority_queue();
 
 public:
+	int size() const { return used_count; };
+
     int push(Priority priority, Type data, int timeout_ms);
     Type pop(int timeout_ms);
 
@@ -42,7 +44,7 @@ private:
     void initialize();
 
 private:
-    int size;
+    int count;
     Node* queue;
     int free_count;
     int used_count;
@@ -58,7 +60,7 @@ private:
 
 template <typename Priority, typename Type>
 Priority_queue<Priority, Type>::Priority_queue(int _size)
-    :size(_size)
+    :count(_size)
     , queue(0)
     , free_count(0)
     , used_count(0)
@@ -67,7 +69,7 @@ Priority_queue<Priority, Type>::Priority_queue(int _size)
     , rear_used(0)
     , front_used(0)
 {
-    queue = new Node[size];
+    queue = new Node[count];
     initialize();
 }
 
@@ -91,7 +93,7 @@ int Priority_queue<Priority, Type>::push(Priority priority, Type data, int timeo
         node = front_free;
         if (node == 0)
         {
-            //printf("\npush (%d), No Free Buffers, Priority: %d, Data: 0x%x", size, priority, data);
+            //printf("\npush (%d), No Free Buffers, Priority: %d, Data: 0x%x", count, priority, data);
             mutex.unlock();
             if (ETIMEDOUT == cv_free.timed_wait(timeout_ms))
             {
@@ -195,7 +197,7 @@ void Priority_queue<Priority, Type>::print_queue()
 {
     mutex.lock();
     Node* node = front_free;
-    printf("\nFree List max (%d)", size);
+    printf("\nFree List max (%d)", count);
     if (0 == node)
     {
         printf("Empty");
@@ -210,7 +212,7 @@ void Priority_queue<Priority, Type>::print_queue()
         printf("0x%x (%d)", node->data, node->priority);
     }
     node = front_used;
-    printf("\nUsed List max (%d)", size);
+    printf("\nUsed List max (%d)", count);
     if (0 == node)
     {
         printf("Empty");
@@ -230,7 +232,7 @@ void Priority_queue<Priority, Type>::print_queue()
 template <typename Priority, typename Type>
 void Priority_queue<Priority, Type>::initialize()
 {
-    for (int i = 1; i < size; i++)
+    for (int i = 1; i < count; i++)
     {
         queue[i-1].data = 0;
         queue[i-1].priority = 0;
@@ -238,12 +240,12 @@ void Priority_queue<Priority, Type>::initialize()
         queue[i].prev = &queue[i-1];
     }
 
-    queue[size-1].data = 0;
-    queue[size-1].priority = 0;
+    queue[count-1].data = 0;
+    queue[count-1].priority = 0;
 
-    queue[0].prev = queue[size-1].next = 0;
+    queue[0].prev = queue[count-1].next = 0;
     front_free = &queue[0];
-    rear_free = &queue[size-1];
+    rear_free = &queue[count-1];
 }
 
 #endif

@@ -150,9 +150,16 @@ void Video_widget::set_texture_data(int i, uint8_t* yuv)
     }
 }
 
+void Video_widget::set_views(int views)
+{
+	mutex.lock();
+	view_count = views;
+	mutex.unlock();
+}
+
 void Video_widget::show_frame(int view, int fmt, int width, int height, uint8_t* yuv)
 {
-	if (view >= 2)
+	if (view >= view_count)
 	{
 		return;
 	}
@@ -160,7 +167,6 @@ void Video_widget::show_frame(int view, int fmt, int width, int height, uint8_t*
     mutex.lock();
     if ((fmt != format[view]) || (width != video_width[view]) || (height != video_height[view]))
     {
-		view_count = (view == 0)?1:2;
         format[view] = fmt;
         video_width[view] = width;
         video_height[view] = height;
@@ -261,11 +267,14 @@ void Video_widget::render_frame(Video_widget::Pos pos, Video_widget::Mode mode)
 
 	for (int view = 0; view < view_count; view++)
 	{
-		for (int i = 0; i < texture_count[view]; i++)
+		if (0 != texture_data[view][0])
 		{
-		    glActiveTexture(GL_TEXTURE0+i+(3*view));
-		    glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, texture_width[view][i], texture_height[view][i], 
-		        texture_format[view][i], GL_UNSIGNED_BYTE, texture_data[view][i]);
+			for (int i = 0; i < texture_count[view]; i++)
+			{
+				glActiveTexture(GL_TEXTURE0+i+(3*view));
+				glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, texture_width[view][i], texture_height[view][i], 
+				    texture_format[view][i], GL_UNSIGNED_BYTE, texture_data[view][i]);
+			}
 		}
 	}
 

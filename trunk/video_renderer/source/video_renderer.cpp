@@ -100,6 +100,7 @@ void Video_renderer::play_video()
 
     if (flag)
     {
+		curr_pos = buffer[0]->pts();
         Yuv_param* parameter[2] = {0, 0};
 		for (int i = 0; i < view_count; i++)
 		{
@@ -110,12 +111,14 @@ void Video_renderer::play_video()
 			{
 		    	MEDIA_LOG("Video_renderer: %s, shedding buffer (pts:%lu)", object_name(), buffer[i]->pts());
 				Buffer::release(buffer[i]);
-				return;
-			}	
-			if (0 == i)
-			{
-		    	curr_pos = buffer[i]->pts();
-				update_pts_text();
+				if (i < view_count-1)
+				{
+					continue;
+				}
+				else
+				{
+					return;
+				}
 			}
 			window->show_frame(i, buffer[i]->type(), parameter[i]->width, parameter[i]->height, (uint8_t*)buffer[i]->data());
 			if (0 !=  prev[i])
@@ -131,6 +134,7 @@ void Video_renderer::play_video()
 		        notify(Media::last_pkt_rendered, params);
 		    }
 		}
+		update_pts_text();
 		window->update();
 		child_clk->wait_for_sync(curr_pos);
         //TODO:Free Last packet
@@ -178,9 +182,11 @@ int Video_renderer::run()
 Media::status Video_renderer::on_start(int start, int end)
 {
     MEDIA_TRACE_OBJ_PARAM("%s, start: %d end: %d", object_name(), start, end);
+	flush();
 	video_end = end;
 	video_start = start;
     set_state(Media::play);
+	window->set_views(view_count);
     cv.signal();
     return Media::ok;
 }
@@ -198,14 +204,15 @@ Media::status Video_renderer::on_stop(int end)
 Media::status Video_renderer::on_connect(int port, Abstract_media_object* pobj)
 {
     MEDIA_TRACE_OBJ_PARAM("%s, port: %d", object_name(), port);
+	if (view_count < 2)
+	{
+		++view_count;
+		printf("\non_connect: view_count: %d", view_count);
+	}
 	if (0 == is_running)
 	{
     	is_running = 1;
     	thread.start(this);
-	}
-	if (view_count < 2)
-	{
-		++view_count;
 	}
     return Media::ok;
 }
@@ -223,6 +230,7 @@ Media::status Video_renderer::on_disconnect(int port, Abstract_media_object* pob
 	if (view_count > 0)
 	{
 		--view_count;
+		printf("\non_disconnect: view_count: %d", view_count);
 	}
     return Media::ok;
 }
@@ -276,5 +284,28 @@ void Video_renderer::unregister_text_helper()
     mutex.lock();
     text_helper = 0;
     mutex.unlock();
+}
+
+void Video_renderer::flush()
+{
+	Guard g(mutex);
+	for (int i = 0; i < 2; i++)
+	{
+		while (queue[i]->size() > 0)
+		{
+			Buffer* buff = queue[i]->pop(1);
+			Buffer::release(buff);
+		}
+		if (0 != prev[i])
+		{			
+			Yuv_param* param = (Yuv_param*) prev[i]->parameter();
+			window->show_frame(i, prev[i]->type(), param->width, param->height, 0);
+			if (0 !=  prev[i])
+			{
+		    	Buffer::release(prev[i]);
+				prev[i] = 0;
+			}
+		}
+	}
 }
 

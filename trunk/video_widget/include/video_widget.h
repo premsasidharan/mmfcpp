@@ -40,6 +40,7 @@ public:
 
 	void show_text(const char* text = 0);
 
+	void set_views(int views);
     void show_frame(int view, int fmt, int width, int height, uint8_t* yuv);
 
 signals:
