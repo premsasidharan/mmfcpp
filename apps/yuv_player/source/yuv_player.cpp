@@ -67,6 +67,21 @@ void Yuv_player::init_actions()
 	addAction(grid_nyuv_action);
 	addAction(grid_nrgb_action);
 
+	addAction(add_action);
+	addAction(sub_action);
+	addAction(left_action);
+	addAction(right_action);
+	addAction(intleave_action);
+
+	addAction(nvsleft_action);
+	addAction(nvsright_action);
+	addAction(nhsleft_action);
+	addAction(nhsright_action);
+	addAction(bvsleft_action);
+	addAction(bvsright_action);
+	addAction(bhsleft_action);
+	addAction(bhsright_action);
+
 	mode_grp = new QActionGroup(this);
 	text_grp = new QActionGroup(this);
 	stereo_grp = new QActionGroup(this);
@@ -87,15 +102,20 @@ void Yuv_player::init_actions()
 	text_grp->addAction(tc_action);
 	tc_action->setChecked(true);
 
-	stereo_grp->addAction(hsplit_action);
-	stereo_grp->addAction(vsplit_action);
-	stereo_grp->addAction(bhsplit_action);
-	stereo_grp->addAction(bvsplit_action);
 	stereo_grp->addAction(add_action);
 	stereo_grp->addAction(sub_action);
 	stereo_grp->addAction(left_action);
 	stereo_grp->addAction(right_action);
 	stereo_grp->addAction(intleave_action);
+
+	stereo_grp->addAction(nvsleft_action);
+	stereo_grp->addAction(nvsright_action);
+	stereo_grp->addAction(nhsleft_action);
+	stereo_grp->addAction(nhsright_action);
+	stereo_grp->addAction(bvsleft_action);
+	stereo_grp->addAction(bvsright_action);
+	stereo_grp->addAction(bhsleft_action);
+	stereo_grp->addAction(bhsright_action);
 	intleave_action->setChecked(true);
 
 	y_action->setData(QVariant(Video_widget::Y));
@@ -114,13 +134,19 @@ void Yuv_player::init_actions()
 
 	left_action->setData(QVariant(1));
 	right_action->setData(QVariant(2));
-	vsplit_action->setData(QVariant(3));
-	hsplit_action->setData(QVariant(4));
+	sub_action->setData(QVariant(3));
+	add_action->setData(QVariant(4));
 	intleave_action->setData(QVariant(5));
-	sub_action->setData(QVariant(6));
-	add_action->setData(QVariant(7));
-	bvsplit_action->setData(QVariant(8));
-	bhsplit_action->setData(QVariant(9));
+
+	nvsleft_action->setData(QVariant(6));
+	nvsright_action->setData(QVariant(7));
+	nhsleft_action->setData(QVariant(8));
+	nhsright_action->setData(QVariant(9));
+
+	bvsleft_action->setData(QVariant(26));
+	bvsright_action->setData(QVariant(27));
+	bhsleft_action->setData(QVariant(48));
+	bhsright_action->setData(QVariant(49));
 }
 
 void Yuv_player::connect_signals_slots()
@@ -352,7 +378,6 @@ void Yuv_player::playback_control(int status)
     }
 	else
     {
-		//qDebug() << "start " << centralwidget->slider_value() << ", " << left_src.duration();
         start(centralwidget->slider_value(), video_duration());
 		centralwidget->set_playback_control_state(Video_widget::Pause);
     }
@@ -369,7 +394,6 @@ int Yuv_player::event_handler(Media::events event, Abstract_media_object* obj, M
 		centralwidget->update();
 		disable_file_controls(false);
     }
-    qDebug() << "event_handler: " << event;
     return 0;
 }
 
