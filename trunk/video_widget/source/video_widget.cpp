@@ -244,24 +244,15 @@ void Video_widget::render_frame(Video_widget::Pos pos, Video_widget::Mode mode)
 
 	if (view_count > 1)
 	{
+		int flip1 = (stereo_mode/10)&0x3;
+		int flip2 = ((stereo_mode/10)&0xC)>>2;
     	program.setUniformValue("texture_3", 3);
     	program.setUniformValue("texture_4", 4);
     	program.setUniformValue("texture_5", 5);
-		if (stereo_mode == 8)
-		{
-    		program.setUniformValue("flip_2", 2);
-    		program.setUniformValue("stereo_mode", 3);
-		}
-		else if (stereo_mode == 9)
-		{
-    		program.setUniformValue("flip_2", 1);
-    		program.setUniformValue("stereo_mode", 4);
-		}
-		else
-		{
-    		program.setUniformValue("flip_2", 0);
-    		program.setUniformValue("stereo_mode", stereo_mode);
-		}
+
+		program.setUniformValue("flip_1", flip1);
+		program.setUniformValue("flip_2", flip2);
+		program.setUniformValue("stereo_mode", (stereo_mode%10));
     	program.setUniformValue("format_2", format_code(1));
 	}
 

@@ -207,7 +207,6 @@ Media::status Video_renderer::on_connect(int port, Abstract_media_object* pobj)
 	if (view_count < 2)
 	{
 		++view_count;
-		printf("\non_connect: view_count: %d", view_count);
 	}
 	if (0 == is_running)
 	{
@@ -230,7 +229,6 @@ Media::status Video_renderer::on_disconnect(int port, Abstract_media_object* pob
 	if (view_count > 0)
 	{
 		--view_count;
-		printf("\non_disconnect: view_count: %d", view_count);
 	}
     return Media::ok;
 }

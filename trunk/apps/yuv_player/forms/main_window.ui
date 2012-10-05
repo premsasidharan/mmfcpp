@@ -49,6 +49,38 @@
     <property name="title">
      <string>&amp;View</string>
     </property>
+    <widget class="QMenu" name="stereo_menu">
+     <property name="title">
+      <string>Stereo</string>
+     </property>
+     <widget class="QMenu" name="menu_bfly">
+      <property name="title">
+       <string>Butterfly Split</string>
+      </property>
+      <addaction name="bhsleft_action"/>
+      <addaction name="bhsright_action"/>
+      <addaction name="bvsleft_action"/>
+      <addaction name="bvsright_action"/>
+     </widget>
+     <widget class="QMenu" name="menu_split">
+      <property name="title">
+       <string>Normal Split</string>
+      </property>
+      <addaction name="nhsleft_action"/>
+      <addaction name="nhsright_action"/>
+      <addaction name="nvsleft_action"/>
+      <addaction name="nvsright_action"/>
+     </widget>
+     <addaction name="left_action"/>
+     <addaction name="right_action"/>
+     <addaction name="add_action"/>
+     <addaction name="sub_action"/>
+     <addaction name="intleave_action"/>
+     <addaction name="separator"/>
+     <addaction name="menu_split"/>
+     <addaction name="separator"/>
+     <addaction name="menu_bfly"/>
+    </widget>
     <widget class="QMenu" name="mode_menu">
      <property name="title">
       <string>Mode</string>
@@ -64,34 +96,6 @@
      <addaction name="rgb_action"/>
      <addaction name="grid_nyuv_action"/>
      <addaction name="grid_nrgb_action"/>
-    </widget>
-    <widget class="QMenu" name="stereo_menu">
-     <property name="title">
-      <string>Stereo</string>
-     </property>
-     <widget class="QMenu" name="menu_bfly">
-      <property name="title">
-       <string>Butterfly Split</string>
-      </property>
-      <addaction name="bhsplit_action"/>
-      <addaction name="bvsplit_action"/>
-     </widget>
-     <widget class="QMenu" name="menu_split">
-      <property name="title">
-       <string>Normal Split</string>
-      </property>
-      <addaction name="hsplit_action"/>
-      <addaction name="vsplit_action"/>
-     </widget>
-     <addaction name="left_action"/>
-     <addaction name="right_action"/>
-     <addaction name="add_action"/>
-     <addaction name="sub_action"/>
-     <addaction name="intleave_action"/>
-     <addaction name="separator"/>
-     <addaction name="menu_split"/>
-     <addaction name="separator"/>
-     <addaction name="menu_bfly"/>
     </widget>
     <addaction name="mode_menu"/>
     <addaction name="separator"/>
@@ -198,7 +202,7 @@
     <string>Normal</string>
    </property>
    <property name="shortcut">
-    <string>Ctrl+1</string>
+    <string>F1</string>
    </property>
   </action>
   <action name="grid_nyuv_action">
@@ -209,7 +213,7 @@
     <string>Normal.Y.U.V</string>
    </property>
    <property name="shortcut">
-    <string>Ctrl+2</string>
+    <string>F2</string>
    </property>
   </action>
   <action name="abt_action">
@@ -233,7 +237,7 @@
     <string>Normal.R.G.B</string>
    </property>
    <property name="shortcut">
-    <string>Ctrl+3</string>
+    <string>F3</string>
    </property>
   </action>
   <action name="none_action">
@@ -311,23 +315,26 @@
     <string>Stereo</string>
    </property>
   </action>
-  <action name="hsplit_action">
+  <action name="nhsleft_action">
    <property name="checkable">
     <bool>true</bool>
    </property>
    <property name="text">
-    <string>Horizontal</string>
+    <string>Horiz. Left</string>
    </property>
    <property name="shortcut">
-    <string/>
+    <string>Ctrl+1</string>
    </property>
   </action>
-  <action name="vsplit_action">
+  <action name="nvsleft_action">
    <property name="checkable">
     <bool>true</bool>
    </property>
    <property name="text">
-    <string>Vertical</string>
+    <string>Vert. Left</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+3</string>
    </property>
   </action>
   <action name="add_action">
@@ -338,7 +345,7 @@
     <string>Add</string>
    </property>
    <property name="shortcut">
-    <string>Ctrl+A</string>
+    <string>=</string>
    </property>
   </action>
   <action name="sub_action">
@@ -348,12 +355,18 @@
    <property name="text">
     <string>Sub</string>
    </property>
+   <property name="shortcut">
+    <string>-</string>
+   </property>
   </action>
   <action name="left_action">
    <property name="checkable">
     <bool>true</bool>
    </property>
    <property name="text">
+    <string>Left</string>
+   </property>
+   <property name="shortcut">
     <string>Left</string>
    </property>
   </action>
@@ -364,31 +377,30 @@
    <property name="text">
     <string>Right</string>
    </property>
-  </action>
-  <action name="hsplit_action_2">
-   <property name="text">
-    <string>Horizontal</string>
+   <property name="shortcut">
+    <string>Right</string>
    </property>
   </action>
-  <action name="vsplit_action_2">
-   <property name="text">
-    <string>Verical</string>
-   </property>
-  </action>
-  <action name="bhsplit_action">
+  <action name="bhsleft_action">
    <property name="checkable">
     <bool>true</bool>
    </property>
    <property name="text">
-    <string>Horizontal</string>
+    <string>Horiz. Left</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+5</string>
    </property>
   </action>
-  <action name="bvsplit_action">
+  <action name="bvsleft_action">
    <property name="checkable">
     <bool>true</bool>
    </property>
    <property name="text">
-    <string>Vertical</string>
+    <string>Vert. Left</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+7</string>
    </property>
   </action>
   <action name="intleave_action">
@@ -400,6 +412,50 @@
    </property>
    <property name="shortcut">
     <string>Ctrl+I</string>
+   </property>
+  </action>
+  <action name="nhsright_action">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Horiz. Right</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+2</string>
+   </property>
+  </action>
+  <action name="nvsright_action">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Vert. Right</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+4</string>
+   </property>
+  </action>
+  <action name="bhsright_action">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Horiz. Right</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+6</string>
+   </property>
+  </action>
+  <action name="bvsright_action">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Vert. Right</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+8</string>
    </property>
   </action>
  </widget>
