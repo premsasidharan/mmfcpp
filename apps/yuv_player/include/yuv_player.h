@@ -107,6 +107,7 @@ private:
     Text_mode text_mode;
     Text_helper text_helper;
 
+	QToolBar* tool_bar;
 	QActionGroup* mode_grp;
 	QActionGroup* text_grp;
 	QActionGroup* stereo_grp;

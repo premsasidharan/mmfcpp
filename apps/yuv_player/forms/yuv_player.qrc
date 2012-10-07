@@ -1,0 +1,80 @@
+<RCC>
+  <qresource prefix="rgb">
+    <file>images/rgb.png</file>
+  </qresource>
+  <qresource prefix="frames">
+    <file>images/calendar_32.png</file>
+  </qresource>
+  <qresource prefix="time">
+    <file>images/clock_32.png</file>
+  </qresource>
+  <qresource prefix="nvsright">
+    <file>images/split_32_vr.png</file>
+  </qresource>
+  <qresource prefix="nvsleft">
+    <file>images/split_32_vl.png</file>
+  </qresource>
+  <qresource prefix="nhsright">
+    <file>images/split_32_hr.png</file>
+  </qresource>
+  <qresource prefix="nhsleft">
+    <file>images/split_32_hl.png</file>
+  </qresource>
+  <qresource prefix="bvsright">
+    <file>images/butterfly_32_vr.png</file>
+  </qresource>
+  <qresource prefix="bvsleft">
+    <file>images/butterfly_32_vl.png</file>
+  </qresource>
+  <qresource prefix="bhsright">
+    <file>images/butterfly_32_hr.png</file>
+  </qresource>
+  <qresource prefix="bhsleft">
+    <file>images/butterfly_32_hl.png</file>
+  </qresource>
+  <qresource prefix="interleave">
+    <file>images/mixture_32.png</file>
+  </qresource>
+  <qresource prefix="minus">
+    <file>images/minus_32.png</file>
+  </qresource>
+  <qresource prefix="add">
+    <file>images/plus_32.png</file>
+  </qresource>
+  <qresource prefix="right">
+    <file>images/right_green_32.png</file>
+  </qresource>
+  <qresource prefix="left">
+    <file>images/left_black_32.png</file>
+  </qresource>
+  <qresource prefix="open_stereo">
+    <file>images/open_stereo.png</file>
+  </qresource>
+  <qresource prefix="open">
+    <file>images/open_32.png</file>
+  </qresource>
+  <qresource prefix="nrgb">
+    <file>images/nrgb.png</file>
+  </qresource>
+  <qresource prefix="nyuv">
+    <file>images/nyuv.png</file>
+  </qresource>
+  <qresource prefix="y">
+    <file>images/y.png</file>
+  </qresource>
+  <qresource prefix="u">
+    <file>images/u.png</file>
+  </qresource>
+  <qresource prefix="v">
+    <file>images/v.png</file>
+  </qresource>
+  <qresource prefix="red">
+    <file>images/red.png</file>
+  </qresource>
+  <qresource prefix="green">
+    <file>images/green.png</file>
+  </qresource>
+  <qresource prefix="blue">
+    <file>images/blue.png</file>
+  </qresource>
+</RCC>

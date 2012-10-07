@@ -26,6 +26,8 @@ FORMS = forms/player.ui \
         forms/yuv_dlg.ui \
         forms/main_window.ui
 
+RESOURCES += forms/yuv_player.qrc
+
 SOURCES = ../../video_widget/source/video_widget.cpp \
 		  ../../video_widget/source/video_widget_shader.cpp \
 	      ../../yuv_file/source/yuv_file.cpp \
