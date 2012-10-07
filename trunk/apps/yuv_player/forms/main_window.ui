@@ -49,6 +49,22 @@
     <property name="title">
      <string>&amp;View</string>
     </property>
+    <widget class="QMenu" name="mode_menu">
+     <property name="title">
+      <string>Mode</string>
+     </property>
+     <addaction name="y_action"/>
+     <addaction name="u_action"/>
+     <addaction name="v_action"/>
+     <addaction name="separator"/>
+     <addaction name="r_action"/>
+     <addaction name="g_action"/>
+     <addaction name="b_action"/>
+     <addaction name="separator"/>
+     <addaction name="rgb_action"/>
+     <addaction name="grid_nyuv_action"/>
+     <addaction name="grid_nrgb_action"/>
+    </widget>
     <widget class="QMenu" name="stereo_menu">
      <property name="title">
       <string>Stereo</string>
@@ -81,22 +97,6 @@
      <addaction name="separator"/>
      <addaction name="menu_bfly"/>
     </widget>
-    <widget class="QMenu" name="mode_menu">
-     <property name="title">
-      <string>Mode</string>
-     </property>
-     <addaction name="y_action"/>
-     <addaction name="u_action"/>
-     <addaction name="v_action"/>
-     <addaction name="separator"/>
-     <addaction name="r_action"/>
-     <addaction name="g_action"/>
-     <addaction name="b_action"/>
-     <addaction name="separator"/>
-     <addaction name="rgb_action"/>
-     <addaction name="grid_nyuv_action"/>
-     <addaction name="grid_nrgb_action"/>
-    </widget>
     <addaction name="mode_menu"/>
     <addaction name="separator"/>
     <addaction name="stereo_menu"/>
@@ -111,6 +111,10 @@
   </widget>
   <widget class="QStatusBar" name="statusbar"/>
   <action name="open_action">
+   <property name="icon">
+    <iconset resource="yuv_player.qrc">
+     <normaloff>:/open/images/open_32.png</normaloff>:/open/images/open_32.png</iconset>
+   </property>
    <property name="text">
     <string>&amp;Open</string>
    </property>
@@ -127,6 +131,10 @@
    <property name="checkable">
     <bool>true</bool>
    </property>
+   <property name="icon">
+    <iconset resource="yuv_player.qrc">
+     <normaloff>:/y/images/y.png</normaloff>:/y/images/y.png</iconset>
+   </property>
    <property name="text">
     <string>Luma.Y</string>
    </property>
@@ -137,6 +145,10 @@
   <action name="u_action">
    <property name="checkable">
     <bool>true</bool>
+   </property>
+   <property name="icon">
+    <iconset resource="yuv_player.qrc">
+     <normaloff>:/u/images/u.png</normaloff>:/u/images/u.png</iconset>
    </property>
    <property name="text">
     <string>Chroma.U</string>
@@ -149,6 +161,10 @@
    <property name="checkable">
     <bool>true</bool>
    </property>
+   <property name="icon">
+    <iconset resource="yuv_player.qrc">
+     <normaloff>:/v/images/v.png</normaloff>:/v/images/v.png</iconset>
+   </property>
    <property name="text">
     <string>Chroma.V</string>
    </property>
@@ -159,6 +175,10 @@
   <action name="r_action">
    <property name="checkable">
     <bool>true</bool>
+   </property>
+   <property name="icon">
+    <iconset resource="yuv_player.qrc">
+     <normaloff>:/red/images/red.png</normaloff>:/red/images/red.png</iconset>
    </property>
    <property name="text">
     <string>Red</string>
@@ -171,6 +191,10 @@
    <property name="checkable">
     <bool>true</bool>
    </property>
+   <property name="icon">
+    <iconset resource="yuv_player.qrc">
+     <normaloff>:/green/images/green.png</normaloff>:/green/images/green.png</iconset>
+   </property>
    <property name="text">
     <string>Green</string>
    </property>
@@ -181,6 +205,10 @@
   <action name="b_action">
    <property name="checkable">
     <bool>true</bool>
+   </property>
+   <property name="icon">
+    <iconset resource="yuv_player.qrc">
+     <normaloff>:/blue/images/blue.png</normaloff>:/blue/images/blue.png</iconset>
    </property>
    <property name="text">
     <string>Blue</string>
@@ -198,6 +226,10 @@
    <property name="checkable">
     <bool>true</bool>
    </property>
+   <property name="icon">
+    <iconset resource="yuv_player.qrc">
+     <normaloff>:/rgb/images/rgb.png</normaloff>:/rgb/images/rgb.png</iconset>
+   </property>
    <property name="text">
     <string>Normal</string>
    </property>
@@ -208,6 +240,10 @@
   <action name="grid_nyuv_action">
    <property name="checkable">
     <bool>true</bool>
+   </property>
+   <property name="icon">
+    <iconset resource="yuv_player.qrc">
+     <normaloff>:/nyuv/images/nyuv.png</normaloff>:/nyuv/images/nyuv.png</iconset>
    </property>
    <property name="text">
     <string>Normal.Y.U.V</string>
@@ -233,6 +269,10 @@
    <property name="checkable">
     <bool>true</bool>
    </property>
+   <property name="icon">
+    <iconset resource="yuv_player.qrc">
+     <normaloff>:/nrgb/images/nrgb.png</normaloff>:/nrgb/images/nrgb.png</iconset>
+   </property>
    <property name="text">
     <string>Normal.R.G.B</string>
    </property>
@@ -245,7 +285,7 @@
     <bool>true</bool>
    </property>
    <property name="text">
-    <string>None</string>
+    <string>X</string>
    </property>
    <property name="shortcut">
     <string>Ctrl+N</string>
@@ -254,6 +294,10 @@
   <action name="fc_action">
    <property name="checkable">
     <bool>true</bool>
+   </property>
+   <property name="icon">
+    <iconset resource="yuv_player.qrc">
+     <normaloff>:/frames/images/calendar_32.png</normaloff>:/frames/images/calendar_32.png</iconset>
    </property>
    <property name="text">
     <string>Frame Count</string>
@@ -265,6 +309,10 @@
   <action name="tc_action">
    <property name="checkable">
     <bool>true</bool>
+   </property>
+   <property name="icon">
+    <iconset resource="yuv_player.qrc">
+     <normaloff>:/time/images/clock_32.png</normaloff>:/time/images/clock_32.png</iconset>
    </property>
    <property name="text">
     <string>Timecode</string>
@@ -285,6 +333,9 @@
    </property>
   </action>
   <action name="pbc_action">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
    <property name="text">
     <string>Progress Bar</string>
    </property>
@@ -293,6 +344,10 @@
    </property>
   </action>
   <action name="stereo_action">
+   <property name="icon">
+    <iconset resource="yuv_player.qrc">
+     <normaloff>:/open_stereo/images/open_stereo.png</normaloff>:/open_stereo/images/open_stereo.png</iconset>
+   </property>
    <property name="text">
     <string>Open Stereo</string>
    </property>
@@ -319,8 +374,15 @@
    <property name="checkable">
     <bool>true</bool>
    </property>
+   <property name="icon">
+    <iconset resource="yuv_player.qrc">
+     <normaloff>:/nhsleft/images/split_32_hl.png</normaloff>:/nhsleft/images/split_32_hl.png</iconset>
+   </property>
    <property name="text">
     <string>Horiz. Left</string>
+   </property>
+   <property name="iconText">
+    <string>HL</string>
    </property>
    <property name="shortcut">
     <string>Ctrl+1</string>
@@ -330,8 +392,15 @@
    <property name="checkable">
     <bool>true</bool>
    </property>
+   <property name="icon">
+    <iconset resource="yuv_player.qrc">
+     <normaloff>:/nvsleft/images/split_32_vl.png</normaloff>:/nvsleft/images/split_32_vl.png</iconset>
+   </property>
    <property name="text">
     <string>Vert. Left</string>
+   </property>
+   <property name="iconText">
+    <string>VL</string>
    </property>
    <property name="shortcut">
     <string>Ctrl+3</string>
@@ -340,6 +409,10 @@
   <action name="add_action">
    <property name="checkable">
     <bool>true</bool>
+   </property>
+   <property name="icon">
+    <iconset resource="yuv_player.qrc">
+     <normaloff>:/add/images/plus_32.png</normaloff>:/add/images/plus_32.png</iconset>
    </property>
    <property name="text">
     <string>Add</string>
@@ -352,6 +425,10 @@
    <property name="checkable">
     <bool>true</bool>
    </property>
+   <property name="icon">
+    <iconset resource="yuv_player.qrc">
+     <normaloff>:/minus/images/minus_32.png</normaloff>:/minus/images/minus_32.png</iconset>
+   </property>
    <property name="text">
     <string>Sub</string>
    </property>
@@ -362,6 +439,10 @@
   <action name="left_action">
    <property name="checkable">
     <bool>true</bool>
+   </property>
+   <property name="icon">
+    <iconset resource="yuv_player.qrc">
+     <normaloff>:/left/images/left_black_32.png</normaloff>:/left/images/left_black_32.png</iconset>
    </property>
    <property name="text">
     <string>Left</string>
@@ -374,6 +455,10 @@
    <property name="checkable">
     <bool>true</bool>
    </property>
+   <property name="icon">
+    <iconset resource="yuv_player.qrc">
+     <normaloff>:/right/images/right_green_32.png</normaloff>:/right/images/right_green_32.png</iconset>
+   </property>
    <property name="text">
     <string>Right</string>
    </property>
@@ -385,8 +470,15 @@
    <property name="checkable">
     <bool>true</bool>
    </property>
+   <property name="icon">
+    <iconset resource="yuv_player.qrc">
+     <normaloff>:/bhsleft/images/butterfly_32_hl.png</normaloff>:/bhsleft/images/butterfly_32_hl.png</iconset>
+   </property>
    <property name="text">
     <string>Horiz. Left</string>
+   </property>
+   <property name="iconText">
+    <string>HL</string>
    </property>
    <property name="shortcut">
     <string>Ctrl+5</string>
@@ -396,8 +488,15 @@
    <property name="checkable">
     <bool>true</bool>
    </property>
+   <property name="icon">
+    <iconset resource="yuv_player.qrc">
+     <normaloff>:/bvsleft/images/butterfly_32_vl.png</normaloff>:/bvsleft/images/butterfly_32_vl.png</iconset>
+   </property>
    <property name="text">
     <string>Vert. Left</string>
+   </property>
+   <property name="iconText">
+    <string>VL</string>
    </property>
    <property name="shortcut">
     <string>Ctrl+7</string>
@@ -406,6 +505,10 @@
   <action name="intleave_action">
    <property name="checkable">
     <bool>true</bool>
+   </property>
+   <property name="icon">
+    <iconset resource="yuv_player.qrc">
+     <normaloff>:/interleave/images/mixture_32.png</normaloff>:/interleave/images/mixture_32.png</iconset>
    </property>
    <property name="text">
     <string>Interleave</string>
@@ -418,8 +521,15 @@
    <property name="checkable">
     <bool>true</bool>
    </property>
+   <property name="icon">
+    <iconset resource="yuv_player.qrc">
+     <normaloff>:/nhsright/images/split_32_hr.png</normaloff>:/nhsright/images/split_32_hr.png</iconset>
+   </property>
    <property name="text">
     <string>Horiz. Right</string>
+   </property>
+   <property name="iconText">
+    <string>HR</string>
    </property>
    <property name="shortcut">
     <string>Ctrl+2</string>
@@ -429,8 +539,15 @@
    <property name="checkable">
     <bool>true</bool>
    </property>
+   <property name="icon">
+    <iconset resource="yuv_player.qrc">
+     <normaloff>:/nvsright/images/split_32_vr.png</normaloff>:/nvsright/images/split_32_vr.png</iconset>
+   </property>
    <property name="text">
     <string>Vert. Right</string>
+   </property>
+   <property name="iconText">
+    <string>VR</string>
    </property>
    <property name="shortcut">
     <string>Ctrl+4</string>
@@ -440,8 +557,15 @@
    <property name="checkable">
     <bool>true</bool>
    </property>
+   <property name="icon">
+    <iconset resource="yuv_player.qrc">
+     <normaloff>:/bhsright/images/butterfly_32_hr.png</normaloff>:/bhsright/images/butterfly_32_hr.png</iconset>
+   </property>
    <property name="text">
     <string>Horiz. Right</string>
+   </property>
+   <property name="iconText">
+    <string>HR</string>
    </property>
    <property name="shortcut">
     <string>Ctrl+6</string>
@@ -451,8 +575,15 @@
    <property name="checkable">
     <bool>true</bool>
    </property>
+   <property name="icon">
+    <iconset resource="yuv_player.qrc">
+     <normaloff>:/bvsright/images/butterfly_32_vr.png</normaloff>:/bvsright/images/butterfly_32_vr.png</iconset>
+   </property>
    <property name="text">
     <string>Vert. Right</string>
+   </property>
+   <property name="iconText">
+    <string>VR</string>
    </property>
    <property name="shortcut">
     <string>Ctrl+8</string>
@@ -467,6 +598,8 @@
    <container>1</container>
   </customwidget>
  </customwidgets>
- <resources/>
+ <resources>
+  <include location="yuv_player.qrc"/>
+ </resources>
  <connections/>
 </ui>
