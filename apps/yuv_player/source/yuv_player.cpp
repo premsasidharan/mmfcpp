@@ -491,7 +491,7 @@ void Text_helper::read_text(char* text, int length, uint64_t time)
         case Yuv_player::frames:
             {
                 int curr_frame = 1+(int)ceil(((float)time*player->left_src.fps())/1000000.0);
-                int frame_count = (int)ceil(((float)player->left_src.duration()*player->left_src.fps())/1000000.0);
+                int frame_count = (int)ceil(((float)player->video_duration()*player->left_src.fps())/1000000.0);
                 snprintf(text, length, "%d/%d", curr_frame, frame_count);
             }
             break;
