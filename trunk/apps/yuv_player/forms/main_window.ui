@@ -33,7 +33,7 @@
    </widget>
    <widget class="QMenu" name="mode_menu">
     <property name="title">
-     <string>&amp;Mode</string>
+     <string>&amp;Display</string>
     </property>
     <addaction name="y_action"/>
     <addaction name="u_action"/>
@@ -333,7 +333,7 @@
     <string>Open (&amp;Dual)</string>
    </property>
    <property name="shortcut">
-    <string>Ctrl+S</string>
+    <string>Ctrl+D</string>
    </property>
   </action>
   <action name="exit_action">
