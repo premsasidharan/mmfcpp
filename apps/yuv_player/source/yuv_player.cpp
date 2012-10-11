@@ -9,7 +9,6 @@
 #include <QString>
 #include <yuv_player.h>
 
-#include <QToolBar>
 #include <QMessageBox>
 
 Yuv_player::Yuv_player()
@@ -24,10 +23,10 @@ Yuv_player::Yuv_player()
     , sink("opengl", master.create_child("child"))
     , text_mode(Yuv_player::time)
     , text_helper(this)
-	, tool_bar(0)
-	, mode_grp(0)
-	, text_grp(0)
-	, stereo_grp(0)
+	, tool_bar(this)
+	, mode_grp(this)
+	, text_grp(this)
+	, stereo_grp(this)
 {
     init();
 }
@@ -35,6 +34,7 @@ Yuv_player::Yuv_player()
 Yuv_player::~Yuv_player()
 {
     ::disconnect(left_src, sink);
+    ::disconnect(right_src, sink);
 }
 
 void Yuv_player::init()
@@ -60,50 +60,49 @@ void Yuv_player::init_player()
 
 void Yuv_player::init_actions()
 {
-	tool_bar = new QToolBar(this);
-	addToolBar(Qt::TopToolBarArea, tool_bar);
+	addToolBar(Qt::TopToolBarArea, &tool_bar);
 
-	tool_bar->addAction(open_action);
-	tool_bar->addAction(stereo_action);
-	tool_bar->addSeparator();
+	tool_bar.addAction(open_action);
+	tool_bar.addAction(stereo_action);
+	tool_bar.addSeparator();
 
-	tool_bar->addAction(r_action);
-	tool_bar->addAction(g_action);
-	tool_bar->addAction(b_action);
-	tool_bar->addSeparator();
+	tool_bar.addAction(r_action);
+	tool_bar.addAction(g_action);
+	tool_bar.addAction(b_action);
+	tool_bar.addSeparator();
 
-	tool_bar->addAction(y_action);
-	tool_bar->addAction(u_action);
-	tool_bar->addAction(v_action);
-	tool_bar->addSeparator();
+	tool_bar.addAction(y_action);
+	tool_bar.addAction(u_action);
+	tool_bar.addAction(v_action);
+	tool_bar.addSeparator();
 
-	tool_bar->addAction(rgb_action);
-	tool_bar->addAction(grid_nyuv_action);
-	tool_bar->addAction(grid_nrgb_action);
-	tool_bar->addSeparator();
+	tool_bar.addAction(rgb_action);
+	tool_bar.addAction(grid_nyuv_action);
+	tool_bar.addAction(grid_nrgb_action);
+	tool_bar.addSeparator();
 
-	tool_bar->addAction(add_action);
-	tool_bar->addAction(sub_action);
-	tool_bar->addAction(left_action);
-	tool_bar->addAction(right_action);
-	tool_bar->addAction(intleave_action);
-	tool_bar->addSeparator();
+	tool_bar.addAction(add_action);
+	tool_bar.addAction(sub_action);
+	tool_bar.addAction(left_action);
+	tool_bar.addAction(right_action);
+	tool_bar.addAction(intleave_action);
+	tool_bar.addSeparator();
 
-	tool_bar->addAction(nhsleft_action);
-	tool_bar->addAction(nhsright_action);
-	tool_bar->addAction(nvsleft_action);
-	tool_bar->addAction(nvsright_action);
-	tool_bar->addSeparator();
+	tool_bar.addAction(nhsleft_action);
+	tool_bar.addAction(nhsright_action);
+	tool_bar.addAction(nvsleft_action);
+	tool_bar.addAction(nvsright_action);
+	tool_bar.addSeparator();
 
-	tool_bar->addAction(bhsleft_action);
-	tool_bar->addAction(bhsright_action);
-	tool_bar->addAction(bvsleft_action);
-	tool_bar->addAction(bvsright_action);
-	tool_bar->addSeparator();
+	tool_bar.addAction(bhsleft_action);
+	tool_bar.addAction(bhsright_action);
+	tool_bar.addAction(bvsleft_action);
+	tool_bar.addAction(bvsright_action);
+	tool_bar.addSeparator();
 
-	tool_bar->addAction(tc_action);
-	tool_bar->addAction(fc_action);
-	tool_bar->addAction(none_action);
+	tool_bar.addAction(tc_action);
+	tool_bar.addAction(fc_action);
+	tool_bar.addAction(none_action);
 
 	addAction(r_action);
 	addAction(g_action);
@@ -131,42 +130,38 @@ void Yuv_player::init_actions()
 	addAction(bhsleft_action);
 	addAction(bhsright_action);
 
-	mode_grp = new QActionGroup(this);
-	text_grp = new QActionGroup(this);
-	stereo_grp = new QActionGroup(this);
-
-	mode_grp->addAction(y_action);
-	mode_grp->addAction(u_action);
-	mode_grp->addAction(v_action);
-	mode_grp->addAction(r_action);
-	mode_grp->addAction(g_action);
-	mode_grp->addAction(b_action);
-	mode_grp->addAction(rgb_action);
-	mode_grp->addAction(grid_nyuv_action);
-	mode_grp->addAction(grid_nrgb_action);
-	mode_grp->setEnabled(false);
+	mode_grp.addAction(y_action);
+	mode_grp.addAction(u_action);
+	mode_grp.addAction(v_action);
+	mode_grp.addAction(r_action);
+	mode_grp.addAction(g_action);
+	mode_grp.addAction(b_action);
+	mode_grp.addAction(rgb_action);
+	mode_grp.addAction(grid_nyuv_action);
+	mode_grp.addAction(grid_nrgb_action);
+	mode_grp.setEnabled(false);
 	rgb_action->setChecked(true);
 
-	text_grp->addAction(none_action);
-	text_grp->addAction(fc_action);
-	text_grp->addAction(tc_action);
+	text_grp.addAction(none_action);
+	text_grp.addAction(fc_action);
+	text_grp.addAction(tc_action);
 	tc_action->setChecked(true);
-	text_grp->setEnabled(false);
+	text_grp.setEnabled(false);
 
-	stereo_grp->addAction(add_action);
-	stereo_grp->addAction(sub_action);
-	stereo_grp->addAction(left_action);
-	stereo_grp->addAction(right_action);
-	stereo_grp->addAction(intleave_action);
+	stereo_grp.addAction(add_action);
+	stereo_grp.addAction(sub_action);
+	stereo_grp.addAction(left_action);
+	stereo_grp.addAction(right_action);
+	stereo_grp.addAction(intleave_action);
 
-	stereo_grp->addAction(nvsleft_action);
-	stereo_grp->addAction(nvsright_action);
-	stereo_grp->addAction(nhsleft_action);
-	stereo_grp->addAction(nhsright_action);
-	stereo_grp->addAction(bvsleft_action);
-	stereo_grp->addAction(bvsright_action);
-	stereo_grp->addAction(bhsleft_action);
-	stereo_grp->addAction(bhsright_action);
+	stereo_grp.addAction(nvsleft_action);
+	stereo_grp.addAction(nvsright_action);
+	stereo_grp.addAction(nhsleft_action);
+	stereo_grp.addAction(nhsright_action);
+	stereo_grp.addAction(bvsleft_action);
+	stereo_grp.addAction(bvsright_action);
+	stereo_grp.addAction(bhsleft_action);
+	stereo_grp.addAction(bhsright_action);
 	intleave_action->setChecked(true);
 
 	y_action->setData(QVariant(Video_widget::Y));
@@ -210,9 +205,9 @@ void Yuv_player::connect_signals_slots()
 	connect(screen_action, SIGNAL(triggered()), this, SLOT(change_screen_size()));
 	connect(pbc_action, SIGNAL(triggered()), this, SLOT(show_playback_controls()));
 	connect(centralwidget, SIGNAL(pb_control(int)), this, SLOT(playback_control(int)));
-	connect(mode_grp, SIGNAL(triggered(QAction*)), this, SLOT(change_disp_mode(QAction*)));
-	connect(text_grp, SIGNAL(triggered(QAction*)), this, SLOT(change_text_mode(QAction*)));
-	connect(stereo_grp, SIGNAL(triggered(QAction*)), this, SLOT(change_stereo_mode(QAction*)));
+	connect(&mode_grp, SIGNAL(triggered(QAction*)), this, SLOT(change_disp_mode(QAction*)));
+	connect(&text_grp, SIGNAL(triggered(QAction*)), this, SLOT(change_text_mode(QAction*)));
+	connect(&stereo_grp, SIGNAL(triggered(QAction*)), this, SLOT(change_stereo_mode(QAction*)));
 	connect(centralwidget, SIGNAL(seek(uint64_t, uint64_t)), this, SLOT(slider_seek(uint64_t, uint64_t)));
 
 	connect(stereo_menu, SIGNAL(aboutToShow()), this, SLOT(update_stereo_menu()));
@@ -220,7 +215,7 @@ void Yuv_player::connect_signals_slots()
 
 void Yuv_player::update_stereo_menu()
 {
-	stereo_grp->setEnabled(view_count == 2);
+	stereo_grp.setEnabled(view_count == 2);
 }
 
 void Yuv_player::change_screen_size()
@@ -229,14 +224,14 @@ void Yuv_player::change_screen_size()
 	{
 		menuBar()->show();
 		statusBar()->show();
-		tool_bar->show();
+		tool_bar.show();
 		showNormal();
 	}
 	else
 	{
 		menuBar()->hide();
 		statusBar()->hide();
-		tool_bar->hide();
+		tool_bar.hide();
 		showFullScreen();
 	}
 }
@@ -289,8 +284,8 @@ void Yuv_player::file_open()
 			start(0, 0);
 			centralwidget->set_playback_control_state(Video_widget::Play);
 		}
-		mode_grp->setEnabled(true);
-		text_grp->setEnabled(true);
+		mode_grp.setEnabled(true);
+		text_grp.setEnabled(true);
     }
 	update_stereo_menu();
 }
@@ -314,8 +309,8 @@ void Yuv_player::file_stereo_open()
 			start(0, 0);
 			centralwidget->set_playback_control_state(Video_widget::Play);
     	}
-		mode_grp->setEnabled(true);
-		text_grp->setEnabled(true);
+		mode_grp.setEnabled(true);
+		text_grp.setEnabled(true);
     }
 	update_stereo_menu();
 }

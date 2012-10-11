@@ -12,6 +12,7 @@
 #include <QTimer>
 #include <QStack>
 #include <QSlider>
+#include <QToolBar>
 #include <QCheckBox>
 #include <QHBoxLayout>
 #include <QVBoxLayout>
@@ -45,7 +46,7 @@ private:
     Yuv_player* player;
 };
 
-class Yuv_player:public QMainWindow, public Ui_yuv_player, public Observer
+class Yuv_player:public QMainWindow, private Ui_yuv_player, public Observer
 {
     Q_OBJECT
 public:
@@ -107,10 +108,10 @@ private:
     Text_mode text_mode;
     Text_helper text_helper;
 
-	QToolBar* tool_bar;
-	QActionGroup* mode_grp;
-	QActionGroup* text_grp;
-	QActionGroup* stereo_grp;
+	QToolBar tool_bar;
+	QActionGroup mode_grp;
+	QActionGroup text_grp;
+	QActionGroup stereo_grp;
 
 	QMutex mutex;
 	QStack<QPair<uint64_t, uint64_t> > pb_stack;
