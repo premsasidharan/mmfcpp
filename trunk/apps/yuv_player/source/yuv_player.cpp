@@ -81,10 +81,10 @@ void Yuv_player::init_actions()
 	tool_bar.addAction(grid_nrgb_action);
 	tool_bar.addSeparator();
 
-	tool_bar.addAction(add_action);
-	tool_bar.addAction(sub_action);
 	tool_bar.addAction(left_action);
 	tool_bar.addAction(right_action);
+	tool_bar.addAction(add_action);
+	tool_bar.addAction(sub_action);
 	tool_bar.addAction(intleave_action);
 	tool_bar.addSeparator();
 
