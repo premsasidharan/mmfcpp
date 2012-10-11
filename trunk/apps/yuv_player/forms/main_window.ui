@@ -29,7 +29,43 @@
     </property>
     <addaction name="open_action"/>
     <addaction name="stereo_action"/>
-    <addaction name="_exit_action"/>
+    <addaction name="exit_action"/>
+   </widget>
+   <widget class="QMenu" name="mode_menu">
+    <property name="title">
+     <string>&amp;Mode</string>
+    </property>
+    <addaction name="y_action"/>
+    <addaction name="u_action"/>
+    <addaction name="v_action"/>
+    <addaction name="separator"/>
+    <addaction name="r_action"/>
+    <addaction name="g_action"/>
+    <addaction name="b_action"/>
+    <addaction name="separator"/>
+    <addaction name="rgb_action"/>
+    <addaction name="grid_nyuv_action"/>
+    <addaction name="grid_nrgb_action"/>
+   </widget>
+   <widget class="QMenu" name="stereo_menu">
+    <property name="title">
+     <string>&amp;Mixer</string>
+    </property>
+    <addaction name="left_action"/>
+    <addaction name="right_action"/>
+    <addaction name="add_action"/>
+    <addaction name="sub_action"/>
+    <addaction name="intleave_action"/>
+    <addaction name="separator"/>
+    <addaction name="nhsleft_action"/>
+    <addaction name="nhsright_action"/>
+    <addaction name="nvsleft_action"/>
+    <addaction name="nvsright_action"/>
+    <addaction name="separator"/>
+    <addaction name="bhsleft_action"/>
+    <addaction name="bhsright_action"/>
+    <addaction name="bvsleft_action"/>
+    <addaction name="bvsright_action"/>
    </widget>
    <widget class="QMenu" name="text_menu">
     <property name="title">
@@ -41,7 +77,7 @@
    </widget>
    <widget class="QMenu" name="help_menu">
     <property name="title">
-     <string>Help</string>
+     <string>&amp;Help</string>
     </property>
     <addaction name="abt_action"/>
    </widget>
@@ -49,63 +85,13 @@
     <property name="title">
      <string>&amp;View</string>
     </property>
-    <widget class="QMenu" name="mode_menu">
-     <property name="title">
-      <string>Mode</string>
-     </property>
-     <addaction name="y_action"/>
-     <addaction name="u_action"/>
-     <addaction name="v_action"/>
-     <addaction name="separator"/>
-     <addaction name="r_action"/>
-     <addaction name="g_action"/>
-     <addaction name="b_action"/>
-     <addaction name="separator"/>
-     <addaction name="rgb_action"/>
-     <addaction name="grid_nyuv_action"/>
-     <addaction name="grid_nrgb_action"/>
-    </widget>
-    <widget class="QMenu" name="stereo_menu">
-     <property name="title">
-      <string>Stereo</string>
-     </property>
-     <widget class="QMenu" name="menu_bfly">
-      <property name="title">
-       <string>Butterfly Split</string>
-      </property>
-      <addaction name="bhsleft_action"/>
-      <addaction name="bhsright_action"/>
-      <addaction name="bvsleft_action"/>
-      <addaction name="bvsright_action"/>
-     </widget>
-     <widget class="QMenu" name="menu_split">
-      <property name="title">
-       <string>Normal Split</string>
-      </property>
-      <addaction name="nhsleft_action"/>
-      <addaction name="nhsright_action"/>
-      <addaction name="nvsleft_action"/>
-      <addaction name="nvsright_action"/>
-     </widget>
-     <addaction name="left_action"/>
-     <addaction name="right_action"/>
-     <addaction name="add_action"/>
-     <addaction name="sub_action"/>
-     <addaction name="intleave_action"/>
-     <addaction name="separator"/>
-     <addaction name="menu_split"/>
-     <addaction name="separator"/>
-     <addaction name="menu_bfly"/>
-    </widget>
-    <addaction name="mode_menu"/>
-    <addaction name="separator"/>
-    <addaction name="stereo_menu"/>
-    <addaction name="separator"/>
     <addaction name="screen_action"/>
     <addaction name="pbc_action"/>
    </widget>
    <addaction name="file_menu"/>
    <addaction name="view_menu"/>
+   <addaction name="mode_menu"/>
+   <addaction name="stereo_menu"/>
    <addaction name="text_menu"/>
    <addaction name="help_menu"/>
   </widget>
@@ -120,11 +106,6 @@
    </property>
    <property name="shortcut">
     <string>Ctrl+O</string>
-   </property>
-  </action>
-  <action name="exit_action">
-   <property name="text">
-    <string>E&amp;xit</string>
    </property>
   </action>
   <action name="y_action">
@@ -349,25 +330,15 @@
      <normaloff>:/open_stereo/images/open_stereo.png</normaloff>:/open_stereo/images/open_stereo.png</iconset>
    </property>
    <property name="text">
-    <string>Open Stereo</string>
+    <string>Open (&amp;Dual)</string>
    </property>
    <property name="shortcut">
     <string>Ctrl+S</string>
    </property>
   </action>
-  <action name="_exit_action">
+  <action name="exit_action">
    <property name="text">
     <string>E&amp;xit</string>
-   </property>
-  </action>
-  <action name="actionStereo">
-   <property name="text">
-    <string>Stereo</string>
-   </property>
-  </action>
-  <action name="actionStereo_2">
-   <property name="text">
-    <string>Stereo</string>
    </property>
   </action>
   <action name="nhsleft_action">
