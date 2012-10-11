@@ -119,6 +119,15 @@
    <property name="text">
     <string>Luma.Y</string>
    </property>
+   <property name="toolTip">
+    <string>Display Y component of the video</string>
+   </property>
+   <property name="statusTip">
+    <string>Display Y component of the video</string>
+   </property>
+   <property name="whatsThis">
+    <string>Display Y component of the video</string>
+   </property>
    <property name="shortcut">
     <string>Ctrl+Y</string>
    </property>
@@ -133,6 +142,15 @@
    </property>
    <property name="text">
     <string>Chroma.U</string>
+   </property>
+   <property name="toolTip">
+    <string>Display U component of the video</string>
+   </property>
+   <property name="statusTip">
+    <string>Display U component of the video</string>
+   </property>
+   <property name="whatsThis">
+    <string>Display U component of the video</string>
    </property>
    <property name="shortcut">
     <string>Ctrl+U</string>
@@ -149,6 +167,15 @@
    <property name="text">
     <string>Chroma.V</string>
    </property>
+   <property name="toolTip">
+    <string>Display V component of the video</string>
+   </property>
+   <property name="statusTip">
+    <string>Display V component of the video</string>
+   </property>
+   <property name="whatsThis">
+    <string>Display V component of the video</string>
+   </property>
    <property name="shortcut">
     <string>Ctrl+V</string>
    </property>
@@ -163,6 +190,15 @@
    </property>
    <property name="text">
     <string>Red</string>
+   </property>
+   <property name="toolTip">
+    <string>Display the Red component of the video</string>
+   </property>
+   <property name="statusTip">
+    <string>Display the Red component of the video</string>
+   </property>
+   <property name="whatsThis">
+    <string>Display the Red component of the video</string>
    </property>
    <property name="shortcut">
     <string>Ctrl+R</string>
@@ -179,6 +215,15 @@
    <property name="text">
     <string>Green</string>
    </property>
+   <property name="toolTip">
+    <string>Display the Green component of the video</string>
+   </property>
+   <property name="statusTip">
+    <string>Display the Green component of the video</string>
+   </property>
+   <property name="whatsThis">
+    <string>Display the Green component of the video</string>
+   </property>
    <property name="shortcut">
     <string>Ctrl+G</string>
    </property>
@@ -193,6 +238,15 @@
    </property>
    <property name="text">
     <string>Blue</string>
+   </property>
+   <property name="toolTip">
+    <string>Display the Blue component of the video</string>
+   </property>
+   <property name="statusTip">
+    <string>Display the Blue component of the video</string>
+   </property>
+   <property name="whatsThis">
+    <string>Display the Blue component of the video</string>
    </property>
    <property name="shortcut">
     <string>Ctrl+B</string>
