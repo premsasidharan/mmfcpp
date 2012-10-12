@@ -56,66 +56,66 @@ public:
 
     Yuv_player();
     ~Yuv_player();
-    
+
 public:
     int stop(int& time);
     int start(int start, int end);
 
     int set_parameters(int width, int height, Media::type fmt, float fps, const char* path);
-    
+
 protected:
     void init();
-	void init_player();
-	void init_actions();
-	int set_source_parameters();
+    void init_player();
+    void init_actions();
+    int set_source_parameters();
     void connect_signals_slots();
     void closeEvent(QCloseEvent* event);
     int event_handler(Media::events event, Abstract_media_object* obj, Media_params& params);
 
-	int video_duration();
-	void disable_file_controls(bool status);
-	void add_action_group(QActionGroup* act_grp, QAction** const action, int* data, int count);
+    int video_duration();
+    void disable_file_controls(bool status);
+    void add_action_group(QActionGroup* act_grp, QAction** const action, int* data, int count);
 
 protected slots:
     void time_out();
-	void file_open();
-	void help_about();
-	void file_stereo_open();
+    void file_open();
+    void help_about();
+    void file_stereo_open();
     void one_shot_timeout();
-	void change_screen_size();
-	void update_stereo_menu();
-	void show_playback_controls();
-	void playback_control(int status);
-	void change_disp_mode(QAction* action);
-	void change_text_mode(QAction* action);
-	void change_stereo_mode(QAction* action);
-	void slider_seek(uint64_t _start, uint64_t _end);
+    void change_screen_size();
+    void update_stereo_menu();
+    void show_playback_controls();
+    void playback_control(int status);
+    void change_disp_mode(QAction* action);
+    void change_text_mode(QAction* action);
+    void change_stereo_mode(QAction* action);
+    void slider_seek(uint64_t _start, uint64_t _end);
 
 private:
-	Yuv_dlg dlg;
+    Yuv_dlg dlg;
 
     QTimer timer;
-	QTimer one_shot;
+    QTimer one_shot;
 
-	int view_count;
+    int view_count;
 
     Master_clock master;
-    
-    Yuv_file_src left_src;
-    Yuv_file_src right_src;
+
+    Yuv_file_src source1;
+    Yuv_file_src source2;
 
     Video_renderer sink;
-    
+
     Text_mode text_mode;
     Text_helper text_helper;
 
-	QToolBar tool_bar;
-	QActionGroup mode_grp;
-	QActionGroup text_grp;
-	QActionGroup stereo_grp;
+    QToolBar tool_bar;
+    QActionGroup mode_grp;
+    QActionGroup text_grp;
+    QActionGroup stereo_grp;
 
-	QMutex mutex;
-	QStack<QPair<uint64_t, uint64_t> > pb_stack;
+    QMutex mutex;
+    QStack<QPair<uint64_t, uint64_t> > pb_stack;
 };
 
 #endif
