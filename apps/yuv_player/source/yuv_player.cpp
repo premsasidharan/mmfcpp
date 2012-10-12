@@ -13,93 +13,93 @@
 
 Yuv_player::Yuv_player()
     :QMainWindow()
-	, dlg(this)
+    , dlg(this)
     , timer(this)
-	, one_shot(this)
-	, view_count(1)
+    , one_shot(this)
+    , view_count(1)
     , master("master")
-    , left_src("left_yuv")
-	, right_src("right_yuv")
+    , source1("left_yuv")
+    , source2("right_yuv")
     , sink("opengl", master.create_child("child"))
     , text_mode(Yuv_player::time)
     , text_helper(this)
-	, tool_bar(this)
-	, mode_grp(this)
-	, text_grp(this)
-	, stereo_grp(this)
+    , tool_bar(this)
+    , mode_grp(this)
+    , text_grp(this)
+    , stereo_grp(this)
 {
     init();
 }
 
 Yuv_player::~Yuv_player()
 {
-    ::disconnect(left_src, sink);
-    ::disconnect(right_src, sink);
+    ::disconnect(source1, sink);
+    ::disconnect(source2, sink);
 }
 
 void Yuv_player::init()
 {
     setupUi(this);
-	init_actions();
+    init_actions();
 
-	init_player();
+    init_player();
     connect_signals_slots();
-	update_stereo_menu();
+    update_stereo_menu();
 }
 
 void Yuv_player::init_player()
 {
     timer.setInterval(400);
-	one_shot.setInterval(300);
-	one_shot.setSingleShot(true);
-	sink.set_render_widget(video);
+    one_shot.setInterval(300);
+    one_shot.setSingleShot(true);
+    sink.set_render_widget(video);
     sink.register_text_helper(&text_helper);
     sink.attach(Media::last_pkt_rendered, this);
-    ::connect(left_src, "yuv", sink, "left");
+    ::connect(source1, "yuv", sink, "left");
 }
 
 void Yuv_player::add_action_group(QActionGroup* act_grp, QAction** const action, int* data, int count)
 {
-	for (int i = 0; i < count; i++)
-	{
-		addAction(action[i]);
-		action[i]->setData(QVariant(data[i]));
-		act_grp->addAction(action[i]);
-		tool_bar.addAction(action[i]);
-	}
+    for (int i = 0; i < count; i++)
+    {
+        addAction(action[i]);
+        action[i]->setData(QVariant(data[i]));
+        act_grp->addAction(action[i]);
+        tool_bar.addAction(action[i]);
+    }
 }
 
 void Yuv_player::init_actions()
 {
-	static int mix_data[] = {1, 2, 3, 4, 5, 6, 7, 8, 9, 26, 27, 48, 49};
-	static int txt_data[] = {Yuv_player::none, Yuv_player::time, Yuv_player::frames};
-	static int mode_data[] = {Video_widget::Y, Video_widget::U, Video_widget::V, 
-					          Video_widget::R, Video_widget::G, Video_widget::B, 
-					          Video_widget::RGB, Video_widget::GRID_NYUV, Video_widget::GRID_NRGB};
-	QAction* txt_action[] = {none_action, fc_action, tc_action};
-	QAction* mode_action[] = {y_action, u_action, v_action, r_action, g_action, b_action, 
-							  rgb_action, grid_nyuv_action, grid_nrgb_action};
-	QAction* mix_action[] = {left_action, right_action, add_action, sub_action, intleave_action, 
-							 nvsleft_action, nvsright_action, nhsleft_action, nhsright_action, 
-							 bvsleft_action, bvsright_action, bhsleft_action, bhsright_action};
+    static int mix_data[] = {1, 2, 3, 4, 5, 6, 7, 8, 9, 26, 27, 48, 49};
+    static int txt_data[] = {Yuv_player::none, Yuv_player::time, Yuv_player::frames};
+    static int mode_data[] = {Video_widget::Y, Video_widget::U, Video_widget::V, 
+                                Video_widget::R, Video_widget::G, Video_widget::B, 
+                                Video_widget::RGB, Video_widget::GRID_NYUV, Video_widget::GRID_NRGB};
+    QAction* txt_action[] = {none_action, fc_action, tc_action};
+    QAction* mode_action[] = {y_action, u_action, v_action, r_action, g_action, b_action, 
+                                rgb_action, grid_nyuv_action, grid_nrgb_action};
+    QAction* mix_action[] = {left_action, right_action, add_action, sub_action, intleave_action, 
+                                nvsleft_action, nvsright_action, nhsleft_action, nhsright_action, 
+                                bvsleft_action, bvsright_action, bhsleft_action, bhsright_action};
 
-	addToolBar(Qt::TopToolBarArea, &tool_bar);
+    addToolBar(Qt::TopToolBarArea, &tool_bar);
 
-	tool_bar.addAction(open_action);
-	tool_bar.addAction(stereo_action);
-	tool_bar.addSeparator();
-	add_action_group(&mode_grp, mode_action, mode_data, sizeof(mode_data)/sizeof(int));
-	tool_bar.addSeparator();
-	add_action_group(&stereo_grp, mix_action, mix_data, sizeof(mix_data)/sizeof(int));
-	tool_bar.addSeparator();
-	add_action_group(&text_grp, txt_action, txt_data, sizeof(txt_data)/sizeof(int));
+    tool_bar.addAction(open_action);
+    tool_bar.addAction(stereo_action);
+    tool_bar.addSeparator();
+    add_action_group(&mode_grp, mode_action, mode_data, sizeof(mode_data)/sizeof(int));
+    tool_bar.addSeparator();
+    add_action_group(&stereo_grp, mix_action, mix_data, sizeof(mix_data)/sizeof(int));
+    tool_bar.addSeparator();
+    add_action_group(&text_grp, txt_action, txt_data, sizeof(txt_data)/sizeof(int));
 
-	mode_grp.setEnabled(false);
-	text_grp.setEnabled(false);
+    mode_grp.setEnabled(false);
+    text_grp.setEnabled(false);
 
-	tc_action->setChecked(true);
-	rgb_action->setChecked(true);
-	intleave_action->setChecked(true);
+    tc_action->setChecked(true);
+    rgb_action->setChecked(true);
+    intleave_action->setChecked(true);
 }
 
 /*  tool_bar.addAction(r_action);
@@ -229,155 +229,155 @@ void Yuv_player::init_actions()
 void Yuv_player::connect_signals_slots()
 {
     connect(&timer, SIGNAL(timeout()), this, SLOT(time_out()));
-	connect(abt_action, SIGNAL(triggered()), this, SLOT(help_about()));
-	connect(open_action, SIGNAL(triggered()), this, SLOT(file_open()));
-	connect(stereo_action, SIGNAL(triggered()), this, SLOT(file_stereo_open()));
+    connect(abt_action, SIGNAL(triggered()), this, SLOT(help_about()));
+    connect(open_action, SIGNAL(triggered()), this, SLOT(file_open()));
+    connect(stereo_action, SIGNAL(triggered()), this, SLOT(file_stereo_open()));
     connect(&one_shot, SIGNAL(timeout()), this, SLOT(one_shot_timeout()));
-	connect(screen_action, SIGNAL(triggered()), this, SLOT(change_screen_size()));
-	connect(pbc_action, SIGNAL(triggered()), this, SLOT(show_playback_controls()));
-	connect(video, SIGNAL(pb_control(int)), this, SLOT(playback_control(int)));
-	connect(&mode_grp, SIGNAL(triggered(QAction*)), this, SLOT(change_disp_mode(QAction*)));
-	connect(&text_grp, SIGNAL(triggered(QAction*)), this, SLOT(change_text_mode(QAction*)));
-	connect(&stereo_grp, SIGNAL(triggered(QAction*)), this, SLOT(change_stereo_mode(QAction*)));
-	connect(video, SIGNAL(seek(uint64_t, uint64_t)), this, SLOT(slider_seek(uint64_t, uint64_t)));
+    connect(screen_action, SIGNAL(triggered()), this, SLOT(change_screen_size()));
+    connect(pbc_action, SIGNAL(triggered()), this, SLOT(show_playback_controls()));
+    connect(video, SIGNAL(pb_control(int)), this, SLOT(playback_control(int)));
+    connect(&mode_grp, SIGNAL(triggered(QAction*)), this, SLOT(change_disp_mode(QAction*)));
+    connect(&text_grp, SIGNAL(triggered(QAction*)), this, SLOT(change_text_mode(QAction*)));
+    connect(&stereo_grp, SIGNAL(triggered(QAction*)), this, SLOT(change_stereo_mode(QAction*)));
+    connect(video, SIGNAL(seek(uint64_t, uint64_t)), this, SLOT(slider_seek(uint64_t, uint64_t)));
 
-	connect(stereo_menu, SIGNAL(aboutToShow()), this, SLOT(update_stereo_menu()));
+    connect(stereo_menu, SIGNAL(aboutToShow()), this, SLOT(update_stereo_menu()));
 }
 
 void Yuv_player::update_stereo_menu()
 {
-	stereo_grp.setEnabled(view_count == 2);
+    stereo_grp.setEnabled(view_count == 2);
 }
 
 void Yuv_player::change_screen_size()
 {
-	if (isFullScreen())
-	{
-		menuBar()->show();
-		statusBar()->show();
-		tool_bar.show();
-		showNormal();
-	}
-	else
-	{
-		menuBar()->hide();
-		statusBar()->hide();
-		tool_bar.hide();
-		showFullScreen();
-	}
+    if (isFullScreen())
+    {
+        menuBar()->show();
+        statusBar()->show();
+        tool_bar.show();
+        showNormal();
+    }
+    else
+    {
+        menuBar()->hide();
+        statusBar()->hide();
+        tool_bar.hide();
+        showFullScreen();
+    }
 }
 
 void Yuv_player::change_disp_mode(QAction* action)
 {
-	Video_widget::Mode mode = (Video_widget::Mode) action->data().toInt();
-	video->set_display_mode(mode);
+    Video_widget::Mode mode = (Video_widget::Mode) action->data().toInt();
+    video->set_display_mode(mode);
 }
 
 void Yuv_player::change_text_mode(QAction* action)
 {
-	text_mode = (Yuv_player::Text_mode) action->data().toInt();
-	sink.update_pts_text();
+    text_mode = (Yuv_player::Text_mode) action->data().toInt();
+    sink.update_pts_text();
 }
 
 void Yuv_player::change_stereo_mode(QAction* action)
 {
-	int mode = action->data().toInt();
-	video->set_stereo_mode(mode);
+    int mode = action->data().toInt();
+    video->set_stereo_mode(mode);
 }
 
 void Yuv_player::show_playback_controls()
 {
-	video->show_playback_controls(!video->is_controls_visible());
+    video->show_playback_controls(!video->is_controls_visible());
 }
 
 void Yuv_player::closeEvent(QCloseEvent* event)
 {
-	(void)event;
-	::disconnect(left_src, sink);
-	::disconnect(right_src, sink);
+    (void)event;
+    ::disconnect(source1, sink);
+    ::disconnect(source2, sink);
 }
 
 void Yuv_player::file_open()
 {
-	dlg.set_stereo_mode(false);
+    dlg.set_stereo_mode(false);
     int ret = dlg.exec();
     if (ret)
     {
-		::disconnect(left_src, sink);
-		::disconnect(right_src, sink);
+        ::disconnect(source1, sink);
+        ::disconnect(source2, sink);
 
-		::connect(left_src, "yuv", sink, "left");
+        ::connect(source1, "yuv", sink, "left");
 
-		view_count = 1;
-		ret = set_source_parameters();
-		if (ret)
-		{
-			start(0, 0);
-			video->set_playback_control_state(Video_widget::Play);
-		}
-		mode_grp.setEnabled(true);
-		text_grp.setEnabled(true);
+        view_count = 1;
+        ret = set_source_parameters();
+        if (ret)
+        {
+            start(0, 0);
+            video->set_playback_control_state(Video_widget::Play);
+        }
+        mode_grp.setEnabled(true);
+        text_grp.setEnabled(true);
     }
-	update_stereo_menu();
+    update_stereo_menu();
 }
 
 void Yuv_player::file_stereo_open()
 {
-	dlg.set_stereo_mode(true);
+    dlg.set_stereo_mode(true);
     int ret = dlg.exec();
     if (ret)
     {
-		::disconnect(left_src, sink);
-		::disconnect(right_src, sink);
+        ::disconnect(source1, sink);
+        ::disconnect(source2, sink);
 
-		::connect(left_src, "yuv", sink, "left");
-		::connect(right_src, "yuv", sink, "right");
-		
-		view_count = 2;
-		ret = set_source_parameters();
-    	if (ret == 1)
-    	{	
-			start(0, 0);
-			video->set_playback_control_state(Video_widget::Play);
-    	}
-		mode_grp.setEnabled(true);
-		text_grp.setEnabled(true);
+        ::connect(source1, "yuv", sink, "left");
+        ::connect(source2, "yuv", sink, "right");
+
+        view_count = 2;
+        ret = set_source_parameters();
+        if (ret == 1)
+        {	
+            start(0, 0);
+            video->set_playback_control_state(Video_widget::Play);
+        }
+        mode_grp.setEnabled(true);
+        text_grp.setEnabled(true);
     }
-	update_stereo_menu();
+    update_stereo_menu();
 }
 
 void Yuv_player::help_about()
 {
-	QMessageBox::information(this, tr("About"), 
-			tr("yuv playback and comparison\n"
-			   "utility based on mmfcpp framework\n"
-			   "http://code.google.com/p/mmfcpp/"),
-			QMessageBox::NoButton);
+    QMessageBox::information(this, tr("About"), 
+        tr("yuv playback and comparison\n"
+           "utility based on mmfcpp framework\n"
+           "http://code.google.com/p/mmfcpp/"),
+        QMessageBox::NoButton);
 }
 
 void Yuv_player::slider_seek(uint64_t _start, uint64_t _end)
 {
-	mutex.lock();
-	pb_stack.push(QPair<uint64_t, uint64_t>(_start, _end));
-	if (!one_shot.isActive())
-	{
-		one_shot.start();
-	}
-	mutex.unlock();
+    mutex.lock();
+    pb_stack.push(QPair<uint64_t, uint64_t>(_start, _end));
+    if (!one_shot.isActive())
+    {
+        one_shot.start();
+    }
+    mutex.unlock();
 }
 
 int Yuv_player::start(int start, int end)
 {
     int ret = 0;
     timer.start();
-    ret = ::start(left_src, start, end);
-	if (view_count == 2)
-	{
-    	ret = ::start(right_src, start, end);
-	}
+    ret = ::start(source1, start, end);
+    if (view_count == 2)
+    {
+        ret = ::start(source2, start, end);
+    }
     master.start(start);
-	video->show_playback_controls(true);
-	disable_file_controls(true);
+    video->show_playback_controls(true);
+    disable_file_controls(true);
     MEDIA_LOG("\nStart: %d", start);
     return ret;
 }
@@ -386,89 +386,89 @@ int Yuv_player::stop(int& time)
 {
     int ret = 0;
     timer.stop();
-    ret = ::stop(left_src, time);
-	if (view_count == 2)
-	{
-    	ret = ::stop(right_src, time);
-	}
+    ret = ::stop(source1, time);
+    if (view_count == 2)
+    {
+        ret = ::stop(source2, time);
+    }
     uint64_t tmp = 0;
     master.stop(tmp);
-	disable_file_controls(false);
+    disable_file_controls(false);
     return ret;
 }
 
 int Yuv_player::video_duration()
 {
-	int ret = left_src.duration(); 
-	if (view_count == 2)
-	{
-		int tmp = right_src.duration();
-		ret = (ret > tmp)?tmp:ret;
-	}
-	return ret;
+    int ret = source1.duration(); 
+    if (view_count == 2)
+    {
+        int tmp = source2.duration();
+        ret = (ret > tmp)?tmp:ret;
+    }
+    return ret;
 }
 
 int Yuv_player::set_source_parameters()
 {
-    int ret = left_src.set_parameters(dlg.video_file_path(0).toAscii().data(), dlg.video_format(0), 
-				dlg.frame_rate(), dlg.video_width(0), dlg.video_height(0));
-	if (view_count == 2 && ret == 1)
-	{
-    	ret = right_src.set_parameters(dlg.video_file_path(1).toAscii().data(), dlg.video_format(1), 
-				dlg.frame_rate(), dlg.video_width(1), dlg.video_height(1));
-	}
+    int ret = source1.set_parameters(dlg.video_file_path(0).toAscii().data(), dlg.video_format(0), 
+                    dlg.frame_rate(), dlg.video_width(0), dlg.video_height(0));
+    if (view_count == 2 && ret == 1)
+    {
+        ret = source2.set_parameters(dlg.video_file_path(1).toAscii().data(), dlg.video_format(1), 
+                dlg.frame_rate(), dlg.video_width(1), dlg.video_height(1));
+    }
     if (ret == 1)
     {
-		QString fpath = dlg.video_file_path(0);
-		int i = fpath.length()-fpath.lastIndexOf('/')-1;
-		QString title = QString("yuv player - ")+fpath.right(i);
-		if (view_count == 2)
-		{
-			fpath = dlg.video_file_path(1);
-			i = fpath.length()-fpath.lastIndexOf('/')-1;
-			title = title + QString(" + ")+fpath.right(i);
-		}		
+        QString fpath = dlg.video_file_path(0);
+        int i = fpath.length()-fpath.lastIndexOf('/')-1;
+        QString title = QString("yuv player - ")+fpath.right(i);
+        if (view_count == 2)
+        {
+            fpath = dlg.video_file_path(1);
+            i = fpath.length()-fpath.lastIndexOf('/')-1;
+            title = title + QString(" + ")+fpath.right(i);
+        }		
         setWindowTitle(title);
-		video->set_slider_range(0, video_duration());
+        video->set_slider_range(0, video_duration());
     }
     return ret;
 }
 
 int Yuv_player::set_parameters(int width, int height, Media::type fmt, float fps, const char* path)
 {
-	dlg.set_parameters(0, fmt, fps, width, height, path);
-	return set_source_parameters();
+    dlg.set_parameters(0, fmt, fps, width, height, path);
+    return set_source_parameters();
 }
 
 void Yuv_player::time_out()
 {
-	video->set_slider_value(sink.current_position());
+    video->set_slider_value(sink.current_position());
 }
 
 void Yuv_player::one_shot_timeout()
 {
-	if (!pb_stack.isEmpty())
-	{
-		mutex.lock();
-		QPair<uint64_t, uint64_t> time = pb_stack.pop();
-		pb_stack.clear();
-		mutex.unlock();
-		start(time.first, time.second);
-	}
+    if (!pb_stack.isEmpty())
+    {
+        mutex.lock();
+        QPair<uint64_t, uint64_t> time = pb_stack.pop();
+        pb_stack.clear();
+        mutex.unlock();
+        start(time.first, time.second);
+    }
 }
 
 void Yuv_player::playback_control(int status)
 {
-	if (status == Video_widget::Pause)
-	{
+    if (status == Video_widget::Pause)
+    {
         int time = 0;
         stop(time);
-		video->set_playback_control_state(Video_widget::Play);
+        video->set_playback_control_state(Video_widget::Play);
     }
-	else
+    else
     {
         start(video->slider_value(), video_duration());
-		video->set_playback_control_state(Video_widget::Pause);
+        video->set_playback_control_state(Video_widget::Pause);
     }
 }
 
@@ -476,20 +476,20 @@ int Yuv_player::event_handler(Media::events event, Abstract_media_object* obj, M
 {
     (void)obj;
     (void)params;
-	if (Media::last_pkt_rendered == event)
-	{
+    if (Media::last_pkt_rendered == event)
+    {
         timer.stop();
         time_out();
-		video->update();
-		disable_file_controls(false);
+        video->update();
+        disable_file_controls(false);
     }
     return 0;
 }
 
 void Yuv_player::disable_file_controls(bool status)
 {
-	open_action->setEnabled(!status);
-	stereo_action->setEnabled(!status);
+    open_action->setEnabled(!status);
+    stereo_action->setEnabled(!status);
 }
 
 Text_helper::Text_helper(Yuv_player* p)
@@ -516,8 +516,8 @@ void Text_helper::read_text(char* text, int length, uint64_t time)
             break;
         case Yuv_player::frames:
             {
-                int curr_frame = 1+(int)ceil(((float)time*player->left_src.fps())/1000000.0);
-                int frame_count = (int)ceil(((float)player->video_duration()*player->left_src.fps())/1000000.0);
+                int curr_frame = 1+(int)ceil(((float)time*player->source1.fps())/1000000.0);
+                int frame_count = (int)ceil(((float)player->video_duration()*player->source1.fps())/1000000.0);
                 snprintf(text, length, "%d/%d", curr_frame, frame_count);
             }
             break;
