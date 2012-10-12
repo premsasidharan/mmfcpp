@@ -13,7 +13,7 @@
   <property name="windowTitle">
    <string>yuv player</string>
   </property>
-  <widget class="Video_widget" name="centralwidget"/>
+  <widget class="Video_widget" name="video"/>
   <widget class="QMenuBar" name="menubar">
    <property name="geometry">
     <rect>
@@ -319,8 +319,12 @@
    <property name="checkable">
     <bool>true</bool>
    </property>
+   <property name="icon">
+    <iconset resource="yuv_player.qrc">
+     <normaloff>:/no_text/images/no_text.png</normaloff>:/no_text/images/no_text.png</iconset>
+   </property>
    <property name="text">
-    <string>X</string>
+    <string>None</string>
    </property>
    <property name="shortcut">
     <string>Ctrl+N</string>

@@ -2,6 +2,9 @@
   <qresource prefix="rgb">
     <file>images/rgb.png</file>
   </qresource>
+  <qresource prefix="no_text">
+    <file>images/no_text.png</file>
+  </qresource>
   <qresource prefix="frames">
     <file>images/calendar_32.png</file>
   </qresource>

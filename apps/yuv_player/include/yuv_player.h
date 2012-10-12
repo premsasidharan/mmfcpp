@@ -74,6 +74,7 @@ protected:
 
 	int video_duration();
 	void disable_file_controls(bool status);
+	void add_action_group(QActionGroup* act_grp, QAction** const action, int* data, int count);
 
 protected slots:
     void time_out();
