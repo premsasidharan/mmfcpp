@@ -55,11 +55,11 @@ int main(int argc, char** argv)
         {
             file_path = path;
         }
-		ret = player.set_parameters(width, height, format, fps, file_path.toAscii().data());
-		if (ret == 1)
-		{
-			player.start(0, 0);
-		}
+        ret = player.set_parameters(width, height, format, fps, file_path.toAscii().data());
+        if (ret == 1)
+        {
+            player.start(0, 0);
+        }
     }
 
     player.show();
