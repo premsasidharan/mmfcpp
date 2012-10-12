@@ -63,6 +63,7 @@ int main(int argc, char** argv)
     }
 
     player.show();
+    player.resize(1280, 720);
     ret = app.exec();
 
     return ret;
