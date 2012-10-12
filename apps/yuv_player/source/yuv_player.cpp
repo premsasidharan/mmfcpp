@@ -74,26 +74,25 @@ void Yuv_player::init_actions()
 	static int mix_data[] = {1, 2, 3, 4, 5, 6, 7, 8, 9, 26, 27, 48, 49};
 	static int txt_data[] = {Yuv_player::none, Yuv_player::time, Yuv_player::frames};
 	static int mode_data[] = {Video_widget::Y, Video_widget::U, Video_widget::V, 
-					   Video_widget::R, Video_widget::G, Video_widget::B, 
-					   Video_widget::RGB, Video_widget::GRID_NYUV, Video_widget::GRID_NRGB};
+					          Video_widget::R, Video_widget::G, Video_widget::B, 
+					          Video_widget::RGB, Video_widget::GRID_NYUV, Video_widget::GRID_NRGB};
 	QAction* txt_action[] = {none_action, fc_action, tc_action};
 	QAction* mode_action[] = {y_action, u_action, v_action, r_action, g_action, b_action, 
 							  rgb_action, grid_nyuv_action, grid_nrgb_action};
 	QAction* mix_action[] = {left_action, right_action, add_action, sub_action, intleave_action, 
-								nvsleft_action, nvsright_action, nhsleft_action, nhsright_action, 
-								bvsleft_action, bvsright_action, bhsleft_action, bhsright_action};
+							 nvsleft_action, nvsright_action, nhsleft_action, nhsright_action, 
+							 bvsleft_action, bvsright_action, bhsleft_action, bhsright_action};
 
 	addToolBar(Qt::TopToolBarArea, &tool_bar);
 
 	tool_bar.addAction(open_action);
 	tool_bar.addAction(stereo_action);
 	tool_bar.addSeparator();
-
-	add_action_group(&mode_grp, mode_action, mode_data, 9);
+	add_action_group(&mode_grp, mode_action, mode_data, sizeof(mode_data)/sizeof(int));
 	tool_bar.addSeparator();
-	add_action_group(&stereo_grp, mix_action, mix_data, 13);
+	add_action_group(&stereo_grp, mix_action, mix_data, sizeof(mix_data)/sizeof(int));
 	tool_bar.addSeparator();
-	add_action_group(&text_grp, txt_action, txt_data, 3);
+	add_action_group(&text_grp, txt_action, txt_data, sizeof(txt_data)/sizeof(int));
 
 	mode_grp.setEnabled(false);
 	text_grp.setEnabled(false);
