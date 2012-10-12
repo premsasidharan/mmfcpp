@@ -94,6 +94,9 @@ void Yuv_player::init_actions()
     tool_bar.addSeparator();
     add_action_group(&text_grp, txt_action, txt_data, sizeof(txt_data)/sizeof(int));
 
+    addAction(pbc_action);
+    addAction(screen_action);
+
     mode_grp.setEnabled(false);
     text_grp.setEnabled(false);
 
