@@ -19,7 +19,7 @@ Video_widget::Video_widget(QWidget* parent)
 	, view_count(1)
 	, stereo_mode(5)
     , mode(Video_widget::RGB)
-	, pb_state(Video_widget::Play)
+	, pb_state(Video_widget::Init)
     , is_changed(false)
 	, is_visible(false)
     , scale(-0.75)
@@ -345,7 +345,7 @@ void Video_widget::render_playback_controls()
 			render_rectangle(-0.88, -0.89, 0.02, 0.06);
 			render_rectangle(-0.85, -0.89, 0.02, 0.06);
 		}
-		else
+		else if (Video_widget::Play == pb_state)
 		{
 			render_triangle(-0.88, -0.89, 0.09, 0.06);
 		}
@@ -457,7 +457,7 @@ void Video_widget::mouseMoveEvent(QMouseEvent* event)
 			{
 				emit seek(time, end);
 			}
-			else
+			else if (Video_widget::Play == pb_state)
 			{
 				emit seek(time, time);
 			}

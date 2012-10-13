@@ -73,17 +73,18 @@ protected:
     int event_handler(Media::events event, Abstract_media_object* obj, Media_params& params);
 
     int video_duration();
-    void disable_file_controls(bool status);
+    void update_mixer_actions();
+    void enable_file_actions(bool status);
     void add_action_group(QActionGroup* act_grp, QAction** const action, int* data, int count);
 
 protected slots:
     void time_out();
     void file_open();
     void help_about();
+    void actual_size();
     void file_stereo_open();
     void one_shot_timeout();
     void change_screen_size();
-    void update_stereo_menu();
     void show_playback_controls();
     void playback_control(int status);
     void change_disp_mode(QAction* action);
@@ -103,6 +104,7 @@ private:
 
     Yuv_file_src source1;
     Yuv_file_src source2;
+    Yuv_file_src* source[2];
 
     Video_renderer sink;
 

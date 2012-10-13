@@ -87,6 +87,7 @@
     </property>
     <addaction name="screen_action"/>
     <addaction name="pbc_action"/>
+    <addaction name="actsize_action"/>
    </widget>
    <addaction name="file_menu"/>
    <addaction name="view_menu"/>
@@ -616,6 +617,14 @@
    </property>
    <property name="shortcut">
     <string>Ctrl+8</string>
+   </property>
+  </action>
+  <action name="actsize_action">
+   <property name="text">
+    <string>Actual Size</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+A</string>
    </property>
   </action>
  </widget>
