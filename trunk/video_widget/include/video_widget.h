@@ -17,7 +17,7 @@ class Video_widget:public QGLWidget
 {
     Q_OBJECT
 public:
-	enum State {Pause, Play};
+	enum State {Init, Pause, Play};
 	enum Pos {TL, TR, BL, BR, FS};
 	enum Mode {Y, U, V, R, G, B, RGB, GRID_NYUV, GRID_NRGB};
 
