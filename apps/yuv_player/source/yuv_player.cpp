@@ -82,7 +82,7 @@ void Yuv_player::init_actions()
     QAction* txt_action[] = {none_action, fc_action, tc_action};
     QAction* mode_action[] = {y_action, u_action, v_action, r_action, g_action, b_action, 
                                 rgb_action, grid_nyuv_action, grid_nrgb_action};
-    QAction* mix_action[] = {left_action, right_action, add_action, sub_action, intleave_action, 
+    QAction* mix_action[] = {left_action, right_action, sub_action, add_action, intleave_action, 
                                 nvsleft_action, nvsright_action, nhsleft_action, nhsright_action, 
                                 bvsleft_action, bvsright_action, bhsleft_action, bhsright_action};
 
@@ -275,6 +275,7 @@ int Yuv_player::stop(int& time)
     }
     video->set_playback_control_state(Video_widget::Play);
     master.stop(tmp);
+    time_out();
     enable_file_actions(true);
     return ret;
 }
