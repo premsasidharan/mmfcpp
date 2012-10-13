@@ -75,6 +75,7 @@ void Video_renderer::update_pts_text()
     {
         text_helper->read_text(disp_text, Video_renderer::MAX_DISP_TEXT_LENGTH, curr_pos);
 		window->show_text(disp_text);
+        window->set_slider_value(curr_pos);
     }
 	else
 	{

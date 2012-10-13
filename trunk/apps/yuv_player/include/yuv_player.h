@@ -78,7 +78,6 @@ protected:
     void add_action_group(QActionGroup* act_grp, QAction** const action, int* data, int count);
 
 protected slots:
-    void time_out();
     void file_open();
     void help_about();
     void actual_size();
@@ -95,7 +94,6 @@ protected slots:
 private:
     Yuv_dlg dlg;
 
-    QTimer timer;
     QTimer one_shot;
 
     int view_count;

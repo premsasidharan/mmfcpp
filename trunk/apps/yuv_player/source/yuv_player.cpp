@@ -14,7 +14,6 @@
 Yuv_player::Yuv_player()
     :QMainWindow()
     , dlg(this)
-    , timer(this)
     , one_shot(this)
     , view_count(1)
     , master("master")
@@ -52,8 +51,7 @@ void Yuv_player::init()
 
 void Yuv_player::init_player()
 {
-    timer.setInterval(400);
-    one_shot.setInterval(300);
+    one_shot.setInterval(400);
     one_shot.setSingleShot(true);
     sink.set_render_widget(video);
     sink.register_text_helper(&text_helper);
@@ -113,7 +111,6 @@ void Yuv_player::init_actions()
 
 void Yuv_player::connect_signals_slots()
 {
-    connect(&timer, SIGNAL(timeout()), this, SLOT(time_out()));
     connect(abt_action, SIGNAL(triggered()), this, SLOT(help_about()));
     connect(open_action, SIGNAL(triggered()), this, SLOT(file_open()));
     connect(actsize_action, SIGNAL(triggered()), this, SLOT(actual_size()));
@@ -245,7 +242,6 @@ void Yuv_player::slider_seek(uint64_t _start, uint64_t _end)
 int Yuv_player::start(int start, int end)
 {
     int ret = 1;
-    timer.start();
     for (int i = 0; i < view_count; i++)
     {
         ret = /*ret &&*/ ::start(source[i], start, end);
@@ -268,14 +264,12 @@ int Yuv_player::stop(int& time)
 {
     int ret = 1;
     uint64_t tmp = 0;
-    timer.stop();
     for (int i = 0; i < view_count; i++)
     {
         ret = /*ret &&*/ ::stop(source[i], time);
     }
     video->set_playback_control_state(Video_widget::Play);
     master.stop(tmp);
-    time_out();
     enable_file_actions(true);
     return ret;
 }
@@ -328,11 +322,6 @@ int Yuv_player::set_parameters(int width, int height, Media::type fmt, float fps
     return set_source_parameters();
 }
 
-void Yuv_player::time_out()
-{
-    video->set_slider_value(sink.current_position());
-}
-
 void Yuv_player::one_shot_timeout()
 {
     if (!pb_stack.isEmpty())
@@ -364,8 +353,6 @@ int Yuv_player::event_handler(Media::events event, Abstract_media_object* obj, M
     (void)params;
     if (Media::last_pkt_rendered == event)
     {
-        timer.stop();
-        time_out();
         video->update();
         enable_file_actions(true);
     }
