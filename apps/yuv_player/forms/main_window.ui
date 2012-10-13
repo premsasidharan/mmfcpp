@@ -105,6 +105,15 @@
    <property name="text">
     <string>&amp;Open</string>
    </property>
+   <property name="toolTip">
+    <string> Open YUV File</string>
+   </property>
+   <property name="statusTip">
+    <string> Open YUV File</string>
+   </property>
+   <property name="whatsThis">
+    <string> Open YUV File</string>
+   </property>
    <property name="shortcut">
     <string>Ctrl+O</string>
    </property>
@@ -269,6 +278,15 @@
    <property name="text">
     <string>Normal</string>
    </property>
+   <property name="toolTip">
+    <string>Display the video normally</string>
+   </property>
+   <property name="statusTip">
+    <string>Display the video normally</string>
+   </property>
+   <property name="whatsThis">
+    <string>Display the video normally</string>
+   </property>
    <property name="shortcut">
     <string>F1</string>
    </property>
@@ -283,6 +301,15 @@
    </property>
    <property name="text">
     <string>Normal.Y.U.V</string>
+   </property>
+   <property name="toolTip">
+    <string>Display the video in 2x2 GRID as Normal Y, U, V components</string>
+   </property>
+   <property name="statusTip">
+    <string>Display the video in 2x2 GRID as Normal Y, U, V components</string>
+   </property>
+   <property name="whatsThis">
+    <string>Display the video in 2x2 GRID as Normal Y, U, V components</string>
    </property>
    <property name="shortcut">
     <string>F2</string>
@@ -312,6 +339,15 @@
    <property name="text">
     <string>Normal.R.G.B</string>
    </property>
+   <property name="toolTip">
+    <string>Normal.R.G.Display the video in 2x2 GRID as Normal R, G, B components</string>
+   </property>
+   <property name="statusTip">
+    <string>Normal.R.G.Display the video in 2x2 GRID as Normal R, G, B components</string>
+   </property>
+   <property name="whatsThis">
+    <string>Normal.R.G.Display the video in 2x2 GRID as Normal R, G, B components</string>
+   </property>
    <property name="shortcut">
     <string>F3</string>
    </property>
@@ -326,6 +362,15 @@
    </property>
    <property name="text">
     <string>None</string>
+   </property>
+   <property name="toolTip">
+    <string>No Text display</string>
+   </property>
+   <property name="statusTip">
+    <string>No Text display</string>
+   </property>
+   <property name="whatsThis">
+    <string>No Text display</string>
    </property>
    <property name="shortcut">
     <string>Ctrl+N</string>
@@ -342,6 +387,15 @@
    <property name="text">
     <string>Frame Count</string>
    </property>
+   <property name="toolTip">
+    <string>Display Frame Count vs Total Frames</string>
+   </property>
+   <property name="statusTip">
+    <string>Display Frame Count vs Total Frames</string>
+   </property>
+   <property name="whatsThis">
+    <string>Display Frame Count vs Total Frames</string>
+   </property>
    <property name="shortcut">
     <string>Ctrl+C</string>
    </property>
@@ -357,6 +411,15 @@
    <property name="text">
     <string>Timecode</string>
    </property>
+   <property name="toolTip">
+    <string>Display the Presentation timestamp</string>
+   </property>
+   <property name="statusTip">
+    <string>Display the Presentation timestamp</string>
+   </property>
+   <property name="whatsThis">
+    <string>Display the Presentation timestamp</string>
+   </property>
    <property name="shortcut">
     <string>Ctrl+T</string>
    </property>
@@ -364,6 +427,15 @@
   <action name="screen_action">
    <property name="text">
     <string>Full Screen</string>
+   </property>
+   <property name="toolTip">
+    <string>Switch between Normal/Full Screen modes</string>
+   </property>
+   <property name="statusTip">
+    <string>Switch between Normal/Full Screen modes</string>
+   </property>
+   <property name="whatsThis">
+    <string>Switch between Normal/Full Screen modes</string>
    </property>
    <property name="shortcut">
     <string>Ctrl+F</string>
@@ -391,6 +463,15 @@
    <property name="text">
     <string>Open (&amp;Dual)</string>
    </property>
+   <property name="toolTip">
+    <string>Open 2 YUV files for comparison or mixing</string>
+   </property>
+   <property name="statusTip">
+    <string>Open 2 YUV files for comparison or mixing</string>
+   </property>
+   <property name="whatsThis">
+    <string>Open 2 YUV files for comparison or mixing</string>
+   </property>
    <property name="shortcut">
     <string>Ctrl+D</string>
    </property>
@@ -414,6 +495,15 @@
    <property name="iconText">
     <string>HL</string>
    </property>
+   <property name="toolTip">
+    <string>Display the bottom half of first video and top half second video</string>
+   </property>
+   <property name="statusTip">
+    <string>Display the bottom half of first video and top half second video</string>
+   </property>
+   <property name="whatsThis">
+    <string>Display the bottom half of first video and top half second video</string>
+   </property>
    <property name="shortcut">
     <string>Ctrl+1</string>
    </property>
@@ -432,6 +522,15 @@
    <property name="iconText">
     <string>VL</string>
    </property>
+   <property name="toolTip">
+    <string>Display the right half of first video and left half second video</string>
+   </property>
+   <property name="statusTip">
+    <string>Display the right half of first video and left half second video</string>
+   </property>
+   <property name="whatsThis">
+    <string>Display the right half of first video and left half second video</string>
+   </property>
    <property name="shortcut">
     <string>Ctrl+3</string>
    </property>
@@ -446,6 +545,15 @@
    </property>
    <property name="text">
     <string>Add</string>
+   </property>
+   <property name="toolTip">
+    <string>Add the pixels in first and second videos</string>
+   </property>
+   <property name="statusTip">
+    <string>Add the pixels in first and second videos</string>
+   </property>
+   <property name="whatsThis">
+    <string>Add the pixels in first and second videos</string>
    </property>
    <property name="shortcut">
     <string>=</string>
@@ -462,6 +570,15 @@
    <property name="text">
     <string>Sub</string>
    </property>
+   <property name="iconText">
+    <string>Subtract the pixels of second video from first video</string>
+   </property>
+   <property name="toolTip">
+    <string>Subtract the pixels of second video from first video</string>
+   </property>
+   <property name="statusTip">
+    <string>Subtract the pixels of second video from first video</string>
+   </property>
    <property name="shortcut">
     <string>-</string>
    </property>
@@ -477,6 +594,15 @@
    <property name="text">
     <string>Left</string>
    </property>
+   <property name="toolTip">
+    <string>Show only the first video</string>
+   </property>
+   <property name="statusTip">
+    <string>Show only the first video</string>
+   </property>
+   <property name="whatsThis">
+    <string>Show only the first video</string>
+   </property>
    <property name="shortcut">
     <string>Left</string>
    </property>
@@ -491,6 +617,15 @@
    </property>
    <property name="text">
     <string>Right</string>
+   </property>
+   <property name="toolTip">
+    <string>Show only the second video</string>
+   </property>
+   <property name="statusTip">
+    <string>Show only the second video</string>
+   </property>
+   <property name="whatsThis">
+    <string>Show only the second video</string>
    </property>
    <property name="shortcut">
     <string>Right</string>
@@ -510,6 +645,15 @@
    <property name="iconText">
     <string>HL</string>
    </property>
+   <property name="toolTip">
+    <string>Display the bottom half of first video and horizontally flipped top half second video</string>
+   </property>
+   <property name="statusTip">
+    <string>Display the bottom half of first video and horizontally flipped top half second video</string>
+   </property>
+   <property name="whatsThis">
+    <string>Display the bottom half of first video and horizontally flipped top half second video</string>
+   </property>
    <property name="shortcut">
     <string>Ctrl+5</string>
    </property>
@@ -528,6 +672,15 @@
    <property name="iconText">
     <string>VL</string>
    </property>
+   <property name="toolTip">
+    <string>Display the left half of second video and vertically flipped right half of first video</string>
+   </property>
+   <property name="statusTip">
+    <string>Display the left half of second video and vertically flipped right half of first video</string>
+   </property>
+   <property name="whatsThis">
+    <string>Display the left half of second video and vertically flipped right half of first video</string>
+   </property>
    <property name="shortcut">
     <string>Ctrl+7</string>
    </property>
@@ -542,6 +695,18 @@
    </property>
    <property name="text">
     <string>Interleave</string>
+   </property>
+   <property name="iconText">
+    <string>Interleave</string>
+   </property>
+   <property name="toolTip">
+    <string>Interleave the pixels of first and second videos horizontally</string>
+   </property>
+   <property name="statusTip">
+    <string>Interleave the pixels of first and second videos horizontally</string>
+   </property>
+   <property name="whatsThis">
+    <string>Interleave the pixels of first and second videos horizontally</string>
    </property>
    <property name="shortcut">
     <string>Ctrl+I</string>
@@ -561,6 +726,15 @@
    <property name="iconText">
     <string>HR</string>
    </property>
+   <property name="toolTip">
+    <string>Display the top half of first video and bottom half second video</string>
+   </property>
+   <property name="statusTip">
+    <string>Display the top half of first video and bottom half second video</string>
+   </property>
+   <property name="whatsThis">
+    <string>Display the top half of first video and bottom half second video</string>
+   </property>
    <property name="shortcut">
     <string>Ctrl+2</string>
    </property>
@@ -578,6 +752,9 @@
    </property>
    <property name="iconText">
     <string>VR</string>
+   </property>
+   <property name="toolTip">
+    <string>Display the left half of first video and right half of second video</string>
    </property>
    <property name="shortcut">
     <string>Ctrl+4</string>
@@ -597,6 +774,15 @@
    <property name="iconText">
     <string>HR</string>
    </property>
+   <property name="toolTip">
+    <string>Display the top half of first video and horizontally flipped bottom half second video</string>
+   </property>
+   <property name="statusTip">
+    <string>Display the top half of first video and horizontally flipped bottom half second video</string>
+   </property>
+   <property name="whatsThis">
+    <string>Display the top half of first video and horizontally flipped bottom half second video</string>
+   </property>
    <property name="shortcut">
     <string>Ctrl+6</string>
    </property>
@@ -615,6 +801,15 @@
    <property name="iconText">
     <string>VR</string>
    </property>
+   <property name="toolTip">
+    <string>Display the vertically flipped left half of first video and right half of second video</string>
+   </property>
+   <property name="statusTip">
+    <string>Display the vertically flipped left half of first video and right half of second video</string>
+   </property>
+   <property name="whatsThis">
+    <string>Display the vertically flipped left half of first video and right half of second video</string>
+   </property>
    <property name="shortcut">
     <string>Ctrl+8</string>
    </property>
@@ -622,6 +817,15 @@
   <action name="actsize_action">
    <property name="text">
     <string>Actual Size</string>
+   </property>
+   <property name="toolTip">
+    <string>set the view area size to actual video size</string>
+   </property>
+   <property name="statusTip">
+    <string>set the view area size to actual video size</string>
+   </property>
+   <property name="whatsThis">
+    <string>set the view area size to actual video size</string>
    </property>
    <property name="shortcut">
     <string>Ctrl+A</string>
