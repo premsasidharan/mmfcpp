@@ -1,4 +1,4 @@
-#summary One-sentence summary of this page.
+#summary Yuv player.
 = Yuv player =
 === A simple utility for playback, comparing and mixing of uncompressed video file formats ===
 ==== Supported Formats (YUV420 YUV422 YUV444 YUY2 UYVY YV12) ====
