@@ -1,13 +1,14 @@
 #summary One-sentence summary of this page.
 
-= A simple utility for playback, comparing and mixing of uncompressed video file formats =
+= Yuv player =
+== A simple utility for playback, comparing and mixing of uncompressed video file formats ==
 
-== Supported Formats ==
-=== YUV420 ===
-=== YUV422 ===
-=== YUV444 ===
-=== YUY2 ===
-=== UYVY ===
+=== Supported Formats ===
+==== YUV420 ====
+==== YUV422 ====
+==== YUV444 ====
+==== YUY2 ====
+==== UYVY ====
 
 == Video playback ==
 [http://mmfcpp.googlecode.com/svn/wiki/images/screenshot_normal.png]
