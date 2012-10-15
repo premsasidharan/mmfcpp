@@ -1,18 +1,19 @@
 #summary One-sentence summary of this page.
 
-= Introduction =
+= A simple utility for playback, comparing and mixing of uncompressed video file formats =
 
-Add your content here.
+== Supported Formats ==
+=== YUV420 ===
+=== YUV422 ===
+=== YUV444 ===
+=== YUY2 ===
+=== UYVY ===
 
+== Video playback ==
 [http://mmfcpp.googlecode.com/svn/wiki/images/screenshot_normal.png]
 
+== Video playback with YUV color components in a grid ==
 [http://mmfcpp.googlecode.com/svn/wiki/images/screenshot_split_yuv.png]
 
+== Video playback with RGB color components in a grid ==
 [http://mmfcpp.googlecode.com/svn/wiki/images/screenshot_split_rgb.png]
-
-= Details =
-
-Add your content here.  Format your content with:
-  * Text in *bold* or _italic_
-  * Headings, paragraphs, and lists
-  * Automatic links to other wiki pages
