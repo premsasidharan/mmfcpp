@@ -4,9 +4,11 @@
 
 Add your content here.
 
-[http://mmfcpp.googlecode.com/svn/wiki/images/player_screenshots.gif]
+[http://mmfcpp.googlecode.com/svn/wiki/images/screenshot_normal.png]
 
-[http://mmfcpp.googlecode.com/svn/wiki/images/split_player.png]
+[http://mmfcpp.googlecode.com/svn/wiki/images/screenshot_split_yuv.png]
+
+[http://mmfcpp.googlecode.com/svn/wiki/images/screenshot_split_rgb.png]
 
 = Details =
 
