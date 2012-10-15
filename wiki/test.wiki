@@ -4,7 +4,7 @@
 
 Add your content here.
 
-[http://mmfcpp.googlecode.com/svn/wiki/mmfcpp.wiki]
+[mmfcpp]
 
 = Details =
 
