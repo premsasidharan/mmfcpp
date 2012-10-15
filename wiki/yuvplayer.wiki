@@ -24,7 +24,7 @@
 === Split playback between two videos (Horizontal) ===
 [http://mmfcpp.googlecode.com/svn/wiki/images/screenshot_horzsplit.png]
 
-=== Split playback between two videos and YUV components in a Grid) ===
+=== Split playback between two videos and YUV components in a Grid ===
 [http://mmfcpp.googlecode.com/svn/wiki/images/screenshot_horzsplit_gridyuv.png]
 
 === Playback with Frame count ===
