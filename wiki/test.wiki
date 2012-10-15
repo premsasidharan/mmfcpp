@@ -4,7 +4,9 @@
 
 Add your content here.
 
-[mmfcpp]
+[http://mmfcpp.googlecode.com/svn/wiki/images/player_screenshots.gif]
+
+[http://mmfcpp.googlecode.com/svn/wiki/images/split_player.png]
 
 = Details =
 
