@@ -14,3 +14,15 @@
 
 === Interlaced playback between two videos ===
 [http://mmfcpp.googlecode.com/svn/wiki/images/screenshot_interlaced.png]
+
+=== Addition of two videos ===
+[http://mmfcpp.googlecode.com/svn/wiki/images/screenshot_add.png]
+
+=== Split playback between two videos (Vertical) ===
+[http://mmfcpp.googlecode.com/svn/wiki/images/screenshot_vertsplit.png]
+
+=== Split playback between two videos (Horizontal) ===
+[http://mmfcpp.googlecode.com/svn/wiki/images/screenshot_horzsplit.png]
+
+=== Split playback between two videos and YUV components in a Grid) ===
+[http://mmfcpp.googlecode.com/svn/wiki/images/screenshot_horzsplit_gridyuv.png]
