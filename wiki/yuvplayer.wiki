@@ -11,3 +11,6 @@
 
 === Video playback with RGB color components in a grid ===
 [http://mmfcpp.googlecode.com/svn/wiki/images/screenshot_split_rgb.png]
+
+=== Interlaced playback between two videos ===
+[http://mmfcpp.googlecode.com/svn/wiki/images/screenshot_interlaced.png]
