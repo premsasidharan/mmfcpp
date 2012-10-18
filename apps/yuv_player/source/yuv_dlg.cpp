@@ -258,7 +258,7 @@ void Yuv_dlg::set_stereo_mode(bool status)
 	{
 		left_frame->hide();
 	}
-	setMinimumSize(400, status?230:120);
-	setMaximumSize(400, status?230:120);
+	setMinimumSize(450, status?300:150);
+	setMaximumSize(450, status?300:150);
 }
 
