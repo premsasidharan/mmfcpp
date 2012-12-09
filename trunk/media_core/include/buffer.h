@@ -12,10 +12,14 @@
 #include <set>
 #include <mutex.h>
 
+class Abstract_buffer_manager;
+
 class Buffer
 {
+    friend class Abstract_buffer_manager;
 private:
     Buffer(unsigned int _size, unsigned int _type, unsigned int _param_size);
+    Buffer(unsigned int _size, unsigned int _type, unsigned int _param_size, void* data, Abstract_buffer_manager* p);
     Buffer(unsigned int _start, unsigned int _size, unsigned int _type, unsigned int _param_size, Buffer* buff);
     ~Buffer();
 
@@ -41,8 +45,11 @@ public:
     unsigned long long int pts() const { return data_pts; };
     void set_pts(unsigned long long int _pts) { data_pts = _pts; };
 
-    void* data() { return buffer; };
     void* parameter() { return param; };
+
+    void map();
+    void* data();
+    void unmap();
     
     void print(int level);
     
@@ -69,6 +76,8 @@ private:
 
     Buffer* parent;
     std::set<Buffer*> children;
+    
+    Abstract_buffer_manager* buff_pool;
 };
 
 #endif

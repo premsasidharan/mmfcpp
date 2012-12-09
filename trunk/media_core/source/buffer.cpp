@@ -12,6 +12,7 @@
 
 #include <buffer.h>
 #include <buffer_private.h>
+#include <abstract_buffer_manager.h>
 
 #include <media_debug.h>
 
@@ -25,8 +26,24 @@ Buffer::Buffer(unsigned int _size, unsigned int _type, unsigned int _param_size)
     , buffer(0)
     , ref_count(1)
     , parent(0)
+    , buff_pool(0)
 {
     buffer = malloc(size);
+    param = malloc(param_size);
+}
+
+Buffer::Buffer(unsigned int _size, unsigned int _type, unsigned int _param_size, void* data, Abstract_buffer_manager* p)
+    :size(_size)
+    , data_size(0)
+    , data_type(_type)
+    , data_flag(0)
+    , param_size(_param_size)
+    , param(0)
+    , buffer(data)
+    , ref_count(1)
+    , parent(0)
+    , buff_pool(p)
+{
     param = malloc(param_size);
 }
 
@@ -40,6 +57,7 @@ Buffer::Buffer(unsigned int start, unsigned int _size, unsigned int _type, unsig
     , buffer(0)
     , ref_count(1)
     , parent(buff)
+    , buff_pool(0)
 {
     param = malloc(param_size);
     buffer = buff->buffer+start;
@@ -47,7 +65,7 @@ Buffer::Buffer(unsigned int start, unsigned int _size, unsigned int _type, unsig
 
 Buffer::~Buffer()
 {
-    if (0 == parent)
+    if (0 == parent && 0 == buff_pool)
     {
         free(buffer);
         buffer = 0;
@@ -112,7 +130,13 @@ void Buffer::release(Buffer* buffer)
     --buffer->ref_count;
     if (0 == (buffer->ref_count+buffer->children.size()))
     {
-        if (0 != buffer->parent)
+        if (0 != buffer->buff_pool)
+        {
+            buffer->mutex.unlock();
+            buffer->buff_pool->free(buffer);
+            return;
+        }
+        else if (0 != buffer->parent)
         {
             Buffer::release(buffer->parent, buffer);
         }
@@ -157,5 +181,26 @@ void Buffer::print(int level)
         itr != children.end(); itr++)
     {
         (*itr)->print(level+1);
+    }
+}
+
+void Buffer::map()
+{
+    if (0 != buff_pool)
+    {
+        buff_pool->map(this);
+    }
+}
+
+void* Buffer::data()
+{
+    return (0 == buff_pool)?buffer:buff_pool->data(this);
+}
+
+void Buffer::unmap()
+{
+    if (0 != buff_pool)
+    {
+        buff_pool->unmap(this);
     }
 }

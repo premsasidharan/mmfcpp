@@ -9,9 +9,13 @@
 #ifndef _VIDEO_WIDGET_H_
 #define _VIDEO_WIDGET_H_
 
+#include <GL/glew.h>
+
 #include <QMutex>
 #include <QGLWidget>
 #include <QGLShaderProgram>
+
+#include <gl_buffer_manager.h>
 
 class Video_widget:public QGLWidget
 {
@@ -36,12 +40,15 @@ public:
 
 	void set_stereo_mode(int mode);
 
+    State playback_state() const { return pb_state; };
 	void set_playback_control_state(State state);
 
 	void show_text(const char* text = 0);
 
 	void set_views(int views);
-    void show_frame(int view, int fmt, int width, int height, uint8_t* yuv);
+    void show_frame(int view, int fmt, int width, int height, uint8_t* yuv, GLuint gl_buff = 0);
+    
+    Abstract_buffer_manager* get_buffer_manager(int view);
 
 signals:
     void update_frame();
@@ -108,6 +115,7 @@ private:
     char* disp_text;
     GLfloat font_color[3];
 
+    GLuint gl_buffer[2];
     GLuint font_offset;
 
 	bool slide_flag;
@@ -119,6 +127,9 @@ private:
     GLint texture_int_format[2][MAX_TEXTURE_COUNT];
 
     unsigned char* texture_data[2][MAX_TEXTURE_COUNT];
+    
+    Gl_buffer_manager buff_manager1;
+    Gl_buffer_manager buff_manager2;
 
     static const char shader_program[];
 };

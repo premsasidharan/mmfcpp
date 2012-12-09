@@ -56,6 +56,8 @@ void Yuv_player::init_player()
     sink.set_render_widget(video);
     sink.register_text_helper(&text_helper);
     sink.attach(Media::last_pkt_rendered, this);
+    source1.set_buffer_manager(video->get_buffer_manager(0));
+    source2.set_buffer_manager(video->get_buffer_manager(1));
     ::connect(source1, "yuv", sink, "left");
 }
 
@@ -174,8 +176,15 @@ void Yuv_player::show_playback_controls()
 void Yuv_player::closeEvent(QCloseEvent* event)
 {
     (void)event;
+    qDebug() << "Yuv_player::closeEvent 1";
+    if (Video_widget::Init != video->playback_state())
+    {
+        int time = 0;
+        stop(time);
+    }
     ::disconnect(source1, sink);
     ::disconnect(source2, sink);
+    qDebug() << "Yuv_player::closeEvent 2";
 }
 
 void Yuv_player::file_open()
@@ -188,7 +197,7 @@ void Yuv_player::file_open()
         ::disconnect(source2, sink);
 
         ::connect(source1, "yuv", sink, "left");
-
+        
         view_count = 1;
         ret = set_source_parameters();
         if (ret)

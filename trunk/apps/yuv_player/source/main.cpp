@@ -9,6 +9,9 @@
 #include <stdlib.h>
 #include <unistd.h>
 
+#include <GL/glew.h>
+#include <QGLWidget>
+
 #include <yuv_player.h>
 
 #include <QtGui/QApplication>
@@ -31,6 +34,7 @@ int main(int argc, char** argv)
     Media::type format = Media::I420;
     int ret = 0, width = 0, height = 0;
 
+    glewInit();
     if (argc < 11)
     {
         printf("\nInsufficient arguments");

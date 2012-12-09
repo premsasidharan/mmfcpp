@@ -12,15 +12,17 @@ INCLUDEPATH += ../../media_core/include \
 			   ../../yuv_file/include \
 			   ../../yuv_file_src/include \
 			   ../../video_renderer/include \
+			   ../../gl_buffer_pool/include \
 			   ./include \
 			   ./obj \
 
-LIBS += -L/usr/lib -lpthread -lm -lsupc++ -L../../media_core/lib -lmedia_core
+LIBS += -L/usr/lib -lpthread -lm -lsupc++ -L../../media_core/lib -lmedia_core -lGLEW
 
 HEADERS = include/yuv_player.h \
           include/yuv_dlg.h \
 #          include/main_window.h \
-          ../../video_widget/include/video_widget.h
+          ../../video_widget/include/video_widget.h \
+          ../../video_widget/include/gl_buffer_manager.h
 
 FORMS = forms/player.ui \
         forms/yuv_dlg.ui \
@@ -28,7 +30,8 @@ FORMS = forms/player.ui \
 
 RESOURCES += forms/yuv_player.qrc
 
-SOURCES = ../../video_widget/source/video_widget.cpp \
+SOURCES = ../../video_widget/source/gl_buffer_manager.cpp \
+          ../../video_widget/source/video_widget.cpp \
 		  ../../video_widget/source/video_widget_shader.cpp \
 	      ../../yuv_file/source/yuv_file.cpp \
 	      ../../yuv_file/source/read_yuv_file.cpp \
