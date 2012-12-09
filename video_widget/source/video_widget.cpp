@@ -29,14 +29,18 @@ Video_widget::Video_widget(QWidget* parent)
     , disp_text(0)
     , font_offset(0)
 	, slide_flag(false)
+    , buff_manager1(this, 10)
+    , buff_manager2(this, 10)
 {
 	init();
 }
 
 void Video_widget::init()
 {
+    glewInit();
 	for (int i = 0; i < 2; i++)
 	{
+        gl_buffer[i] = 0;
     	video_width[i] = 0;
     	video_height[i] = 0;
     	texture_count[i] = 0;
@@ -157,7 +161,7 @@ void Video_widget::set_views(int views)
 	mutex.unlock();
 }
 
-void Video_widget::show_frame(int view, int fmt, int width, int height, uint8_t* yuv)
+void Video_widget::show_frame(int view, int fmt, int width, int height, uint8_t* yuv, GLuint gl_buff)
 {
 	if (view >= view_count)
 	{
@@ -165,6 +169,7 @@ void Video_widget::show_frame(int view, int fmt, int width, int height, uint8_t*
 	}
 
     mutex.lock();
+    gl_buffer[view] = gl_buff;
     if ((fmt != format[view]) || (width != video_width[view]) || (height != video_height[view]))
     {
         format[view] = fmt;
@@ -254,20 +259,24 @@ void Video_widget::render_frame(Video_widget::Pos pos, Video_widget::Mode mode)
 		program.setUniformValue("flip_2", flip2);
 		program.setUniformValue("stereo_mode", (stereo_mode%10));
     	program.setUniformValue("format_2", format_code(1));
-	}
+	}    
 
-	for (int view = 0; view < view_count; view++)
-	{
-		if (0 != texture_data[view][0])
-		{
-			for (int i = 0; i < texture_count[view]; i++)
-			{
-				glActiveTexture(GL_TEXTURE0+i+(3*view));
-				glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, texture_width[view][i], texture_height[view][i], 
-				    texture_format[view][i], GL_UNSIGNED_BYTE, texture_data[view][i]);
-			}
-		}
-	}
+    for (int view = 0; view < view_count; view++)
+    {
+        if (0 == gl_buffer[view] && 0 == texture_data[view][0])
+        {
+            continue;
+        }
+        
+        for (int i = 0; i < texture_count[view]; i++)
+        {
+            glBindBuffer(GL_PIXEL_UNPACK_BUFFER, gl_buffer[view]);
+            glActiveTexture(GL_TEXTURE0+i+(3*view));
+            glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, texture_width[view][i], texture_height[view][i], 
+                texture_format[view][i], GL_UNSIGNED_BYTE, texture_data[view][i]);
+            glBindBuffer(GL_PIXEL_UNPACK_BUFFER, 0);
+        }
+    }
 
     glEnable(GL_TEXTURE_2D);
     glBegin(GL_QUADS);
@@ -397,7 +406,7 @@ void Video_widget::paintGL()
 		render_playback_controls();
 	}
     mutex.unlock();
-    glFlush();
+    glFinish();
 }
 
 void Video_widget::resizeGL(int _width, int _height)
@@ -408,6 +417,7 @@ void Video_widget::resizeGL(int _width, int _height)
 void Video_widget::closeEvent(QCloseEvent* event)
 {
     (void)event;
+    qDebug() << "Video_widget::closeEvent";
     emit renderer_close();
 }
     
@@ -588,4 +598,8 @@ int Video_widget::format_code(int view) const
     }
     return code;
 }
-
+    
+Abstract_buffer_manager* Video_widget::get_buffer_manager(int view)
+{
+    return (view == 0)?&buff_manager1:&buff_manager2;
+}

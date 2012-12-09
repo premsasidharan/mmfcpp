@@ -17,6 +17,8 @@
 #include <yuv_parameters.h>
 #include <abstract_media_object.h>
 
+#include <abstract_buffer_manager.h>
+
 class Yuv_file_src:public Abstract_media_object
 {
 public:
@@ -28,6 +30,7 @@ public:
 public:
     int duration() const;
     float fps() const { return frame_rate; };
+    void set_buffer_manager(Abstract_buffer_manager* man);
     int set_parameters(const char* path, Media::type _fmt, float _fps, int _width, int _height);
 
 protected:
@@ -56,6 +59,8 @@ private:
     unsigned long long int start_frame;
     unsigned long long int frame_count;
     unsigned long long int total_frames;
+    
+    Abstract_buffer_manager* manager;
 
     const static Port output_port[];
 };

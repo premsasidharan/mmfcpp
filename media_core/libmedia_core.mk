@@ -20,6 +20,7 @@ SRC = source/abstract_media_object.cpp \
 	  source/media_logger.cpp \
 	  source/media_tracer.cpp \
 	  source/buffer.cpp \
+	  source/abstract_buffer_manager.cpp \
       source/mutex.cpp
  
 OBJ = $(SRC:$(SRCDIR)/%.cpp=$(OBJDIR)/%.o) 

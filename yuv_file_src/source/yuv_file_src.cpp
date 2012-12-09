@@ -38,14 +38,24 @@ Yuv_file_src::Yuv_file_src(const char* _name)
     , start_frame(0)
     , frame_count(0)
     , total_frames(0)
+    , manager(0)
 {
     MEDIA_TRACE_OBJ_PARAM("%s", _name);
     create_output_ports(output_port, 1);
+    if (0 == is_running)
+    {
+        is_running = 1;
+        thread.start(this);
+    }
 }
 
 Yuv_file_src::~Yuv_file_src()
 {
     MEDIA_TRACE_OBJ_PARAM("%s", object_name());
+    is_running = 0;
+    cv.signal();
+    thread.join();
+    MEDIA_LOG("Thread stopped: %s", object_name());
     delete file; file = 0;
 }
 
@@ -142,8 +152,21 @@ int Yuv_file_src::process_yuv_file()
         file->seek(start_frame, SEEK_SET);
         start_flag = 0;
     }
-    Buffer* buffer = Buffer::request(data_size, file->format(), sizeof(Yuv_param));
-    file->read(buffer->data(), data_size);
+    
+    Buffer* buffer = manager->request(data_size, file->format(), sizeof(Yuv_param));
+    Yuv_param *param = (Yuv_param *)buffer->parameter();
+    param->width = file->video_width();
+    param->height = file->video_height();
+    
+    buffer->map();
+    char* yuv_data = (char *) buffer->data();
+    if (0 == yuv_data)
+    {
+        MEDIA_ERROR("%s - NULL Buffer Pointer", object_name());
+    }
+    file->read(yuv_data, data_size);
+    buffer->unmap();
+    
     mutex.unlock();
     if (frame_rate > 0.0f)
     {
@@ -154,9 +177,6 @@ int Yuv_file_src::process_yuv_file()
         buffer->set_pts(0);
     }
     ++frame_count;
-    Yuv_param* param = (Yuv_param *) buffer->parameter();
-    param->width = file->video_width();
-    param->height = file->video_height();
     if (frame_count == (start_frame+1))
     {
         buffer->set_flags(FIRST_PKT);
@@ -205,20 +225,16 @@ Media::status Yuv_file_src::on_stop(int end_time)
 Media::status Yuv_file_src::on_connect(int port, Abstract_media_object* pobj)
 {
     MEDIA_TRACE_OBJ_PARAM("%s, Port: %d", object_name(), port);
-    if (0 == is_running)
-    {
-        is_running = 1;
-        thread.start(this);
-    }
     return Media::ok;
 }
 
 Media::status Yuv_file_src::on_disconnect(int port, Abstract_media_object* pobj)
 {
     MEDIA_TRACE_OBJ_PARAM("%s, Port: %d", object_name(), port);
-    is_running = 0;
-    cv.signal();
-    thread.join();
-    MEDIA_LOG("Thread stopped: %s", object_name());
     return Media::ok;
+}
+
+void Yuv_file_src::set_buffer_manager(Abstract_buffer_manager* man)
+{
+    manager = man;
 }

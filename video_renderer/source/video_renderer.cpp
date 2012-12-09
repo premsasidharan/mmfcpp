@@ -12,6 +12,8 @@
 
 #include <buffer.h>
 #include <media_debug.h>
+#include <video_widget.h>
+#include <yuv_parameters.h>
 #include <video_renderer.h>
 
 const Port Video_renderer::input_port[] = 
@@ -53,6 +55,12 @@ Video_renderer::Video_renderer(const char* _name, Child_clock* clk)
 	queue[0] = &queue1;
 	queue[1] = &queue2;
 	create_input_ports(input_port, 2);
+    
+    if (0 == is_running)
+	{
+    	is_running = 1;
+    	thread.start(this);
+	}
 }
 
 Video_renderer::~Video_renderer()
@@ -65,6 +73,14 @@ Video_renderer::~Video_renderer()
 		    Buffer::release(prev[i]);
 		    prev[i] = 0;
 		}
+	}
+    
+	if (is_running)
+	{
+    	is_running = 0;
+    	cv.signal();
+    	thread.join();
+    	MEDIA_LOG("Thread stopped: %s", object_name());
 	}
 }
 
@@ -110,7 +126,7 @@ void Video_renderer::play_video()
 		    //	(unsigned long long)buffer, buffer->pts(), parameter->width, parameter->height, "PLAY");
 			if ((video_start < video_end) && (buffer[i]->pts() < video_start || buffer[i]->pts() > video_end))
 			{
-		    	MEDIA_LOG("Video_renderer: %s, shedding buffer (pts:%lu)", object_name(), buffer[i]->pts());
+		    	MEDIA_ERROR("Video_renderer: %s, shedding buffer (pts:%lu)", object_name(), buffer[i]->pts());
 				Buffer::release(buffer[i]);
 				if (i < view_count-1)
 				{
@@ -121,12 +137,9 @@ void Video_renderer::play_video()
 					return;
 				}
 			}
-			window->show_frame(i, buffer[i]->type(), parameter[i]->width, parameter[i]->height, (uint8_t*)buffer[i]->data());
-			if (0 !=  prev[i])
-			{
-			    Buffer::release(prev[i]);
-			}
-			prev[i] = buffer[i];
+            window->show_frame(i, buffer[i]->type(), parameter[i]->width, parameter[i]->height, 
+                (0 == parameter[i]->gl_buffer)?(uint8_t*)buffer[i]->data():0, 
+                parameter[i]->gl_buffer);
 		    if (buffer[i]->flags() & LAST_PKT)
 		    {
 		        set_state(Media::stop);
@@ -138,6 +151,14 @@ void Video_renderer::play_video()
 		update_pts_text();
 		window->update();
 		child_clk->wait_for_sync(curr_pos);
+        for (int i = 0; i < view_count; i++)
+        {
+            if (0 != prev[i])
+            {
+                Buffer::release(prev[i]);
+            }
+            prev[i] = buffer[i];
+        }
         //TODO:Free Last packet
     }
     else
@@ -209,24 +230,12 @@ Media::status Video_renderer::on_connect(int port, Abstract_media_object* pobj)
 	{
 		++view_count;
 	}
-	if (0 == is_running)
-	{
-    	is_running = 1;
-    	thread.start(this);
-	}
     return Media::ok;
 }
 
 Media::status Video_renderer::on_disconnect(int port, Abstract_media_object* pobj)
 {
     MEDIA_TRACE_OBJ_PARAM("%s, port: %d", object_name(), port);
-	if (is_running)
-	{
-    	is_running = 0;
-    	cv.signal();
-    	thread.join();
-    	MEDIA_LOG("Thread stopped: %s", object_name());
-	}
 	if (view_count > 0)
 	{
 		--view_count;
@@ -307,4 +316,3 @@ void Video_renderer::flush()
 		}
 	}
 }
-

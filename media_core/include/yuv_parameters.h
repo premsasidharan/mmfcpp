@@ -13,6 +13,7 @@ struct Yuv_param
 {
     unsigned int width;
     unsigned int height;
+    unsigned int gl_buffer;
 };
 
 #endif

@@ -12,11 +12,11 @@
 #include <media.h>
 #include <thread.h>
 #include <priority_queue.h>
-#include <yuv_parameters.h>
 #include <abstract_media_object.h>
 
 #include <child_clock.h>
-#include <video_widget.h>
+
+class Video_widget;
 
 class Abstract_text_helper
 {
