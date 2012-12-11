@@ -11,28 +11,31 @@
 
 #include <GL/glew.h>
 #include <QGLWidget>
+#include <QApplication>
 
 #include <yuv_player.h>
 
-#include <QtGui/QApplication>
+#include <X11/Xlib.h>
 
-void print_usage();
+/*void print_usage();
 int find_args_index(char** argv, int size, const char* str);
 int parse_args(char** argv, int size, const char* str, int& result);
 int parse_args(char** argv, int size, const char* str, char*& result);
 int parse_args(char** argv, int size, const char* str, float& result);
-int parse_args(char** argv, int size, const char* str, Media::type& result);
+int parse_args(char** argv, int size, const char* str, Media::type& result);*/
 
 int main(int argc, char** argv)
 {
+    int ret = 0;
     MEDIA_TRACE();
+    XInitThreads();
     QApplication app(argc, argv);
 
-    float fps = 0.0;
+    //float fps = 0.0;
     Yuv_player player;
-    QString file_path = "";
+    /*QString file_path = "";
+    int width = 0, height = 0;
     Media::type format = Media::I420;
-    int ret = 0, width = 0, height = 0;
 
     glewInit();
     if (argc < 11)
@@ -64,7 +67,7 @@ int main(int argc, char** argv)
         {
             player.start(0, 0);
         }
-    }
+    }*/
 
     player.show();
     player.resize(1280, 720);
@@ -73,7 +76,7 @@ int main(int argc, char** argv)
     return ret;
 }
 
-int find_args_index(char** argv, int size, const char* str)
+/*int find_args_index(char** argv, int size, const char* str)
 {
     for (int i = 0; i < size; i++)
     {
@@ -169,5 +172,5 @@ void print_usage()
     printf("\nUsage yuv_player -p path -w width -h height -fmt format -fps frame_rate");
     printf("\nFormat - YUV420(I420)|YUV422(I422)|YUV444(I444)|YV12|YUY2|UYVY");
     printf("\nEg:- ./yuv_player -p test.yuv -w 320 -h 240 -fmt I420 -fps 24\n");   
-}
+}*/
 
