@@ -230,15 +230,14 @@ void Video_widget::draw_text(GLfloat x, GLfloat y, const char* text)
 
 void Video_widget::render_frame(Video_widget::Pos pos, Video_widget::Mode mode)
 {
-
-    static GLfloat vertex[][4][2] = {{{-1.0, 1.0}, {0.0, 1.0}, {0.0, 0.0}, {-1.0, 0.0}},
-                                     {{0.0, 1.0}, {1.0, 1.0}, {1.0, 0.0}, {0.0, 0.0}},
-                                     {{-1.0, 0.0}, {0.0, 0.0}, {0.0, -1.0}, {-1.0, -1.0}},
-                                     {{0.0, 0.0}, {1.0, 0.0}, {1.0, -1.0}, {0.0, -1.0}},
-                                     {{-1.0, 1.0}, {1.0, 1.0}, {1.0, -1.0}, {-1.0, -1.0}}};
+    static const GLfloat tex_coord[] = {0.0f, 0.0f, 1.0f, 0.0f, 1.0f, 1.0f, 0.0f, 1.0f};
+    static const GLfloat vertex_coord[][8] = {{-1.0, 1.0, 0.0, 1.0, 0.0, 0.0, -1.0, 0.0},
+                                              {0.0, 1.0, 1.0, 1.0, 1.0, 0.0, 0.0, 0.0},
+                                              {-1.0, 0.0, 0.0, 0.0, 0.0, -1.0, -1.0, -1.0},
+                                              {0.0, 0.0, 1.0, 0.0, 1.0, -1.0, 0.0, -1.0},
+                                              {-1.0, 1.0, 1.0, 1.0, 1.0, -1.0, -1.0, -1.0}};
 
     program.bind();
-
     program.setUniformValue("texture_0", 0);
     program.setUniformValue("texture_1", 1);
     program.setUniformValue("texture_2", 2);
@@ -278,15 +277,13 @@ void Video_widget::render_frame(Video_widget::Pos pos, Video_widget::Mode mode)
         }
     }
 
-    glEnable(GL_TEXTURE_2D);
-    glBegin(GL_QUADS);
-        glTexCoord2f(0.0f, 0.0f); glVertex2fv(vertex[pos][0]);
-        glTexCoord2f(1.0f, 0.0f); glVertex2fv(vertex[pos][1]);
-        glTexCoord2f(1.0f, 1.0f); glVertex2fv(vertex[pos][2]);
-        glTexCoord2f(0.0f, 1.0f); glVertex2fv(vertex[pos][3]);
-    glEnd(); 
-    glDisable(GL_TEXTURE_2D);
-
+    glEnableClientState(GL_VERTEX_ARRAY);
+    glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+    glVertexPointer(2, GL_FLOAT, 0, &vertex_coord[pos]); 
+    glTexCoordPointer(2, GL_FLOAT, 0, tex_coord);
+    glDrawArrays(GL_QUADS, 0, 4);
+    glDisableClientState(GL_VERTEX_ARRAY);
+    glDisableClientState(GL_TEXTURE_COORD_ARRAY);
     program.release();
 }
 
