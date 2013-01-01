@@ -1,12 +1,14 @@
 #summary Yuv player.
 = Yuv player =
 === A simple utility for playback, comparing and mixing of uncompressed video file formats ===
-==== Supported Formats (YUV420 YUV422 YUV444 YUY2 UYVY YV12) ====
 
+==== Supported Formats (YUV420 YUV422 YUV444 YUY2 UYVY YV12) ====
 == Installation instructions (Linux) ==
 === 1. Install libglew (sudo apt-get install libglew1.5-dev) ===
 === 2. Install Qt4 (sudo apt-get install libqt4-dev) ===
 === 3. Download the binary [http://mmfcpp.googlecode.com/svn/trunk/binaries/yuv_player] apply execution permission (chmod u+x yuv_player) ===
+
+= Screenshots =
 
 === Video playback ===
 [http://mmfcpp.googlecode.com/svn/wiki/images/screenshot_normal.png]
