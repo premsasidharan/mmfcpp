@@ -6,7 +6,7 @@
 == Installation instructions (Linux) ==
 ==== 1. Install libglew (sudo apt-get install libglew1.5-dev) ====
 ==== 2. Install Qt4 (sudo apt-get install libqt4-dev) ====
-==== 3. Download the player binary ====
+==== 3. Download yuvplayer binary ====
 [http://mmfcpp.googlecode.com/svn/trunk/binaries/yuv_player] 
 ==== 4. Change permissions (chmod u+x yuv_player) ====
 
