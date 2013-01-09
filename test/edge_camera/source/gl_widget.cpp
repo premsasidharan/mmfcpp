@@ -268,8 +268,8 @@ bool Gl_widget::init_nmes_shader()
         "out vec4 fragColor;\n"
         "uniform vec2 offset[9];\n"
         "uniform sampler2D texture_0;\n"
-        "const int first[]=int[](e_dir, ne_dir, n_dir, se_dir);\n"
-        "const int second[]=int[](w_dir, sw_dir, s_dir, nw_dir);\n"
+        "const int first[]=int[](e_dir, se_dir, n_dir, ne_dir);\n"
+        "const int second[]=int[](w_dir, nw_dir, s_dir, sw_dir);\n"
         "void main(void)\n"
         "{\n"
         "    vec2 current = vec2(texCoord.s, 1.0f-texCoord.t);\n"
@@ -574,29 +574,13 @@ void Gl_widget::paintGL()
         render_quad(yuy2_filter.attributeLocation("inTexCoord"), 0, 0, 0);
 	    yuy2_filter.release();
 
-        /*gray_filter.bind();
-        gray_filter.setUniformValue("texture_0", 2);
-	    glActiveTexture(GL_TEXTURE2);     
-        render_quad(gray_filter.attributeLocation("inTexCoord"), 1, 0, 0);
-	    gray_filter.release();*/
-
-        gray_filter.bind();
-        gray_filter.setUniformValue("texture_0", 3);
-	    glActiveTexture(GL_TEXTURE3);     
-        render_quad(gray_filter.attributeLocation("inTexCoord"), 1, 0, 0);
-	    gray_filter.release();
-
-        gray_filter.bind();
-        gray_filter.setUniformValue("texture_0", 4);
-	    glActiveTexture(GL_TEXTURE4);     
-        render_quad(gray_filter.attributeLocation("inTexCoord"), 2, 0, 0);
-	    gray_filter.release();
-
-        gray_filter.bind();
-        gray_filter.setUniformValue("texture_0", 5);
-	    glActiveTexture(GL_TEXTURE5);     
-        render_quad(gray_filter.attributeLocation("inTexCoord"), 3, 0, 0);
-	    gray_filter.release();
+        for (int i = 0; i < 3; i++)
+        {
+            gray_filter.bind();
+            gray_filter.setUniformValue("texture_0", i+3);
+            render_quad(gray_filter.attributeLocation("inTexCoord"), i+1, 0, 0);
+            gray_filter.release();
+        }
     }
 	glFinish();
 	
