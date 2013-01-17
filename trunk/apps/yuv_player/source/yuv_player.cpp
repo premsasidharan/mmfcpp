@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2011 Prem Sasidharan.
+ *  Copyright (C) 2012 Prem Sasidharan.
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -74,7 +74,10 @@ void Yuv_player::add_action_group(QActionGroup* act_grp, QAction** const action,
 
 void Yuv_player::init_actions()
 {
-    static int mix_data[] = {1, 2, 3, 4, 5, 6, 7, 8, 9, 26, 27, 48, 49};
+    static int mix_data[] = {Video_widget::VIEW_0, Video_widget::VIEW_1, Video_widget::DIFF_1_2, Video_widget::ADD, Video_widget::INT_LEAVE, 
+                             Video_widget::HORZ_SPLIT_1_2, Video_widget::HORZ_SPLIT_2_1, Video_widget::VERT_SPLIT_1_2, Video_widget::VERT_SPLIT_2_1,
+                             (0x01<<4)|Video_widget::HORZ_SPLIT_1_2, (0x01<<6)|Video_widget::HORZ_SPLIT_2_1, (0x02<<4)|Video_widget::VERT_SPLIT_1_2, 
+                             (0x02<<6)|Video_widget::VERT_SPLIT_2_1};
     static int txt_data[] = {Yuv_player::none, Yuv_player::frames, Yuv_player::time};
     static int mode_data[] = {Video_widget::Y, Video_widget::U, Video_widget::V, 
                                 Video_widget::R, Video_widget::G, Video_widget::B, 
@@ -164,7 +167,7 @@ void Yuv_player::change_text_mode(QAction* action)
 
 void Yuv_player::change_stereo_mode(QAction* action)
 {
-    int mode = action->data().toInt();
+    int mode = (0 == action)?Video_widget::NONE:action->data().toInt();
     video->set_stereo_mode(mode);
 }
 
@@ -176,7 +179,6 @@ void Yuv_player::show_playback_controls()
 void Yuv_player::closeEvent(QCloseEvent* event)
 {
     (void)event;
-    qDebug() << "Yuv_player::closeEvent 1";
     if (Video_widget::Init != video->playback_state())
     {
         int time = 0;
@@ -184,7 +186,6 @@ void Yuv_player::closeEvent(QCloseEvent* event)
     }
     ::disconnect(source1, sink);
     ::disconnect(source2, sink);
-    qDebug() << "Yuv_player::closeEvent 2";
 }
 
 void Yuv_player::file_open()
@@ -297,14 +298,15 @@ int Yuv_player::video_duration()
 int Yuv_player::set_source_parameters()
 {
     int ret = 1;
-    QString title("yuv player -");
+    QString title("yuv player - ");
     for (int i = 0; i < view_count; i++)
     {
         ret = ret && source[i]->set_parameters(dlg.video_file_path(i).toAscii().data(), dlg.video_format(i), 
                     dlg.frame_rate(), dlg.video_width(i), dlg.video_height(i));
         QString fpath = dlg.video_file_path(i);
         int index = fpath.length()-fpath.lastIndexOf('/')-1;
-        title = title+" "+fpath.right(index);
+        title += fpath.right(index);
+        title += (i < (view_count-1))?" & ":"";
     }
 
     if (ret == 1)
@@ -321,6 +323,7 @@ int Yuv_player::set_source_parameters()
 
         video->show_playback_controls(true);
         update_mixer_actions();
+        change_stereo_mode((view_count == 1)?0:stereo_grp.checkedAction());
     }
     return ret;
 }

@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2011 Prem Sasidharan.
+ *  Copyright (C) 2012 Prem Sasidharan.
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -24,6 +24,9 @@ public:
 	enum State {Init, Pause, Play};
 	enum Pos {TL, TR, BL, BR, FS};
 	enum Mode {Y, U, V, R, G, B, RGB, GRID_NYUV, GRID_NRGB};
+    enum {BLEND = 0x0100, SPLIT = 0x0200};
+    enum Stereo_mode {NONE = 0x00, VIEW_0 = BLEND|0x01, VIEW_1 = BLEND|0x02, ADD = BLEND|0x03, DIFF_1_2 = BLEND|0x04, INT_LEAVE = SPLIT|0x01,
+                      HORZ_SPLIT_1_2 = SPLIT|0x02, HORZ_SPLIT_2_1 = SPLIT|0x03, VERT_SPLIT_1_2 = SPLIT|0x04, VERT_SPLIT_2_1 = SPLIT|0x05};
 
     Video_widget(QWidget* parent = 0);
     ~Video_widget();
@@ -45,7 +48,6 @@ public:
 
 	void show_text(const char* text = 0);
 
-	void set_views(int views);
     void show_frame(int view, int fmt, int width, int height, uint8_t* yuv, GLuint gl_buff = 0);
     
     Abstract_buffer_manager* get_buffer_manager(int view);
@@ -59,8 +61,13 @@ signals:
 protected:
 	void init();
     void paintGL();
+    void init_shader();
     void initializeGL();
     void resizeGL(int width, int height);
+    
+    bool init_yuv_rgb_shader();
+    bool init_yuv_rgb_blend_shader();
+    bool init_yuv_rgb_split_shader();
 
     void create_font_disp_lists();
 
@@ -87,6 +94,9 @@ protected:
 
     void draw_text(GLfloat x, GLfloat y, const char* text);
 
+    void setup_shader(int i, int sid, Video_widget::Mode mode);
+    void texture_ids(int fmt, int& id0, int& id1, int& id2);
+
 private:
     QMutex mutex;
 
@@ -106,7 +116,11 @@ private:
 
     float scale;
     int texture_count[2];
-    QGLShaderProgram program;
+    QGLShaderProgram* program[3];
+
+    QGLShaderProgram yuv_rgb;
+    QGLShaderProgram yuv_rgb_blend;
+    QGLShaderProgram yuv_rgb_split;
 
     enum {MAX_TEXTURE_COUNT = 3};
 
@@ -131,7 +145,15 @@ private:
     Gl_buffer_manager buff_manager1;
     Gl_buffer_manager buff_manager2;
 
-    static const char shader_program[];
+    static const GLfloat pos_coeff[][4];
+    static const GLfloat yuv_coeff[][7];
+    static const GLfloat rgb_coeff[][12];
+    static const GLfloat blend_coeff[][6];
+
+    static const char vertex_shader_text[];
+    static const char yuv_rgb_shader_text[];
+    static const char yuv_rgb_blend_shader_text[];
+    static const char yuv_rgb_split_shader_text[];
 };
 
 #endif

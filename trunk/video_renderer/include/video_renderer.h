@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2011 Prem Sasidharan.
+ *  Copyright (C) 2012 Prem Sasidharan.
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
