@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2011 Prem Sasidharan.
+ *  Copyright (C) 2012 Prem Sasidharan.
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -208,7 +208,6 @@ Media::status Video_renderer::on_start(int start, int end)
 	video_end = end;
 	video_start = start;
     set_state(Media::play);
-	window->set_views(view_count);
     cv.signal();
     return Media::ok;
 }

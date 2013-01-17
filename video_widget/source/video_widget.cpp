@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2011 Prem Sasidharan.
+ *  Copyright (C) 2012 Prem Sasidharan.
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -17,13 +17,15 @@
 Video_widget::Video_widget(QWidget* parent)
     :QGLWidget(parent)
 	, view_count(1)
-	, stereo_mode(5)
+	, stereo_mode(Video_widget::INT_LEAVE)
     , mode(Video_widget::RGB)
 	, pb_state(Video_widget::Init)
     , is_changed(false)
 	, is_visible(false)
     , scale(-0.75)
-    , program(this)
+    , yuv_rgb(this)
+    , yuv_rgb_blend(this)
+    , yuv_rgb_split(this)
     , char_width(0)
     , char_height(0)
     , disp_text(0)
@@ -37,7 +39,6 @@ Video_widget::Video_widget(QWidget* parent)
 
 void Video_widget::init()
 {
-    glewInit();
 	for (int i = 0; i < 2; i++)
 	{
         gl_buffer[i] = 0;
@@ -71,6 +72,7 @@ void Video_widget::set_stereo_mode(int mode)
 {
     mutex.lock();
     stereo_mode = mode;
+    view_count = (Video_widget::NONE == stereo_mode)?1:2;
 	mutex.unlock();
     update();
 
@@ -154,13 +156,6 @@ void Video_widget::set_texture_data(int i, uint8_t* yuv)
     }
 }
 
-void Video_widget::set_views(int views)
-{
-	mutex.lock();
-	view_count = views;
-	mutex.unlock();
-}
-
 void Video_widget::show_frame(int view, int fmt, int width, int height, uint8_t* yuv, GLuint gl_buff)
 {
 	if (view >= view_count)
@@ -183,15 +178,77 @@ void Video_widget::show_frame(int view, int fmt, int width, int height, uint8_t*
     //emit update_frame();
 }
 
+bool Video_widget::init_yuv_rgb_shader()
+{
+    yuv_rgb.bindAttributeLocation("inVertex", 0);
+    yuv_rgb.bindAttributeLocation("inTexCoord", 1);
+    yuv_rgb.bindAttributeLocation("texCoord", 2);
+    yuv_rgb.bindAttributeLocation("fragColor", 3);
+
+    bool status = yuv_rgb.addShaderFromSourceCode(QGLShader::Vertex, vertex_shader_text);
+    status = status && yuv_rgb.addShaderFromSourceCode(QGLShader::Fragment, yuv_rgb_shader_text);
+    glBindFragDataLocation(yuv_rgb.programId(), 0, "fragColor");
+    status = status && yuv_rgb.link();
+
+    return status;
+}
+
+bool Video_widget::init_yuv_rgb_blend_shader()
+{
+    yuv_rgb_blend.bindAttributeLocation("inVertex", 0);
+    yuv_rgb_blend.bindAttributeLocation("inTexCoord", 1);
+    yuv_rgb_blend.bindAttributeLocation("texCoord", 2);
+    yuv_rgb_blend.bindAttributeLocation("fragColor", 3);
+
+    bool status = yuv_rgb_blend.addShaderFromSourceCode(QGLShader::Vertex, vertex_shader_text);
+    status = status && yuv_rgb_blend.addShaderFromSourceCode(QGLShader::Fragment, yuv_rgb_blend_shader_text);
+    glBindFragDataLocation(yuv_rgb_blend.programId(), 0, "fragColor");
+    status = status && yuv_rgb_blend.link();
+
+    return status;
+}
+
+bool Video_widget::init_yuv_rgb_split_shader()
+{
+    yuv_rgb_split.bindAttributeLocation("inVertex", 0);
+    yuv_rgb_split.bindAttributeLocation("inTexCoord", 1);
+    yuv_rgb_split.bindAttributeLocation("texCoord", 2);
+    yuv_rgb_split.bindAttributeLocation("fragColor", 3);
+
+    bool status = yuv_rgb_split.addShaderFromSourceCode(QGLShader::Vertex, vertex_shader_text);
+    status = status && yuv_rgb_split.addShaderFromSourceCode(QGLShader::Fragment, yuv_rgb_split_shader_text);
+    glBindFragDataLocation(yuv_rgb_split.programId(), 0, "fragColor");
+    status = status && yuv_rgb_split.link();
+
+    return status;
+}
+
+void Video_widget::init_shader()
+{
+    bool status = init_yuv_rgb_shader();
+    status = status && init_yuv_rgb_blend_shader();
+    status = status && init_yuv_rgb_split_shader();
+    if (false == status)
+    {
+        exit(0);
+    }
+    else
+    {
+        program[0] = &yuv_rgb;
+        program[1] = &yuv_rgb_blend;
+        program[2] = &yuv_rgb_split;
+    }
+}
+
 void Video_widget::initializeGL()
 {
+    glewInit();
     glGenTextures(3, texture[0]);
     glGenTextures(3, texture[1]);
     glClearColor(0.0, 0.0, 0.0, 0.0);
     glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
     create_font_disp_lists();
-    program.addShaderFromSourceCode(QGLShader::Fragment, shader_program);
-    program.link();
+    init_shader();
 }
 
 void Video_widget::create_font_disp_lists()
@@ -228,6 +285,71 @@ void Video_widget::draw_text(GLfloat x, GLfloat y, const char* text)
 	glCallLists(strlen(text), GL_UNSIGNED_BYTE, (GLubyte *) text);
 }
 
+void Video_widget::texture_ids(int fmt, int& id0, int& id1, int& id2)
+{
+    switch (fmt)
+    {
+        case Media::YUY2:
+        case Media::UYVY:
+            id0 = 0;
+            id1 = 1;
+            id2 = 1;
+            break;
+        case Media::YV12:
+        case Media::I420:
+        case Media::I422:
+        case Media::I444:
+            id0 = 0;
+            id1 = 1;
+            id2 = 2;
+            break;
+    }
+}
+
+void Video_widget::setup_shader(int id, int sid, Video_widget::Mode mode)
+{
+    int t0, t1, t2;
+
+    texture_ids(format[0], t0, t1, t2);
+
+    program[id]->bind();
+    program[id]->setUniformValue("texture_0", t0);
+    program[id]->setUniformValue("texture_1", t1);
+    program[id]->setUniformValue("texture_2", t2);
+    switch (id)
+    {
+        case 0:
+            program[id]->setUniformValueArray("pos_coeff", pos_coeff[0], 4, 1); 
+            program[id]->setUniformValueArray("yuv_coeff", yuv_coeff[format_code(0)], 7, 1); 
+            program[id]->setUniformValueArray("rgb_coeff", rgb_coeff[mode], 12, 1); 
+            break;
+        case 1:
+            texture_ids(format[1], t0, t1, t2);
+            program[id]->setUniformValueArray("pos_coeff", pos_coeff[0], 4, 1); 
+            program[id]->setUniformValueArray("yuv_coeff1", yuv_coeff[format_code(0)], 7, 1); 
+            program[id]->setUniformValueArray("yuv_coeff2", yuv_coeff[format_code(1)], 7, 1); 
+            program[id]->setUniformValueArray("rgb_coeff", rgb_coeff[mode], 12, 1); 
+            program[id]->setUniformValueArray("blend_coeff", blend_coeff[sid-1], 6, 1); 
+            program[id]->setUniformValue("texture_3", 3+t0);
+            program[id]->setUniformValue("texture_4", 3+t1);
+            program[id]->setUniformValue("texture_5", 3+t2);
+            break;
+        case 2:
+            texture_ids(format[1], t0, t1, t2);
+		    program[id]->setUniformValue("stereo_mode", (sid&0X0F));
+            program[id]->setUniformValueArray("pos_coeff1", pos_coeff[(sid&0x30)>>4], 4, 1); 
+            program[id]->setUniformValueArray("pos_coeff2", pos_coeff[(sid&0xC0)>>6], 4, 1); 
+            program[id]->setUniformValueArray("yuv_coeff1", yuv_coeff[format_code(0)], 7, 1); 
+            program[id]->setUniformValueArray("yuv_coeff2", yuv_coeff[format_code(1)], 7, 1); 
+            program[id]->setUniformValueArray("rgb_coeff", rgb_coeff[mode], 12, 1); 
+            program[id]->setUniformValue("texture_3", 3+t0);
+            program[id]->setUniformValue("texture_4", 3+t1);
+            program[id]->setUniformValue("texture_5", 3+t2);
+            break;
+    }
+
+}
+
 void Video_widget::render_frame(Video_widget::Pos pos, Video_widget::Mode mode)
 {
     static const GLfloat tex_coord[] = {0.0f, 0.0f, 1.0f, 0.0f, 1.0f, 1.0f, 0.0f, 1.0f};
@@ -237,28 +359,10 @@ void Video_widget::render_frame(Video_widget::Pos pos, Video_widget::Mode mode)
                                               {0.0, 0.0, 1.0, 0.0, 1.0, -1.0, 0.0, -1.0},
                                               {-1.0, 1.0, 1.0, 1.0, 1.0, -1.0, -1.0, -1.0}};
 
-    program.bind();
-    program.setUniformValue("texture_0", 0);
-    program.setUniformValue("texture_1", 1);
-    program.setUniformValue("texture_2", 2);
-    program.setUniformValue("flip_1", 0);
-    program.setUniformValue("format_1", format_code(0));
-    program.setUniformValue("mode", mode);
-    program.setUniformValue("views", view_count);
+    int id = (view_count == 1)?0:(stereo_mode>>8);
+    int sid = (stereo_mode&0xFF);
 
-	if (view_count > 1)
-	{
-		int flip1 = (stereo_mode/10)&0x3;
-		int flip2 = ((stereo_mode/10)&0xC)>>2;
-    	program.setUniformValue("texture_3", 3);
-    	program.setUniformValue("texture_4", 4);
-    	program.setUniformValue("texture_5", 5);
-
-		program.setUniformValue("flip_1", flip1);
-		program.setUniformValue("flip_2", flip2);
-		program.setUniformValue("stereo_mode", (stereo_mode%10));
-    	program.setUniformValue("format_2", format_code(1));
-	}    
+    setup_shader(id, sid, mode);
 
     for (int view = 0; view < view_count; view++)
     {
@@ -277,14 +381,18 @@ void Video_widget::render_frame(Video_widget::Pos pos, Video_widget::Mode mode)
         }
     }
 
+    int loc = program[id]->attributeLocation("inTexCoord");
     glEnableClientState(GL_VERTEX_ARRAY);
     glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+    glEnableVertexAttribArray(loc);
     glVertexPointer(2, GL_FLOAT, 0, &vertex_coord[pos]); 
     glTexCoordPointer(2, GL_FLOAT, 0, tex_coord);
+    glVertexAttribPointer(loc, 2, GL_FLOAT, GL_FALSE, 0, tex_coord); 
     glDrawArrays(GL_QUADS, 0, 4);
+    glDisableVertexAttribArray(loc);
     glDisableClientState(GL_VERTEX_ARRAY);
     glDisableClientState(GL_TEXTURE_COORD_ARRAY);
-    program.release();
+    program[id]->release();
 }
 
 void Video_widget::render_text()
@@ -360,10 +468,6 @@ void Video_widget::render_playback_controls()
 
 void Video_widget::paintGL()
 {
-    if (false == program.isLinked())
-    {
-        return;
-    }
     mutex.lock();
 	if (video_width[0] == 0 || video_height[0] == 0)
 	{
@@ -575,22 +679,22 @@ void Video_widget::create_i420_textures(int view)
 
 int Video_widget::format_code(int view) const
 {
-    int code = 1;
+    int code = 0;
     switch (format[view])
     {
         case Media::YV12:
         case Media::I420:
         case Media::I422:
         case Media::I444:
-            code = 1;
+            code = 0;
             break;
 
         case Media::YUY2:	
-            code = 2;		
+            code = 1;		
             break;
 
         case Media::UYVY:
-            code = 3;
+            code = 2;
             break;
     }
     return code;
