@@ -8,14 +8,12 @@ QT += opengl
 DEPENDPATH += .
 INCLUDEPATH += ./include ../../camera/include ./obj
 
-HEADERS = ../../camera/include/camera.h \
+HEADERS = ../../camera/include/v4li_camera.h \
           include/gl_widget.h \
-          include/offline_widget.h \
           include/gl_thread.h
 
-SOURCES = ../../camera/source/camera.cpp \
+SOURCES = ../../camera/source/v4li_camera.cpp \
           source/gl_widget.cpp \
-          source/offline_widget.cpp \
           source/gl_thread.cpp \
           source/main.cpp
 

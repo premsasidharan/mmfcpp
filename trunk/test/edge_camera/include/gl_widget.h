@@ -9,9 +9,9 @@
 #include <QGLShader>
 #include <QGLShaderProgram>
 
-#include <offline_widget.h>
+#include <gl_thread.h>
 
-class Gl_widget: public QGLWidget
+class Gl_widget:public QGLWidget
 {
     Q_OBJECT
 public:
@@ -40,16 +40,15 @@ protected:
     void closeEvent(QCloseEvent* event);
     
 protected slots:
-    void render_frame();
+    void render_frame(uint8_t* data);
 
 private:
     GLuint fb_id;
-    
-    GLuint buff_id;
-    GLuint prev_id;
 
     int video_width;
     int video_height;
+
+    uint8_t* yuv_data;
 
     GLuint y_texture;
     GLuint uv_texture;
@@ -63,9 +62,10 @@ private:
     QGLShaderProgram yuy2_filter;
     QGLShaderProgram edge_filter;
     QGLShaderProgram binary_filter;
-    QGLShaderProgram smooth_filter;
+    QGLShaderProgram smooth_filter;    
 
-    Offline_widget offline;
+    QMutex mutex;
+    Gl_thread thread;
 
     static const GLfloat tex_coord[];
     static const GLfloat vertex_coord[][8];
