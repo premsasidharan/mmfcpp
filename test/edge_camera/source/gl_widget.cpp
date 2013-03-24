@@ -23,10 +23,9 @@ const GLfloat Gl_widget::gauss_coeffs[] = {(2.0/159.0), (4.0/159.0), (5.0/159.0)
 Gl_widget::Gl_widget(int width, int height, const QString& path, QGLFormat& fmt, QWidget* parent)
 	:QGLWidget(fmt, parent)
     , fb_id(0)
-    , buff_id(0)
-    , prev_id(0)
     , video_width(width)
     , video_height(height)
+    , yuv_data(0)
     , y_texture(0)
     , uv_texture(0)
     , nmes_texture(0)
@@ -38,7 +37,7 @@ Gl_widget::Gl_widget(int width, int height, const QString& path, QGLFormat& fmt,
     , edge_filter(this)
     , binary_filter(this)
     , smooth_filter(this)
-    , offline(width, height, path, this, this)
+    , thread(width, height, path)
 {
     setWindowTitle("Camera: "+path);
 	setFocusPolicy(Qt::StrongFocus);
@@ -369,7 +368,9 @@ void Gl_widget::initializeGL()
     glClearColor(0.0, 0.0, 0.0, 0.0);
     glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
 
-    connect(&offline, SIGNAL(update_widget()), this, SLOT(render_frame()));
+    connect(&thread, SIGNAL(update_widget(uint8_t*)), this, SLOT(render_frame(uint8_t*)));
+
+    thread.start();
 }
 
 void Gl_widget::init_yuv_textures()
@@ -469,11 +470,10 @@ void Gl_widget::render_to_texture()
     smooth_filter.setUniformValueArray("coeffs", gauss_coeffs, 25, 1); 
     smooth_filter.setUniformValueArray("coords", coords, 25, 2); 
 
-    glBindBuffer(GL_PIXEL_UNPACK_BUFFER, buff_id);
-	glActiveTexture(GL_TEXTURE0);
+    glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, y_texture);
-    glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, video_width, video_height, GL_LUMINANCE_ALPHA, GL_UNSIGNED_BYTE, 0);
-    glBindBuffer(GL_PIXEL_UNPACK_BUFFER, 0);
+    glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, video_width, video_height, GL_LUMINANCE_ALPHA, GL_UNSIGNED_BYTE, yuv_data);
+
     render_quad(smooth_filter.attributeLocation("inTexCoord"), 4, fbo_buffs, 1);
     smooth_filter.release();
     glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
@@ -539,7 +539,7 @@ void Gl_widget::render_quad(int loc, int id, GLuint* fbo_buffs, int size)
 
 void Gl_widget::paintGL()
 {
-    if (0 == prev_id)
+    if (0 == yuv_data)
     {
         glBegin(GL_QUADS);
             glVertex2f(-1.0f, 1.0f);    // Top Left
@@ -549,8 +549,7 @@ void Gl_widget::paintGL()
         glEnd();
         return;
     }
-
-    if (0 != buff_id)
+    else
     {
         render_to_texture();
 
@@ -566,11 +565,11 @@ void Gl_widget::paintGL()
 	    yuy2_filter.bind();
         yuy2_filter.setUniformValue("texture_0", 0);
         yuy2_filter.setUniformValue("texture_1", 1);
-        glBindBuffer(GL_PIXEL_UNPACK_BUFFER, buff_id);
-	    glActiveTexture(GL_TEXTURE0);
-        glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, video_width, video_height, GL_LUMINANCE_ALPHA, GL_UNSIGNED_BYTE, 0);
+	    
+        glActiveTexture(GL_TEXTURE0);
+        glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, video_width, video_height, GL_LUMINANCE_ALPHA, GL_UNSIGNED_BYTE, yuv_data);
 	    glActiveTexture(GL_TEXTURE1);
-        glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, (video_width>>1), video_height, GL_RGBA, GL_UNSIGNED_BYTE, 0);
+        glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, (video_width>>1), video_height, GL_RGBA, GL_UNSIGNED_BYTE, yuv_data);
         render_quad(yuy2_filter.attributeLocation("inTexCoord"), 0, 0, 0);
 	    yuy2_filter.release();
 
@@ -591,21 +590,18 @@ void Gl_widget::resizeGL(int width, int height)
 	glViewport(0, 0, width, height);
 }
 
-void Gl_widget::render_frame()
+void Gl_widget::render_frame(uint8_t* data)
 {
-    bool flag = offline.isRenderBufferEmpty();
-    buff_id = flag?prev_id:offline.renderBuffer();
-    if (0 != prev_id && false == flag)
-    {
-        offline.addToFreeQueue(prev_id);
-    }
-    prev_id = buff_id;
-    updateGL();
+    mutex.lock();
+    yuv_data = data;
+    mutex.unlock();
+    repaint();
 }
 
 void Gl_widget::closeEvent(QCloseEvent* event)
 {
     (void)event;
-    offline.stop_thread();
+    yuv_data = 0;
+    thread.stop();
 }
 
