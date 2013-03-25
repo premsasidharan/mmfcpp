@@ -12,14 +12,6 @@ const GLfloat Gl_widget::vertex_coord[][8] = {{-1.0f, +1.0f, +0.0f, +1.0f, +0.0f
                                               {+0.0f, +0.0f, +1.0f, +0.0f, +1.0f, -1.0f, +0.0f, -1.0f},
                                               {-1.0f, +1.0f, +1.0f, +1.0f, +1.0f, -1.0f, -1.0f, -1.0f}};
 
-const GLfloat Gl_widget::coeffs_fx[] = {-1.0f, 0.0f, 1.0f, -2.0f, 0.0f, 2.0f, -1.0f, 0.0f, 1.0f};
-const GLfloat Gl_widget::coeffs_fy[] = {1.0f, 2.0f, 1.0f, 0.0f, 0.0f, 0.0f, -1.0f, -2.0f, -1.0f};
-const GLfloat Gl_widget::gauss_coeffs[] = {(2.0/159.0), (4.0/159.0), (5.0/159.0), (4.0/159.0), (2.0/159.0), 
-                                           (4.0/159.0), (9.0/159.0), (12.0/159.0), (9.0/159.0), (4.0/159.0),
-                                           (5.0/159.0), (12.0/159.0), (15.0/159.0), (12.0/159.0), (5.0/159.0),
-                                           (4.0/159.0), (9.0/159.0), (12.0/159.0), (9.0/159.0), (4.0/159.0),
-                                           (2.0/159.0), (4.0/159.0), (5.0/159.0), (4.0/159.0), (2.0/159.0)};
-
 Gl_widget::Gl_widget(int width, int height, const QString& path, QGLFormat& fmt, QWidget* parent)
 	:QGLWidget(fmt, parent)
     , fb_id(0)
@@ -113,24 +105,7 @@ bool Gl_widget::init_smoothing_shader()
         "    texCoord = vec4(inTexCoord, 0.0, 0.0);\n"
         "}");
 
-	status = status && smooth_filter.addShaderFromSourceCode(QGLShader::Fragment,
-		"#version 130\n"
-        "in vec4 texCoord;\n"
-        "out vec4 fragColor;\n"
-        "uniform vec2 coord[25];\n"
-        "uniform float coeffs[25];\n"
-        "uniform sampler2D texture_0;\n"
-        "void main(void)\n"
-        "{\n"
-        "    float y = 0.0f;\n"
-        "    vec2 pos = texCoord.st;\n"
-        "    vec2 current = vec2(pos.x, (1.0f-pos.y));\n"
-        "    for (int i = 0; i < coord.length(); i++) {\n"
-        "        pos = current+coord[i];\n"
-        "        y += (coeffs[i]*texture2D(texture_0, pos).r);\n"
-        "    }\n"
-        "    fragColor = vec4(y, y, y, 1.0);\n"
-        "}");
+	status = status && smooth_filter.addShaderFromSourceFile(QGLShader::Fragment, "shader/gauss_smooth.fs");
 
     glBindFragDataLocation(smooth_filter.programId(), 0, "fragColor");
     status = status && smooth_filter.link();
@@ -192,47 +167,7 @@ bool Gl_widget::init_edge_shader()
         "    texCoord = vec4(inTexCoord, 0.0, 0.0);\n"
         "}");
 
-	status = status && edge_filter.addShaderFromSourceCode(QGLShader::Fragment,
-		"#version 130\n"
-        "in vec4 texCoord;\n"
-        "out vec4 fragColor;\n"
-        "uniform vec2 offset[9];\n"
-        "uniform float coeffs_fx[9];\n"
-        "uniform float coeffs_fy[9];\n"
-        "uniform sampler2D texture_0;\n"
-        "const float pi = 3.14159265358979323846;\n"
-        "const float pi_mul_2 = (pi*2.0);\n"
-        "const float theta_360 = (pi*2.0);\n"
-        "const float theta_22_5 = (pi/8.0);\n"
-        "const float theta_67_5 = ((3.0*pi)/8.0);\n"
-        "const float theta_112_5 = ((5.0*pi)/8.0);\n"
-        "const float theta_157_5 = ((7.0*pi)/8.0);\n"
-        "const float theta_202_5 = ((9.0*pi)/8.0);\n"
-        "const float theta_247_5 = ((11.0*pi)/8.0);\n"
-        "const float theta_292_5 = ((13.0*pi)/8.0);\n"
-        "const float theta_337_5 = ((15.0*pi)/8.0);\n"
-        "void main(void)\n"
-        "{\n"
-        "    float theta;\n"
-        "    float y = 0.0f, gx = 0.0f, gy = 0.0f;\n"
-        "    vec2 current = vec2(texCoord.s, (1.0f-texCoord.t));\n"
-        "    for (int i = 0; i < offset.length(); i++) {\n"
-        "        y = texture2D(texture_0, (current+offset[i])).r;\n"
-        "        gx += (y*coeffs_fx[i]);\n"
-        "        gy += (y*coeffs_fy[i]);\n"
-        "    }\n"
-		"	 y = sqrt((gx*gx)+(gy*gy));\n"
-        "    theta = atan(gy, gx);\n"
-        "    if ((theta >= theta_22_5 && theta < theta_67_5)||(theta >= theta_202_5 && theta < theta_247_5))\n"
-        "        theta = 0.25f;\n"
-        "    else if ((theta >= theta_67_5 && theta < theta_112_5)||(theta >= theta_247_5 && theta < theta_292_5))\n"
-        "        theta = 0.5f;\n"
-        "    else if ((theta >= theta_112_5 && theta < theta_157_5)||(theta >= theta_292_5 && theta < theta_337_5))\n"
-        "        theta = 0.75f;\n"
-        "    else\n"
-        "        theta = 0.0f;\n"
-        "    fragColor = vec4(y, theta, 0.0f, 1.0f);\n"
-        "}");
+	status = status && edge_filter.addShaderFromSourceFile(QGLShader::Fragment, "shader/edge.fs");
 
     glBindFragDataLocation(edge_filter.programId(), 0, "fragColor");
     status = status && edge_filter.link(); 
@@ -257,33 +192,7 @@ bool Gl_widget::init_nmes_shader()
         "    texCoord = vec4(inTexCoord, 0.0, 0.0);\n"
         "}");
 
-	status = status && nmes_filter.addShaderFromSourceCode(QGLShader::Fragment,
-		"#version 130\n"
-		"#define ne_dir 0\n"
-		"#define n_dir  1\n"
-		"#define nw_dir 2\n"
-		"#define e_dir  3\n"
-		"#define w_dir  5\n"
-		"#define se_dir 6\n"
-		"#define s_dir  7\n"
-		"#define sw_dir 8\n"
-        "in vec4 texCoord;\n"
-        "out vec4 fragColor;\n"
-        "uniform vec2 offset[9];\n"
-        "uniform sampler2D texture_0;\n"
-        "const int first[]=int[](e_dir, se_dir, n_dir, ne_dir);\n"
-        "const int second[]=int[](w_dir, nw_dir, s_dir, sw_dir);\n"
-        "void main(void)\n"
-        "{\n"
-        "    vec2 current = vec2(texCoord.s, 1.0f-texCoord.t);\n"
-        "    float color = texture2D(texture_0, current).r;\n"
-        "    int i = int(ceil(4.0*texture2D(texture_0, current).g));\n"
-        "    vec2 pos1 = current+offset[first[i]];\n"
-        "    vec2 pos2 = current+offset[second[i]];\n"
-        "    if ((color <= texture2D(texture_0, pos1).r) || (color <= texture2D(texture_0, pos2).r))\n"
-        "        color = 0.0f;\n"
-        "    fragColor = vec4(color, color, color, 1.0f);\n"
-        "}");
+	status = status && nmes_filter.addShaderFromSourceFile(QGLShader::Fragment, "shader/nmes.fs");
 
     glBindFragDataLocation(nmes_filter.programId(), 0, "fragColor");
     status = status && nmes_filter.link(); 
@@ -308,34 +217,7 @@ bool Gl_widget::init_binary_shader()
         "    texCoord = vec4(inTexCoord, 0.0, 0.0);\n"
         "}");
 
-	status = status && binary_filter.addShaderFromSourceCode(QGLShader::Fragment,
-		"#version 130\n"
-        "in vec4 texCoord;\n"
-        "out vec4 fragColor;\n"
-        "uniform float min;\n"
-        "uniform float max;\n"
-		"uniform vec2 coord[8];\n"
-        "uniform sampler2D texture_0;\n"
-        "void main(void)\n"
-        "{\n"
-        "    vec2 current = vec2(texCoord.s, 1.0-texCoord.t);\n"
-        "    float color = texture2D(texture_0, current).r;\n"
-        "    if (color >= max)\n"
-        "        color = 1.0;\n"
-        "    else if (color >= min) {\n"
-		"        int i;\n"
-		"        vec2 pos;\n"
-        "        bool flag = true;\n"
-		"        for (i = 0; i < 8 && flag; i++) {\n"
-        "            pos = current+coord[i];\n"
-		"            if (max >= texture2D(texture_0, pos).r)\n"
-		"               flag = false;\n"
-		"		}\n"
-		"       color = (flag)?0.0f:1.0f;\n"
-        "    } else\n"
-        "       color = 0.0f;\n"
-        "    fragColor = vec4(color, color, color, 1.0f);\n"
-        "}");
+	status = status && binary_filter.addShaderFromSourceFile(QGLShader::Fragment, "shader/binary.fs");
 
     glBindFragDataLocation(binary_filter.programId(), 0, "fragColor");
     status = status && binary_filter.link(); 
@@ -384,7 +266,7 @@ void Gl_widget::init_yuv_textures()
     glBindTexture(GL_TEXTURE_2D, y_texture);
     glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
     glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-    glTexEnvf(GL_TEXTURE_ENV,GL_TEXTURE_ENV_MODE,GL_DECAL);
+    glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_DECAL);
     glTexImage2D(GL_TEXTURE_2D, 0, GL_LUMINANCE, video_width, video_height, 0, GL_LUMINANCE, GL_UNSIGNED_BYTE, 0);
 
     glGenTextures(1, &u_texture);
@@ -453,18 +335,7 @@ void Gl_widget::delete_yuv_textures()
 
 void Gl_widget::render_to_texture()
 {
-	GLfloat fx = 1.0/(float)video_width;
-	GLfloat fy = 1.0/(float)video_height;   
     GLenum fbo_buffs[] = {GL_COLOR_ATTACHMENT0};
-
-    GLfloat coords[] = {-2*fx, 2*fy, -fx, 2*fy, 0.0, 2*fy, fx, 2*fy, 2*fx, 2*fy, 
-                        -2*fx, fy, -fx, fy, 0.0, fy, fx, fy, 2*fx, fy, 
-                        -2*fx, 0.0, -fx, 0.0, 0.0, 0.0, fx, 0.0, 2*fx, 0.0, 
-                        -2*fx, -fy, -fx, -fy, 0.0, -fy, fx, -fy, 2*fx, -fy,
-                        -2*fx, -2*fy, -fx, -2*fy, 0.0, -2*fy, fx, -2*fy, 2*fx, -2*fy};
-
-	GLfloat nbhrs[] = {-fx, fy, 0.0f, fy, fx, fy, -fx, 0.0f, fx, 0.0f, -fx, -fy, 0.0, -fy, fx, -fy};
- 	GLfloat nghbr_coords[] = {-fx, fy, 0.0f, fy, fx, fy, -fx, 0.0f, 0.0f, 0.0f, fx, 0.0f, -fx, -fy, 0.0f, -fy, fx, -fy};
 
 	glViewport(0, 0, video_width, video_height);
     glMatrixMode(GL_PROJECTION);
@@ -480,12 +351,9 @@ void Gl_widget::render_to_texture()
 
     smooth_filter.bind();
     smooth_filter.setUniformValue("texture_0", 0);
-    smooth_filter.setUniformValueArray("coeffs", gauss_coeffs, 25, 1); 
-    smooth_filter.setUniformValueArray("coords", coords, 25, 2); 
 
     glBindBuffer(GL_PIXEL_UNPACK_BUFFER, buff_id);
 	glActiveTexture(GL_TEXTURE0);
-	glBindTexture(GL_TEXTURE_2D, y_texture);
     glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, video_width, video_height, GL_LUMINANCE_ALPHA, GL_UNSIGNED_BYTE, 0);
     glBindBuffer(GL_PIXEL_UNPACK_BUFFER, 0);
     render_quad(smooth_filter.attributeLocation("inTexCoord"), 4, fbo_buffs, 1);
@@ -497,10 +365,6 @@ void Gl_widget::render_to_texture()
 
     edge_filter.bind();
     edge_filter.setUniformValue("texture_0", 3);
-    edge_filter.setUniformValueArray("coeffs_fx", coeffs_fx, 9, 1); 
-    edge_filter.setUniformValueArray("coeffs_fy", coeffs_fy, 9, 1); 
-    edge_filter.setUniformValueArray("offset", nghbr_coords, 9, 2);
-	glActiveTexture(GL_TEXTURE3);
     render_quad(edge_filter.attributeLocation("inTexCoord"), 4, fbo_buffs, 1);
     edge_filter.release();
 
@@ -511,8 +375,6 @@ void Gl_widget::render_to_texture()
 
     nmes_filter.bind();
     nmes_filter.setUniformValue("texture_0", 4);
-    nmes_filter.setUniformValueArray("offset", nghbr_coords, 9, 2);
-	glActiveTexture(GL_TEXTURE4);
     render_quad(nmes_filter.attributeLocation("inTexCoord"), 4, fbo_buffs, 1);
     nmes_filter.release();
 
@@ -524,9 +386,7 @@ void Gl_widget::render_to_texture()
     binary_filter.bind();
     binary_filter.setUniformValue("texture_0", 5);
     binary_filter.setUniformValue("min", (GLfloat)(30.0/255.0));
-    binary_filter.setUniformValue("max", (GLfloat)(90.0/255.0));
-	binary_filter.setUniformValueArray("coord", nbhrs, 8, 2);
-	glActiveTexture(GL_TEXTURE5);
+    binary_filter.setUniformValue("max", (GLfloat)(80.0/255.0));
     render_quad(binary_filter.attributeLocation("inTexCoord"), 4, fbo_buffs, 1);
     binary_filter.release();
 

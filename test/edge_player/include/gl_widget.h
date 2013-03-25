@@ -71,10 +71,6 @@ private:
 
     static const GLfloat tex_coord[];
     static const GLfloat vertex_coord[][8];
-
-    static const GLfloat coeffs_fx[];
-    static const GLfloat coeffs_fy[];
-    static const GLfloat gauss_coeffs[];
 };
 
 #endif
