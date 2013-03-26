@@ -68,8 +68,6 @@ __global__ void comp_histogram(GLint* hist_r, GLint* hist_g, GLint* hist_b, int 
             r_c = red(y_c, v_c);
             g_c = green(y_c, u_c, v_c);
             b_c = blue(y_c, u_c);
-        
-            //printf("\n%u %u %u", y_c, u_c, v_c);
 
             atomicAdd(&temp_hist_r[r_c], 1);
             atomicAdd(&temp_hist_g[g_c], 1);
@@ -87,13 +85,51 @@ __global__ void comp_histogram(GLint* hist_r, GLint* hist_g, GLint* hist_b, int 
     atomicAdd(&hist_b[1+(2*threadIdx.x)], temp_hist_b[threadIdx.x]);
 }
 
+__global__ void get_max(GLint* hist_r, GLint* hist_g, GLint* hist_b, GLint* max)
+{
+    int i;
+    GLint* hist;
+    __shared__ GLint max_hist[3];
+
+    hist = (threadIdx.x == 0)?hist_r:((threadIdx.x == 1)?hist_g:hist_b);
+    max_hist[threadIdx.x] = 0;
+
+    __syncthreads();
+    
+    for (i = 0; i < 256; i++)
+    {
+        if (hist[i] > max_hist[threadIdx.x])
+        {
+            max_hist[threadIdx.x] = hist[i];
+        }
+    }
+
+    __syncthreads();
+
+    if (threadIdx.x == 0)
+    {
+        *max = 0;
+        for (i = 0 ; i < 3; i++)
+        {
+            if (max_hist[i] > *max)
+            {
+                *max = max_hist[i];
+            }
+        }
+    }
+}
+
 void print_cuda_device_info();
 
-void compute_histogram(unsigned int y, unsigned int u, unsigned int v, unsigned int* hist_obj, int width, int height)
+int compute_histogram(unsigned int y, unsigned int u, unsigned int v, unsigned int* hist_obj, int width, int height)
 {
+    GLint* dev_max = 0;
+
     GLint* dev_hist_r = 0;
     GLint* dev_hist_g = 0;
     GLint* dev_hist_b = 0;
+
+    cudaMalloc(&dev_max, sizeof(int));
 
     cudaGLRegisterBufferObject(hist_obj[0]);
     cudaGLMapBufferObject((void **)&dev_hist_r, hist_obj[0]);
@@ -165,6 +201,11 @@ void compute_histogram(unsigned int y, unsigned int u, unsigned int v, unsigned 
 
     comp_histogram<<<48, 256>>>(dev_hist_r, dev_hist_g, dev_hist_b, width, height);
     cudaThreadSynchronize();
+    get_max<<<1, 3>>>(dev_hist_r, dev_hist_g, dev_hist_b, dev_max);
+
+    int ret = 1;
+    cudaMemcpy(&ret, dev_max, sizeof(int), cudaMemcpyDeviceToHost);
+    cudaFree(dev_max); dev_max = 0;
 
     /*int test_r[512];
     int test_g[512];
@@ -194,6 +235,8 @@ void compute_histogram(unsigned int y, unsigned int u, unsigned int v, unsigned 
     cudaGraphicsUnregisterResource(res[0]);
     cudaGraphicsUnregisterResource(res[1]);
     cudaGraphicsUnregisterResource(res[2]);
+
+    return ret;
 }
 
 void print_cuda_device_info()
