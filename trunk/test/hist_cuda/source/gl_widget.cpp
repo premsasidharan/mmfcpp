@@ -134,7 +134,7 @@ void Gl_widget::paintGL()
 	glActiveTexture(GL_TEXTURE2);
     glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, video_width>>1, video_height>>1, GL_LUMINANCE, GL_UNSIGNED_BYTE, v_data);   
    
-    compute_histogram(y_texture, u_texture, v_texture, hist_obj, video_width, video_height);
+    int max = compute_histogram(y_texture, u_texture, v_texture, hist_obj, video_width, video_height);
 
 	glClear(GL_COLOR_BUFFER_BIT);
     
@@ -149,10 +149,13 @@ void Gl_widget::paintGL()
     glDisable(GL_TEXTURE_2D);
     program.release();
 
+    //qDebug() << max;
+    max += 200;
+
 	glViewport(0, 0, width(), height());
     glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
-	glOrtho(0.0, 256.0, 0.0, (video_width*video_height)>>4, 0.0, 1.0);
+	glOrtho(0.0, 256.0, 0.0, max, 0.0, 1.0);
 	glMatrixMode(GL_MODELVIEW);
 
     glBindBuffer(GL_ARRAY_BUFFER, hist_obj[0]);
