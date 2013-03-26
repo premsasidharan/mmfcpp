@@ -150,7 +150,7 @@ void Gl_widget::paintGL()
     program.release();
 
     //qDebug() << max;
-    max += 200;
+    max *= 2;
 
 	glViewport(0, 0, width(), height());
     glMatrixMode(GL_PROJECTION);
@@ -170,7 +170,7 @@ void Gl_widget::paintGL()
     glColor3f(0.0f, 1.0f, 0.0f);
     glVertexPointer(2, GL_INT, 0, 0);
     glEnableClientState(GL_VERTEX_ARRAY);
-    glDrawArrays(GL_LINE_STRIP, 1, 255);
+    glDrawArrays(GL_LINE_STRIP, 0, 255);
     glDisableClientState(GL_VERTEX_ARRAY);
     glBindBuffer(GL_ARRAY_BUFFER, 0);
 

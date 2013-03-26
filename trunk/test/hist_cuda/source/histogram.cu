@@ -98,9 +98,9 @@ __global__ void get_max(GLint* hist_r, GLint* hist_g, GLint* hist_b, GLint* max)
     
     for (i = 0; i < 256; i++)
     {
-        if (hist[i] > max_hist[threadIdx.x])
+        if (hist[1+(2*i)] > max_hist[threadIdx.x])
         {
-            max_hist[threadIdx.x] = hist[i];
+            max_hist[threadIdx.x] = hist[1+(2*i)];
         }
     }
 
