@@ -3,37 +3,25 @@ in vec4 texCoord;
 out vec4 fragColor;
 uniform sampler2D texture_0;
 
-const float pi = 3.14159265358979323846;
-const float pi_mul_2 = (pi*2.0);
-/*const float theta_360 = (pi*2.0);
-const float theta_22_5 = (pi/8.0);
-const float theta_67_5 = ((3.0*pi)/8.0);
-const float theta_112_5 = ((5.0*pi)/8.0);
-const float theta_157_5 = ((7.0*pi)/8.0);
-const float theta_202_5 = ((9.0*pi)/8.0);
-const float theta_247_5 = ((11.0*pi)/8.0);
-const float theta_292_5 = ((13.0*pi)/8.0);
-const float theta_337_5 = ((15.0*pi)/8.0);*/
+#define theta_360 360.0f
+#define theta_22_5 22.5f
+#define theta_67_5 67.5f
+#define theta_112_5 112.5f
+#define theta_157_5 157.5f
+#define theta_202_5 202.5f
+#define theta_247_5 247.5f
+#define theta_292_5 292.5f
+#define theta_337_5 337.5f
 
-const float theta_360 = 360.0f;
-const float theta_22_5 = 22.5f;
-const float theta_67_5 = 67.5f;
-const float theta_112_5 = 112.5f;
-const float theta_157_5 = 157.5f;
-const float theta_202_5 = 202.5f;
-const float theta_247_5 = 247.5f;
-const float theta_292_5 = 292.5f;
-const float theta_337_5 = 337.5f;
-
-const float coeffs_fx[9] = float[9](-1.0f, +0.0f, +1.0f,
+uniform float coeffs_fx[9] = float[9](-1.0f, +0.0f, +1.0f,
                                     -2.0f, +0.0f, +2.0f,
                                     -1.0f, +0.0f, +1.0f);
 
-const float coeffs_fy[9] = float[9](+1.0f, +2.0f, +1.0f, 
+uniform float coeffs_fy[9] = float[9](+1.0f, +2.0f, +1.0f, 
                                     +0.0f, +0.0f, +0.0f,
                                     -1.0f, -2.0f, -1.0f);
 
-const vec2 offset[9] = vec2[9](vec2(-1.0f, +1.0f), vec2(+0.0f, +1.0f), vec2(+1.0f, +1.0f), 
+uniform vec2 offset[9] = vec2[9](vec2(-1.0f, +1.0f), vec2(+0.0f, +1.0f), vec2(+1.0f, +1.0f), 
                                vec2(-1.0f, +0.0f), vec2(+0.0f, +0.0f), vec2(+1.0f, +0.0f), 
                                vec2(-1.0f, -1.0f), vec2(+0.0f, -1.0f), vec2(+1.0f, -1.0f));
 void main(void)

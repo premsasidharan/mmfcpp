@@ -4,7 +4,7 @@ out vec4 fragColor;
 uniform float min;
 uniform float max;
 uniform sampler2D texture_0;
-const vec2 coord[8] = vec2[8](vec2(-1.0f, +1.0f), vec2(+0.0f, +1.0f), vec2(+1.0f, +1.0f),
+uniform vec2 coord[8] = vec2[8](vec2(-1.0f, +1.0f), vec2(+0.0f, +1.0f), vec2(+1.0f, +1.0f),
                               vec2(-1.0f, +0.0f), vec2(+1.0f, +0.0f), vec2(-1.0f, -1.0f), 
                               vec2(+0.0, -1.0f), vec2(+1.0f, -1.0f));
 void main(void)

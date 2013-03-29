@@ -15,7 +15,7 @@ class Gl_widget: public QGLWidget
 {
     Q_OBJECT
 public:
-    Gl_widget(int width, int height, const QString& path, QGLFormat& fmt, QWidget *parent = 0);
+    Gl_widget(int w, int h, const QString& path, QGLFormat& fmt, QWidget *parent = 0);
     ~Gl_widget();
 
 protected:
@@ -24,40 +24,42 @@ protected:
     void resizeGL(int width, int height);
 
     void init_shaders();
-	void init_yuv_textures();
-	void delete_yuv_textures();
+	void init_textures();
+	void delete_textures();
 
     bool init_edge_shader();
     bool init_nmes_shader();
     bool init_gray_shader();
     bool init_yuv420_shader();
     bool init_binary_shader();
-    bool init_smoothing_shader();
+    bool init_gaussian_shader();
 
     void render_to_texture();
     void render_quad(int loc, int id, GLuint* fbo_buffs, int size);
 
     void closeEvent(QCloseEvent* event);
+    void keyPressEvent(QKeyEvent* event);
     
 protected slots:
     void time_out();
 
 private:
+    enum {LUMA, CHROMA_U, CHROMA_V, SMOOTH, EDGE, NMES, BINARY};
+    enum {STAGE_GAUSS_SMOOTH, STAGE_EDGE, STAGE_NMES, STAGE_BINARY};
+
     GLuint fb_id;
     
     GLuint buff_id;
     GLuint prev_id;
 
-    int video_width;
-    int video_height;
+    int min_thr;
+    int max_thr;
 
-    GLuint y_texture;
-    GLuint u_texture;
-    GLuint v_texture;
-    GLuint nmes_texture; //non maximum edge suppression texture
-    GLuint edge_texture;
-    GLuint binary_texture;
-    GLuint smooth_texture;
+    int v_width;
+    int v_height;
+
+    GLuint texture[7];
+    QGLShaderProgram* program[4];
     
     QGLShaderProgram nmes_filter; //non maximum edge suppression
     QGLShaderProgram gray_filter;
