@@ -10,9 +10,9 @@
 in vec4 texCoord;
 out vec4 fragColor;
 uniform sampler2D texture_0;
-const int first[]=int[](e_dir, se_dir, n_dir, ne_dir);
-const int second[]=int[](w_dir, nw_dir, s_dir, sw_dir);
-const vec2 offset[9] = vec2[9](vec2(-1.0f, +1.0f), vec2(+0.0f, +1.0f), vec2(+1.0f, +1.0f), 
+uniform int first[]=int[](e_dir, se_dir, n_dir, ne_dir);
+uniform int second[]=int[](w_dir, nw_dir, s_dir, sw_dir);
+uniform vec2 offset[9] = vec2[9](vec2(-1.0f, +1.0f), vec2(+0.0f, +1.0f), vec2(+1.0f, +1.0f), 
                                vec2(-1.0f, +0.0f), vec2(+0.0f, +0.0f), vec2(+1.0f, +0.0f),
                                vec2(-1.0f, -1.0f), vec2(+0.0f, -1.0f), vec2(+1.0f, -1.0f));
 void main(void)
