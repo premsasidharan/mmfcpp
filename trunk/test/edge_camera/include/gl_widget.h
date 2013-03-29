@@ -15,7 +15,7 @@ class Gl_widget:public QGLWidget
 {
     Q_OBJECT
 public:
-    Gl_widget(int width, int height, const QString& path, QGLFormat& fmt, QWidget *parent = 0);
+    Gl_widget(int w, int h, const QString& path, QGLFormat& fmt, QWidget *parent = 0);
     ~Gl_widget();
 
 protected:
@@ -24,55 +24,57 @@ protected:
     void resizeGL(int width, int height);
 
     void init_shaders();
-	void init_yuv_textures();
-	void delete_yuv_textures();
+	void init_textures();
+	void delete_textures();
 
     bool init_edge_shader();
     bool init_nmes_shader();
     bool init_gray_shader();
     bool init_yuy2_shader();
     bool init_binary_shader();
-    bool init_smoothing_shader();
+    bool init_gaussian_shader();
 
     void render_to_texture();
     void render_quad(int loc, int id, GLuint* fbo_buffs, int size);
 
     void closeEvent(QCloseEvent* event);
+    void keyPressEvent(QKeyEvent* event);
     
 protected slots:
     void render_frame(uint8_t* data);
 
 private:
+    enum {LUMA, CHROMA_UV, SMOOTH, EDGE, NMES, BINARY};
+    enum {STAGE_GAUSS_SMOOTH, STAGE_EDGE, STAGE_NMES, STAGE_BINARY};
+
     GLuint fb_id;
+    
+    GLuint buff_id;
+    GLuint prev_id;
 
-    int video_width;
-    int video_height;
+    int min_thr;
+    int max_thr;
 
-    uint8_t* yuv_data;
+    int v_width;
+    int v_height;
+	uint8_t* yuv_data;
 
-    GLuint y_texture;
-    GLuint uv_texture;
-    GLuint nmes_texture; //non maximum edge suppression texture
-    GLuint edge_texture;
-    GLuint binary_texture;
-    GLuint smooth_texture;
+    GLuint texture[6];
+    QGLShaderProgram* program[4];
     
     QGLShaderProgram nmes_filter; //non maximum edge suppression
     QGLShaderProgram gray_filter;
     QGLShaderProgram yuy2_filter;
     QGLShaderProgram edge_filter;
+    QGLShaderProgram yuv420_filter;
     QGLShaderProgram binary_filter;
-    QGLShaderProgram smooth_filter;    
+    QGLShaderProgram smooth_filter;
 
     QMutex mutex;
     Gl_thread thread;
 
     static const GLfloat tex_coord[];
     static const GLfloat vertex_coord[][8];
-
-    static const GLfloat coeffs_fx[];
-    static const GLfloat coeffs_fy[];
-    static const GLfloat gauss_coeffs[];
 };
 
 #endif

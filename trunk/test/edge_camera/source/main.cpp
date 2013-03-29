@@ -8,7 +8,7 @@ int main(int argc, char** argv)
 	XInitThreads();
 	QApplication app(argc, argv);
     QGLFormat format;
-    format.setVersion(3,1);
+    format.setVersion(3, 1);
     format.setProfile(QGLFormat::CoreProfile);
     format.setSampleBuffers(true);
     w = atoi(argv[2]);
