@@ -9,40 +9,50 @@
 #include <QGLShader>
 #include <QGLShaderProgram>
 
-#include <cuda_gl_interop.h>
+#include <offline_widget.h>
 
 class Gl_widget: public QGLWidget
 {
     Q_OBJECT
 public:
-    Gl_widget(int width, int height, const QString& path, QWidget *parent = 0);
+    Gl_widget(int w, int h, const QString& path, QGLFormat& fmt, QWidget *parent = 0);
     ~Gl_widget();
 
 protected:
     void paintGL();
     void initializeGL();
     void resizeGL(int width, int height);
+
+    bool init_shader();
+	void init_textures();
+	void delete_textures();
+
+    void render_quad(int loc, int id, GLuint* fbo_buffs, int size);
+
+    void closeEvent(QCloseEvent* event);
     
 protected slots:
-    void on_timeout();
+    void time_out();
 
 private:
-    int video_width;
-    int video_height;
-
-    GLuint hist_obj[3];    
-
-    GLuint y_texture;
-    GLuint u_texture;
-    GLuint v_texture;
+    enum {LUMA, CHROMA_U, CHROMA_V};
     
-    unsigned char* y_data;
-    unsigned char* u_data;
-    unsigned char* v_data;
+    GLuint buff_id;
+    GLuint prev_id;
+
+    int v_width;
+    int v_height;
+
+    GLuint texture[3];
+    GLuint hist_obj[3];
     
-    QFile file;
+    QGLShaderProgram yuv420_filter;
+
     QTimer timer;
-    QGLShaderProgram program;
+    Offline_widget offline;
+
+    static const GLfloat tex_coord[];
+    static const GLfloat vertex_coord[][8];
 };
 
 #endif

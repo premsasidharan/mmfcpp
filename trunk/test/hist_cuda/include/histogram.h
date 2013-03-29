@@ -1,3 +1,4 @@
 #include <stdint.h>
 
-int compute_histogram(unsigned int y, unsigned int u, unsigned int v, unsigned int* hist_obj, int width, int height);
+void compute_histogram(unsigned int* texture, unsigned int* hist_obj, int* hist_max, int width, int height);
+

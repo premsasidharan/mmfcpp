@@ -9,9 +9,13 @@ DEPENDPATH += .
 INCLUDEPATH += ./include ./obj
 
 HEADERS = include/gl_widget.h \
+          include/gl_thread.h \
+          include/offline_widget.h \
           include/histogram.h
 
 SOURCES = source/gl_widget.cpp \
+          source/gl_thread.cpp \
+          source/offline_widget.cpp \
           source/main.cpp
 
 CONFIG += qt debug
