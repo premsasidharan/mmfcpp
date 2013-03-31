@@ -27,7 +27,7 @@ void Gl_thread::run()
     bool flag = camera.open(dev_path.toAscii().data());
     flag = flag && camera.set_mode(V4L2_PIX_FMT_YUYV, V4L2_MEMORY_MMAP, width, height);
     flag = flag && camera.set_buffer_count(4);
-    
+
     for (int i = 0; flag && (i < 4); i++)
     {
         data = camera.get_buffer(i, fsize); 
@@ -53,13 +53,17 @@ void Gl_thread::run()
 
     cond.wakeAll();
     qDebug() << "Exiting thread";
+    exit_flag = true;
 }
 
 void Gl_thread::stop()
 {
-    exit_flag = true;
-    mutex.lock();
-    cond.wait(&mutex);
-    mutex.unlock();
+    if (false == exit_flag)
+    {
+        exit_flag = true;
+        mutex.lock();
+        cond.wait(&mutex);
+        mutex.unlock();
+    }
 }
 
