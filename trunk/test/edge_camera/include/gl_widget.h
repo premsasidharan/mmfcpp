@@ -24,8 +24,8 @@ protected:
     void resizeGL(int width, int height);
 
     void init_shaders();
-	void init_textures();
-	void delete_textures();
+    void init_textures();
+    void delete_textures();
 
     bool init_edge_shader();
     bool init_nmes_shader();
@@ -39,7 +39,7 @@ protected:
 
     void closeEvent(QCloseEvent* event);
     void keyPressEvent(QKeyEvent* event);
-    
+
 protected slots:
     void render_frame(uint8_t* data);
 
@@ -54,11 +54,11 @@ private:
 
     int v_width;
     int v_height;
-	uint8_t* yuv_data;
+    uint8_t* yuv_data;
 
     GLuint texture[6];
     QGLShaderProgram* program[4];
-    
+
     QGLShaderProgram nmes_filter; //non maximum edge suppression
     QGLShaderProgram gray_filter;
     QGLShaderProgram yuy2_filter;

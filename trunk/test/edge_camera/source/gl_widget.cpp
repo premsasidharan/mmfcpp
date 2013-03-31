@@ -15,7 +15,7 @@ const GLfloat Gl_widget::vertex_coord[][8] = {{-1.0f, +1.0f, +0.0f, +1.0f, +0.0f
                                               {+0.0f, +1.0f, +1.0f, +1.0f, +1.0f, -1.0f, +0.0f, -1.0f}};
 
 Gl_widget::Gl_widget(int w, int h, const QString& path, QGLFormat& fmt, QWidget* parent)
-	:QGLWidget(fmt, parent)
+    :QGLWidget(fmt, parent)
     , fb_id(0)
     , min_thr(25)
     , max_thr(60)
@@ -31,12 +31,12 @@ Gl_widget::Gl_widget(int w, int h, const QString& path, QGLFormat& fmt, QWidget*
     , thread(w, h, path)
 {
     setWindowTitle("Camera: "+path);
-	setFocusPolicy(Qt::StrongFocus);
+    setFocusPolicy(Qt::StrongFocus);
 }
 
 Gl_widget::~Gl_widget()
 {
-	delete_textures();
+    delete_textures();
 }
 
 bool Gl_widget::init_yuy2_shader()
@@ -46,9 +46,9 @@ bool Gl_widget::init_yuy2_shader()
     yuy2_filter.bindAttributeLocation("texCoord", 2);
     yuy2_filter.bindAttributeLocation("fragColor", 3);
 
-	bool status = yuy2_filter.addShaderFromSourceFile(QGLShader::Vertex, "shader/vertex.vs");
-	status = status && yuy2_filter.addShaderFromSourceFile(QGLShader::Fragment, "shader/yuy2_rgb.fs");
-    
+    bool status = yuy2_filter.addShaderFromSourceFile(QGLShader::Vertex, "shader/vertex.vs");
+    status = status && yuy2_filter.addShaderFromSourceFile(QGLShader::Fragment, "shader/yuy2_rgb.fs");
+
     glBindFragDataLocation(yuy2_filter.programId(), 0, "fragColor");
     status = status && yuy2_filter.link();
 
@@ -62,8 +62,8 @@ bool Gl_widget::init_gaussian_shader()
     smooth_filter.bindAttributeLocation("texCoord", 2);
     smooth_filter.bindAttributeLocation("fragColor", 3);
 
-	bool status = smooth_filter.addShaderFromSourceFile(QGLShader::Vertex, "shader/vertex.vs");
-	status = status && smooth_filter.addShaderFromSourceFile(QGLShader::Fragment, "shader/gauss_smooth.fs");
+    bool status = smooth_filter.addShaderFromSourceFile(QGLShader::Vertex, "shader/vertex.vs");
+    status = status && smooth_filter.addShaderFromSourceFile(QGLShader::Fragment, "shader/gauss_smooth.fs");
 
     glBindFragDataLocation(smooth_filter.programId(), 0, "fragColor");
     status = status && smooth_filter.link();
@@ -78,8 +78,8 @@ bool Gl_widget::init_gray_shader()
     gray_filter.bindAttributeLocation("texCoord", 2);
     gray_filter.bindAttributeLocation("fragColor", 3);
 
-	bool status = gray_filter.addShaderFromSourceFile(QGLShader::Vertex, "shader/vertex.vs");
-	status = status && gray_filter.addShaderFromSourceFile(QGLShader::Fragment,"shader/gray.fs");
+    bool status = gray_filter.addShaderFromSourceFile(QGLShader::Vertex, "shader/vertex.vs");
+    status = status && gray_filter.addShaderFromSourceFile(QGLShader::Fragment,"shader/gray.fs");
 
     glBindFragDataLocation(gray_filter.programId(), 0, "fragColor");
     status = status && gray_filter.link();  
@@ -94,8 +94,8 @@ bool Gl_widget::init_edge_shader()
     edge_filter.bindAttributeLocation("texCoord", 2);
     edge_filter.bindAttributeLocation("fragColor", 3);
 
-	bool status = edge_filter.addShaderFromSourceFile(QGLShader::Vertex, "shader/vertex.vs");
-	status = status && edge_filter.addShaderFromSourceFile(QGLShader::Fragment, "shader/edge.fs");
+    bool status = edge_filter.addShaderFromSourceFile(QGLShader::Vertex, "shader/vertex.vs");
+    status = status && edge_filter.addShaderFromSourceFile(QGLShader::Fragment, "shader/edge.fs");
 
     glBindFragDataLocation(edge_filter.programId(), 0, "fragColor");
     status = status && edge_filter.link(); 
@@ -109,8 +109,8 @@ bool Gl_widget::init_nmes_shader()
     nmes_filter.bindAttributeLocation("texCoord", 2);
     nmes_filter.bindAttributeLocation("fragColor", 3);
 
-	bool status = nmes_filter.addShaderFromSourceFile(QGLShader::Vertex, "shader/vertex.vs");
-	status = status && nmes_filter.addShaderFromSourceFile(QGLShader::Fragment, "shader/nmes.fs");
+    bool status = nmes_filter.addShaderFromSourceFile(QGLShader::Vertex, "shader/vertex.vs");
+    status = status && nmes_filter.addShaderFromSourceFile(QGLShader::Fragment, "shader/nmes.fs");
 
     glBindFragDataLocation(nmes_filter.programId(), 0, "fragColor");
     status = status && nmes_filter.link(); 
@@ -124,8 +124,8 @@ bool Gl_widget::init_binary_shader()
     binary_filter.bindAttributeLocation("texCoord", 2);
     binary_filter.bindAttributeLocation("fragColor", 3);
 
-	bool status = binary_filter.addShaderFromSourceFile(QGLShader::Vertex, "shader/vertex.vs");
-	status = status && binary_filter.addShaderFromSourceFile(QGLShader::Fragment, "shader/binary.fs");
+    bool status = binary_filter.addShaderFromSourceFile(QGLShader::Vertex, "shader/vertex.vs");
+    status = status && binary_filter.addShaderFromSourceFile(QGLShader::Fragment, "shader/binary.fs");
 
     glBindFragDataLocation(binary_filter.programId(), 0, "fragColor");
     status = status && binary_filter.link(); 
@@ -180,7 +180,7 @@ void Gl_widget::init_textures()
     int t_int_fmt[] = {GL_LUMINANCE_ALPHA, GL_RGBA, GL_RGBA16F, GL_RGBA16F, GL_RGBA16F, GL_RGBA16F};
     int t_fmt[] = {GL_LUMINANCE_ALPHA, GL_RGBA, GL_RGBA, GL_RGBA, GL_RGBA, GL_RGBA};
     int t_type[] = {GL_UNSIGNED_BYTE, GL_UNSIGNED_BYTE, GL_FLOAT, GL_FLOAT, GL_FLOAT, GL_FLOAT};
-    
+
     glGenTextures(6, texture);
     for (int i = 0; i < 6; i++)
     {
@@ -203,7 +203,7 @@ void Gl_widget::render_to_texture()
 {
     GLenum fbo_buffs[] = {GL_COLOR_ATTACHMENT0};
 
-	glViewport(0, 0, v_width, v_height);
+    glViewport(0, 0, v_width, v_height);
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
     glOrtho(-1.0f, +1.0f, -1.0f, +1.0f, 0.0f, +1.0f);
@@ -274,10 +274,10 @@ void Gl_widget::paintGL()
 
     render_to_texture();
 
-	glViewport(0, 0, width(), height());
-	glMatrixMode(GL_PROJECTION);
-	glLoadIdentity();
-	glOrtho(-1.0f, +1.0f, -1.0f, +1.0f, 0.0f, +1.0f);
+    glViewport(0, 0, width(), height());
+    glMatrixMode(GL_PROJECTION);
+    glLoadIdentity();
+    glOrtho(-1.0f, +1.0f, -1.0f, +1.0f, 0.0f, +1.0f);
 
     //Initialize modelview matrix
     glMatrixMode(GL_MODELVIEW);
