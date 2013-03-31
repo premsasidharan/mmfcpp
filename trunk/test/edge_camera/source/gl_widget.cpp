@@ -177,7 +177,6 @@ void Gl_widget::initializeGL()
 void Gl_widget::init_textures()
 {
     int t_width[] = {v_width, v_width>>1, v_width, v_width, v_width, v_width};
-    int t_height[] = {v_height, v_height>>1, v_height, v_height, v_height, v_height};
     int t_int_fmt[] = {GL_LUMINANCE_ALPHA, GL_RGBA, GL_RGBA16F, GL_RGBA16F, GL_RGBA16F, GL_RGBA16F};
     int t_fmt[] = {GL_LUMINANCE_ALPHA, GL_RGBA, GL_RGBA, GL_RGBA, GL_RGBA, GL_RGBA};
     int t_type[] = {GL_UNSIGNED_BYTE, GL_UNSIGNED_BYTE, GL_FLOAT, GL_FLOAT, GL_FLOAT, GL_FLOAT};

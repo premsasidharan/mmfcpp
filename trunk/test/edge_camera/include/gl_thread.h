@@ -16,6 +16,7 @@ public:
 
 public:
     void stop();
+    bool is_running() const { return !exit_flag; };
 
 signals:
     void update_widget(uint8_t* data);
