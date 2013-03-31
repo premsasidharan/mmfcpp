@@ -10,13 +10,13 @@ const GLfloat Gl_widget::vertex_coord[][8] = {{-1.0f, +1.0f, +0.0f, +1.0f, +0.0f
                                               {+0.0f, +1.0f, +1.0f, +1.0f, +1.0f, +0.0f, +0.0f, +0.0f},
                                               {-1.0f, +0.0f, +0.0f, +0.0f, +0.0f, -1.0f, -1.0f, -1.0f},
                                               {+0.0f, +0.0f, +1.0f, +0.0f, +1.0f, -1.0f, +0.0f, -1.0f},
-                                              {-1.0f, +1.0f, +1.0f, +1.0f, +1.0f, -1.0f, -1.0f, -1.0f}};
+                                              {-1.0f, +1.0f, +1.0f, +1.0f, +1.0f, -1.0f, -1.0f, -1.0f},
+                                              {-1.0f, +1.0f, +0.0f, +1.0f, +0.0f, -1.0f, -1.0f, -1.0f},
+                                              {+0.0f, +1.0f, +1.0f, +1.0f, +1.0f, -1.0f, +0.0f, -1.0f}};
 
 Gl_widget::Gl_widget(int w, int h, const QString& path, QGLFormat& fmt, QWidget* parent)
 	:QGLWidget(fmt, parent)
     , fb_id(0)
-    , buff_id(0)
-    , prev_id(0)
     , min_thr(25)
     , max_thr(60)
     , v_width(w)
@@ -287,14 +287,14 @@ void Gl_widget::paintGL()
     yuy2_filter.bind();
     yuy2_filter.setUniformValue("texture_0", 0);
     yuy2_filter.setUniformValue("texture_1", 1);
-    render_quad(yuy2_filter.attributeLocation("inTexCoord"), 0, 0, 0);
+    render_quad(yuy2_filter.attributeLocation("inTexCoord"), 5, 0, 0);
     yuy2_filter.release();
 
-    for (int i = 0; i < 3; i++)
+    //for (int i = 0; i < 3; i++)
     {
         gray_filter.bind();
-        gray_filter.setUniformValue("texture_0", i+3);
-        render_quad(gray_filter.attributeLocation("inTexCoord"), i+1, 0, 0);
+        gray_filter.setUniformValue("texture_0", 5);//i+3);
+        render_quad(gray_filter.attributeLocation("inTexCoord"), 6, 0, 0);
         gray_filter.release();
     }
     glFinish();	
