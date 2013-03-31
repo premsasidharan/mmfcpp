@@ -231,6 +231,12 @@ bool V4li_camera::set_mode(uint32_t f, uint32_t mem, uint32_t w, uint32_t h)
         fmt.fmt.pix.field = V4L2_FIELD_NONE;
 
         flag = flag && ioctl(VIDIOC_S_FMT, &fmt);
+
+        if (false == flag)
+        {
+            printf("\nInvalid Format or Resolution\nSupported Formats/Resolutions are ...");
+            print_formats();
+        }
     }
     return flag;
 }
