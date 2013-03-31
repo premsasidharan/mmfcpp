@@ -10,6 +10,7 @@
 texture<uint8_t, 2, cudaReadModeElementType> tex_y;
 texture<uint8_t, 2, cudaReadModeElementType> tex_u;
 texture<uint8_t, 2, cudaReadModeElementType> tex_v;
+texture<uint8_t, 2, cudaReadModeElementType>* tex_in[3] = {&tex_y, &tex_u, &tex_v};
 
 __device__ int dev_max[3];
 
@@ -87,7 +88,7 @@ __global__ void comp_histogram(GLint* hist_r, GLint* hist_g, GLint* hist_b, int 
     atomicAdd(&hist_b[1+(2*threadIdx.x)], temp_hist_b[threadIdx.x]);
 }
 
-__global__ void get_max(GLint* hist_r, GLint* hist_g, GLint* hist_b/*, GLint* max*/)
+__global__ void get_max(GLint* hist_r, GLint* hist_g, GLint* hist_b)
 {
     int i;
     GLint* hist;
@@ -109,118 +110,67 @@ __global__ void get_max(GLint* hist_r, GLint* hist_g, GLint* hist_b/*, GLint* ma
     __syncthreads();
 
     dev_max[threadIdx.x] = max_hist[threadIdx.x];
-
-    /*if (threadIdx.x == 0)
-    {
-        *max = 0;
-        for (i = 0 ; i < 3; i++)
-        {
-            if (max_hist[i] > *max)
-            {
-                *max = max_hist[i];
-            }
-        }
-    }*/
 }
 
 void print_cuda_device_info();
 
 void compute_histogram(unsigned int* texture, unsigned int* hist_obj, int* hist_max, int width, int height)
 {
-    GLint* dev_hist_r = 0;
-    GLint* dev_hist_g = 0;
-    GLint* dev_hist_b = 0;
-
-    cudaGLRegisterBufferObject(hist_obj[0]);
-    cudaGLMapBufferObject((void **)&dev_hist_r, hist_obj[0]);
-    cudaGLRegisterBufferObject(hist_obj[1]);
-    cudaGLMapBufferObject((void **)&dev_hist_g, hist_obj[1]);
-    cudaGLRegisterBufferObject(hist_obj[2]);
-    cudaGLMapBufferObject((void **)&dev_hist_b, hist_obj[2]);
-
     cudaError_t err;
+    GLint* dev_hist[3] = {0, 0, 0};
+    cudaArray* array[3] = {0, 0, 0};
     cudaGraphicsResource* res[3] = {0, 0, 0};
-    err = cudaGraphicsGLRegisterImage(&res[0], texture[0], GL_TEXTURE_2D, cudaGraphicsRegisterFlagsReadOnly);
-    if (err != cudaSuccess)
+
+    for (int i = 0; i < 3; i++)
     {
-        printf("cudaGraphicsGLRegisterImage Failed: %s", cudaGetErrorString(cudaGetLastError()));
-        exit(0);
-    }
-    err = cudaGraphicsGLRegisterImage(&res[1], texture[1], GL_TEXTURE_2D, cudaGraphicsRegisterFlagsReadOnly);
-    if (err != cudaSuccess)
-    {
-        printf("cudaGraphicsGLRegisterImage Failed: %s", cudaGetErrorString(cudaGetLastError()));
-        exit(0);
-    }
-    err = cudaGraphicsGLRegisterImage(&res[2], texture[2], GL_TEXTURE_2D, cudaGraphicsRegisterFlagsReadOnly);
-    if (err != cudaSuccess)
-    {
-        printf("cudaGraphicsGLRegisterImage Failed: %s", cudaGetErrorString(cudaGetLastError()));
-        exit(0);
+        cudaGLRegisterBufferObject(hist_obj[i]);
+        cudaGLMapBufferObject((void **)&dev_hist[i], hist_obj[i]);
+
+        err = cudaGraphicsGLRegisterImage(&res[i], texture[i], GL_TEXTURE_2D, cudaGraphicsRegisterFlagsReadOnly);
+        if (err != cudaSuccess)
+        {
+            printf("cudaGraphicsGLRegisterImage Failed: %s", cudaGetErrorString(cudaGetLastError()));
+            exit(0);
+        }
     }
 
     cudaGraphicsMapResources(3, res);
 
-    cudaArray* y_array = 0;
-    cudaArray* u_array = 0;
-    cudaArray* v_array = 0;
-    err = cudaGraphicsSubResourceGetMappedArray(&y_array, res[0], 0, 0);
-    if (err != cudaSuccess)
+    cudaChannelFormatDesc chan_desc = cudaCreateChannelDesc<uint8_t>();
+    for (int i = 0; i < 3; i++)
     {
-        printf("cudaGraphicsSubResourceGetMappedArray Failed: %s", cudaGetErrorString(cudaGetLastError()));
-        exit(0);
-    }
-    err = cudaGraphicsSubResourceGetMappedArray(&u_array, res[1], 0, 0);
-    if (err != cudaSuccess)
-    {
-        printf("cudaGraphicsSubResourceGetMappedArray Failed: %s", cudaGetErrorString(cudaGetLastError()));
-        exit(0);
-    }
-    err = cudaGraphicsSubResourceGetMappedArray(&v_array, res[2], 0, 0);
-    if (err != cudaSuccess)
-    {
-        printf("cudaGraphicsSubResourceGetMappedArray Failed: %s", cudaGetErrorString(cudaGetLastError()));
-        exit(0);
+        err = cudaGraphicsSubResourceGetMappedArray(&array[i], res[i], 0, 0);
+        if (err != cudaSuccess)
+        {
+            printf("cudaGraphicsSubResourceGetMappedArray Failed: %s", cudaGetErrorString(cudaGetLastError()));
+            exit(0);
+        }
+
+        if (cudaBindTextureToArray(tex_in[i], array[i], &chan_desc) != cudaSuccess) {
+		    printf("Failed to bind texture: %d - %s\n", i, cudaGetErrorString(cudaGetLastError()));
+		    exit(0);
+	    }
     }
 
-    cudaChannelFormatDesc y_chan_desc = cudaCreateChannelDesc<uint8_t>();
-    cudaChannelFormatDesc u_chan_desc = cudaCreateChannelDesc<uint8_t>();
-    cudaChannelFormatDesc v_chan_desc = cudaCreateChannelDesc<uint8_t>();
-	if (cudaBindTextureToArray(&tex_y, y_array, &y_chan_desc) != cudaSuccess) {
-		printf("Failed to bind y texture: %s\n", cudaGetErrorString(cudaGetLastError()));
-		exit(0);
-	}
-	if (cudaBindTextureToArray(&tex_u, u_array, &u_chan_desc) != cudaSuccess) {
-		printf("Failed to bind y texture: %s\n", cudaGetErrorString(cudaGetLastError()));
-		exit(0);
-	}
-	if (cudaBindTextureToArray(&tex_v, v_array, &v_chan_desc) != cudaSuccess) {
-		printf("Failed to bind y texture: %s\n", cudaGetErrorString(cudaGetLastError()));
-		exit(0);
-	}
-
-    comp_histogram<<<64, 256>>>(dev_hist_r, dev_hist_g, dev_hist_b, width, height);
+    comp_histogram<<<64, 256>>>(dev_hist[0], dev_hist[1], dev_hist[2], width, height);
     cudaThreadSynchronize();
-    get_max<<<1, 3>>>(dev_hist_r, dev_hist_g, dev_hist_b);
+    get_max<<<1, 3>>>(dev_hist[0], dev_hist[1], dev_hist[2]);
 
     cudaMemcpyFromSymbol(hist_max, dev_max, 3*sizeof(int));
 
-    cudaUnbindTexture(&tex_y);
-    cudaUnbindTexture(&tex_u);
-    cudaUnbindTexture(&tex_v);
-
-    cudaGLUnmapBufferObject(hist_obj[0]);
-    cudaGLUnmapBufferObject(hist_obj[1]);
-    cudaGLUnmapBufferObject(hist_obj[2]);
-
-    cudaGLUnregisterBufferObject(hist_obj[0]);
-    cudaGLUnregisterBufferObject(hist_obj[1]);
-    cudaGLUnregisterBufferObject(hist_obj[2]);
+    for (int i = 0; i < 3; i++)
+    {
+        cudaUnbindTexture(tex_in[i]);
+        cudaGLUnmapBufferObject(hist_obj[i]);
+        cudaGLUnregisterBufferObject(hist_obj[i]);
+    }
 
     cudaGraphicsUnmapResources(3, res);
-    cudaGraphicsUnregisterResource(res[0]);
-    cudaGraphicsUnregisterResource(res[1]);
-    cudaGraphicsUnregisterResource(res[2]);
+
+    for (int i = 0; i < 3; i++)
+    {    
+        cudaGraphicsUnregisterResource(res[i]);
+    }
 }
 
 void print_cuda_device_info()

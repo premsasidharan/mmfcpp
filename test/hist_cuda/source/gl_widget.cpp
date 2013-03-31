@@ -24,14 +24,14 @@ Gl_widget::Gl_widget(int w, int h, const QString& path, QGLFormat& fmt, QWidget*
     , timer(this)
     , offline(w, h, path, this, this)
 {
-    setWindowTitle("Edge: "+path);
+    setWindowTitle("CUDA Histogram");
 	setFocusPolicy(Qt::StrongFocus);
 }
 
 Gl_widget::~Gl_widget()
 {
 	delete_textures();
-    glDeleteBuffers(3, hist_obj); 
+    delete_hist_buffers();
 }
 
 bool Gl_widget::init_shader()
@@ -61,13 +61,7 @@ void Gl_widget::initializeGL()
 
     init_shader();
     init_textures();
-    glGenBuffers(3, hist_obj);    
-    for (int i = 0; i < 3; i++)
-    {
-        glBindBuffer(GL_ARRAY_BUFFER, hist_obj[i]);
-        glBufferData(GL_ARRAY_BUFFER, 256*2*sizeof(GL_INT), 0, GL_DYNAMIC_COPY);
-        glBindBuffer(GL_ARRAY_BUFFER, 0);
-    }
+    init_hist_buffers();
 
     glClearColor(0.0, 0.0, 0.0, 0.0);
     glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
@@ -95,9 +89,25 @@ void Gl_widget::init_textures()
     }
 }
 
+void Gl_widget::init_hist_buffers()
+{
+    glGenBuffers(3, hist_obj);    
+    for (int i = 0; i < 3; i++)
+    {
+        glBindBuffer(GL_ARRAY_BUFFER, hist_obj[i]);
+        glBufferData(GL_ARRAY_BUFFER, 256*2*sizeof(GL_INT), 0, GL_DYNAMIC_COPY);
+        glBindBuffer(GL_ARRAY_BUFFER, 0);
+    }
+}
+
 void Gl_widget::delete_textures()
 {
     glDeleteTextures(3, texture);
+}
+
+void Gl_widget::delete_hist_buffers()
+{
+    glDeleteBuffers(3, hist_obj); 
 }
 
 void Gl_widget::render_quad(int loc, int id, GLuint* fbo_buffs, int size)
@@ -118,46 +128,24 @@ void Gl_widget::render_quad(int loc, int id, GLuint* fbo_buffs, int size)
     glDisableClientState(GL_VERTEX_ARRAY);
 }
 
-void Gl_widget::paintGL()
+void Gl_widget::plote_histogram(int *hist_max)
 {
-    if (0 == prev_id || 0 == buff_id)
+    int pos[] = {0, 100, 200};
+    GLfloat color[] = {1.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 1.0f};
+
+    int max_value = (hist_max[0] < hist_max[1])?hist_max[1]:hist_max[0];
+    if (max_value < hist_max[2])
     {
-        return;
+        max_value = hist_max[2];
     }
 
-    int u_offset = (v_width*v_height);
-    int v_offset = u_offset+(u_offset>>2);
-    glBindBuffer(GL_PIXEL_UNPACK_BUFFER, buff_id);
-    glActiveTexture(GL_TEXTURE0);
-    glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, v_width, v_height, GL_LUMINANCE, GL_UNSIGNED_BYTE, 0);
-    glActiveTexture(GL_TEXTURE1);
-    glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, (v_width>>1), (v_height>>1), GL_LUMINANCE, GL_UNSIGNED_BYTE, (void*)u_offset);
-    glActiveTexture(GL_TEXTURE2);
-    glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, (v_width>>1), (v_height>>1), GL_LUMINANCE, GL_UNSIGNED_BYTE, (void*)v_offset);
-
-    int max[3];
-    compute_histogram(texture, hist_obj, max, v_width, v_height);
-
-    yuv420_filter.bind();
-    yuv420_filter.setUniformValue("texture_0", 0);
-    yuv420_filter.setUniformValue("texture_1", 1);
-    yuv420_filter.setUniformValue("texture_2", 2);
-    render_quad(yuv420_filter.attributeLocation("inTexCoord"), 4, 0, 0);
-    yuv420_filter.release();
-	glFinish();
-	   
-    max[0] = (max[0]*3)>>1;
-    max[1] = (max[1]*3)>>1;
-    max[2] = (max[2]*3)>>1;
-
-    GLfloat color[] = {1.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 1.0f};
     for (int i = 0; i < 3; i++)
     {
-	    glViewport(0, 0, width(), height());
+        glViewport(0, pos[i], width(), height()/4);
         glMatrixMode(GL_PROJECTION);
-	    glLoadIdentity();
-	    glOrtho(0.0, 256.0, 0.0, max[i], 0.0, 1.0);
-	    glMatrixMode(GL_MODELVIEW);
+        glLoadIdentity();
+        glOrtho(+0.0f, +256.0f, 0.0f, max_value, +0.0f, +1.0f);
+        glMatrixMode(GL_MODELVIEW);
 
         glBindBuffer(GL_ARRAY_BUFFER, hist_obj[i]);
         glColor3fv(&color[3*i]);
@@ -169,12 +157,53 @@ void Gl_widget::paintGL()
     }
 }
 
+void Gl_widget::paintGL()
+{
+    if (0 == prev_id || 0 == buff_id)
+    {
+        return;
+    }
+
+	glViewport(0, 0, width(), height());
+	glMatrixMode(GL_PROJECTION);
+	glLoadIdentity();
+	glOrtho(-1.0f, +1.0f, -1.0f, +1.0f, 0.0f, +1.0f);
+
+    //Initialize modelview matrix
+    glMatrixMode(GL_MODELVIEW);
+    glLoadIdentity();
+
+    int u_offset = (v_width*v_height);
+    int v_offset = u_offset+(u_offset>>2);
+    glBindBuffer(GL_PIXEL_UNPACK_BUFFER, buff_id);
+    glActiveTexture(GL_TEXTURE0);
+    glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, v_width, v_height, GL_LUMINANCE, GL_UNSIGNED_BYTE, 0);
+    glActiveTexture(GL_TEXTURE1);
+    glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, (v_width>>1), (v_height>>1), GL_LUMINANCE, GL_UNSIGNED_BYTE, (void*)u_offset);
+    glActiveTexture(GL_TEXTURE2);
+    glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, (v_width>>1), (v_height>>1), GL_LUMINANCE, GL_UNSIGNED_BYTE, (void*)v_offset);
+
+    int hist_max[3] = {1, 1, 1};
+    compute_histogram(texture, hist_obj, hist_max, v_width, v_height);
+
+    yuv420_filter.bind();
+    yuv420_filter.setUniformValue("texture_0", 0);
+    yuv420_filter.setUniformValue("texture_1", 1);
+    yuv420_filter.setUniformValue("texture_2", 2);
+    render_quad(yuv420_filter.attributeLocation("inTexCoord"), 4, 0, 0);
+    yuv420_filter.release();
+
+    plote_histogram(hist_max);
+
+	glFinish();
+}
+
 void Gl_widget::resizeGL(int w, int h)
 {
     glViewport(0, 0, w, h);
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
-    glOrtho(-1.0, +1.0, -1.0, +1.0, 0.0f, +1.0f);
+    glOrtho(-1.0f, +1.0f, -1.0f, +1.0f, 0.0f, +1.0f);
 
     //Initialize modelview matrix
     glMatrixMode(GL_MODELVIEW);
@@ -198,5 +227,4 @@ void Gl_widget::closeEvent(QCloseEvent* event)
     (void)event;
     offline.stop_thread();
 }
-
 

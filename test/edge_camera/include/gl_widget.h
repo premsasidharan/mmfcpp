@@ -48,9 +48,6 @@ private:
     enum {STAGE_GAUSS_SMOOTH, STAGE_EDGE, STAGE_NMES, STAGE_BINARY};
 
     GLuint fb_id;
-    
-    GLuint buff_id;
-    GLuint prev_id;
 
     int min_thr;
     int max_thr;

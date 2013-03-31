@@ -25,7 +25,11 @@ protected:
 
     bool init_shader();
 	void init_textures();
+    void init_hist_buffers();
+
 	void delete_textures();
+    void delete_hist_buffers();
+    void plote_histogram(int *max);
 
     void render_quad(int loc, int id, GLuint* fbo_buffs, int size);
 

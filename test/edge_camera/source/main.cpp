@@ -14,7 +14,7 @@ int main(int argc, char** argv)
     w = atoi(argv[2]);
     h = atoi(argv[3]);
     Gl_widget window(w, h, QString(argv[1]), format);
-	window.resize(w<<1, h<<1);
+	window.resize(w<<1, h);
 	window.show();
 	return app.exec();
 }
