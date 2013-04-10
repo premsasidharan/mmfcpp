@@ -271,7 +271,7 @@ void Gl_widget::render_to_texture()
                 break;
             case STAGE_NMS:
                 program[i]->setUniformValue("texture_0", 4);
-                program[i]->setUniformValue("threshold", ((float)threshold)/255.0f);
+                program[i]->setUniformValue("threshold", ((float)threshold)/4096.0f);
                 break;
             case STAGE_ADJUST:
                 program[i]->setUniformValue("texture_0", 5);
