@@ -19,7 +19,7 @@ Gl_widget::Gl_widget(int w, int h, const QString& path, QGLFormat& fmt, QWidget*
     , fb_id(0)
     , v_width(w)
     , v_height(h)
-    , threshold(20)
+    , threshold(25)
     , yuv_data(0)
     , nms_filter(this)
     , diff_filter(this)
@@ -271,7 +271,7 @@ void Gl_widget::render_to_texture()
                 break;
             case STAGE_NMS:
                 program[i]->setUniformValue("texture_0", 4);
-                program[i]->setUniformValue("threshold", ((float)threshold)/4096.0f);
+                program[i]->setUniformValue("threshold", ((float)threshold)/((float)(1<<16)));
                 break;
             case STAGE_ADJUST:
                 program[i]->setUniformValue("texture_0", 5);
